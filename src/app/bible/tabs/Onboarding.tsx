@@ -277,9 +277,25 @@ export default function Onboarding({ onComplete }: Props) {
             <h1 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
               Welcome to<br /><span style={{ color: accent }}>The Altar</span>
             </h1>
-            <p style={{ fontSize: 15, color: 'rgba(232,240,236,0.45)', marginBottom: 40, fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>
+            <p style={{ fontSize: 15, color: 'rgba(232,240,236,0.45)', marginBottom: 28, fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>
               Your personal Bible companion.<br />Let&apos;s make it yours.
             </p>
+
+            {/* Dedication */}
+            <div style={{
+              marginBottom: 28, padding: '14px 20px', borderRadius: 14,
+              background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.12)',
+            }}>
+              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(147,197,253,0.4)', margin: '0 0 6px', fontFamily: 'Montserrat, sans-serif' }}>
+                Dedicated to
+              </p>
+              <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.75)', margin: '0 0 4px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+                Bruce Mavis
+              </p>
+              <p style={{ fontSize: 12, color: 'rgba(147,197,253,0.45)', margin: 0, fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
+                A man who loved Jesus with everything he had.
+              </p>
+            </div>
 
             <div style={{ marginBottom: 36 }}>
               <p style={{ fontSize: 10, fontWeight: 800, color: `${accent}66`, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.15em' }}>What should we call you?</p>
