@@ -646,24 +646,22 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                 style={{
                   width: '100%',
                   maxWidth: 420,
-                  padding: '22px 32px',
+                  padding: '20px 32px',
                   borderRadius: 18,
-                  border: 'none',
+                  border: '1px solid rgba(186,230,253,0.3)',
                   cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-                  color: '#fff',
-                  fontSize: 18,
-                  fontWeight: 900,
-                  letterSpacing: 0.3,
-                  fontFamily: 'Montserrat, system-ui, sans-serif',
-                  boxShadow: '0 0 60px rgba(59,130,246,0.6), 0 0 120px rgba(59,130,246,0.25), 0 8px 32px rgba(0,0,0,0.5)',
+                  background: 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
+                  color: '#0c1a3a',
+                  boxShadow: '0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                   animation: 'ctaPulse 2.5s ease-in-out infinite',
                   transition: 'all 0.3s ease',
+                  lineHeight: 1.3,
                 }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
-                I Accept Jesus<br/>as My Lord and Savior
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif', opacity: 0.6, marginBottom: 4 }}>I declare</div>
+                <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>I Accept Jesus as My<br/>Lord and Savior</div>
               </button>
               <button onClick={() => setShowPrayer(false)}
                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>
@@ -842,23 +840,21 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                     width: '100%',
                     maxWidth: 380,
                     padding: '20px 32px',
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-                    border: 'none',
+                    background: 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
+                    border: '1px solid rgba(186,230,253,0.3)',
                     borderRadius: 18,
-                    color: '#fff',
-                    fontSize: 18,
-                    fontWeight: 900,
+                    color: '#0c1a3a',
                     cursor: 'pointer',
-                    letterSpacing: 0.3,
-                    fontFamily: 'Montserrat, system-ui, sans-serif',
-                    boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                    boxShadow: '0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                     animation: 'ctaPulse 2.5s ease-in-out infinite',
                     transition: 'all 0.3s ease',
+                    lineHeight: 1.3,
                   }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
                 >
-                  I&apos;m Ready to Pray
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif', opacity: 0.6, marginBottom: 4 }}>I&apos;m ready</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>Take Me to the Prayer</div>
                 </button>
               </div>
             )}
@@ -1046,18 +1042,20 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
               <button onClick={onClose}
                 style={{
                   width: '100%', maxWidth: 380,
-                  padding: '20px 32px', borderRadius: 18, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-                  color: '#fff', fontSize: 18, fontWeight: 900,
-                  fontFamily: 'Montserrat, sans-serif', letterSpacing: 0.3,
-                  boxShadow: '0 0 60px rgba(59,130,246,0.6), 0 0 120px rgba(59,130,246,0.25), 0 8px 32px rgba(0,0,0,0.5)',
+                  padding: '20px 32px', borderRadius: 18,
+                  border: '1px solid rgba(186,230,253,0.3)', cursor: 'pointer',
+                  background: 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
+                  color: '#0c1a3a',
+                  boxShadow: '0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                   animation: 'ctaPulse 2.5s ease-in-out infinite',
                   transition: 'all 0.3s ease',
+                  lineHeight: 1.3,
                 }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
-                Begin My Walk with God
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif', opacity: 0.6, marginBottom: 4 }}>My journey starts now</div>
+                <div style={{ fontSize: 20, fontWeight: 700, fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}>Begin My Walk with God</div>
               </button>
             </div>
           </div>
@@ -1087,8 +1085,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes ctaPulse {
-          0%, 100% { box-shadow: 0 0 60px rgba(59,130,246,0.6), 0 0 120px rgba(59,130,246,0.25), 0 8px 32px rgba(0,0,0,0.5); }
-          50% { box-shadow: 0 0 90px rgba(59,130,246,0.85), 0 0 180px rgba(59,130,246,0.4), 0 8px 40px rgba(0,0,0,0.6); }
+          0%, 100% { box-shadow: 0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+          50% { box-shadow: 0 0 90px rgba(125,211,252,0.8), 0 0 180px rgba(56,189,248,0.4), 0 8px 40px rgba(0,0,0,0.6); }
         }
         @keyframes crossGlow {
           0%, 100% { filter: drop-shadow(0 0 12px rgba(96,165,250,0.6)) drop-shadow(0 0 28px rgba(96,165,250,0.3)); }
