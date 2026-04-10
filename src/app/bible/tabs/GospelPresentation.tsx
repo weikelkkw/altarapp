@@ -651,7 +651,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                   border: '1px solid rgba(186,230,253,0.3)',
                   cursor: 'pointer',
                   background: 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
-                  color: '#000',
+                  color: '#fff',
                   boxShadow: '0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                   animation: 'ctaPulse 2.5s ease-in-out infinite',
                   transition: 'all 0.3s ease',
@@ -843,7 +843,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                     background: 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
                     border: '1px solid rgba(186,230,253,0.3)',
                     borderRadius: 18,
-                    color: '#000',
+                    color: '#fff',
                     cursor: 'pointer',
                     boxShadow: '0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                     animation: 'ctaPulse 2.5s ease-in-out infinite',
@@ -930,21 +930,21 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
               style={{
                 padding: '14px 40px',
                 borderRadius: 14,
-                border: 'none',
+                border: current === SLIDES.length - 1 ? 'none' : '1px solid rgba(186,230,253,0.3)',
                 background: current === SLIDES.length - 1
                   ? 'rgba(255,255,255,0.06)'
-                  : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+                  : 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
                 color: current === SLIDES.length - 1 ? 'rgba(255,255,255,0.2)' : '#fff',
                 fontSize: 15,
                 fontWeight: 800,
                 cursor: current === SLIDES.length - 1 ? 'default' : 'pointer',
                 transition: 'all 0.25s',
                 letterSpacing: 0.5,
-                boxShadow: current === SLIDES.length - 1 ? 'none' : '0 0 40px rgba(59,130,246,0.55), 0 4px 16px rgba(0,0,0,0.4)',
                 fontFamily: "'Montserrat', system-ui, sans-serif",
+                boxShadow: current === SLIDES.length - 1 ? 'none' : '0 0 40px rgba(125,211,252,0.5), 0 4px 16px rgba(0,0,0,0.4)',
               }}
-              onMouseEnter={e => { if (!isLast) { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 0 60px rgba(59,130,246,0.75), 0 6px 20px rgba(0,0,0,0.5)'; } }}
-              onMouseLeave={e => { if (!isLast) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.55), 0 4px 16px rgba(0,0,0,0.4)'; } }}
+              onMouseEnter={e => { if (!isLast) { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 0 60px rgba(125,211,252,0.75), 0 6px 20px rgba(0,0,0,0.5)'; } }}
+              onMouseLeave={e => { if (!isLast) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(125,211,252,0.5), 0 4px 16px rgba(0,0,0,0.4)'; } }}
             >
               Next →
             </button>
@@ -1045,7 +1045,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                   padding: '20px 32px', borderRadius: 18,
                   border: '1px solid rgba(186,230,253,0.3)', cursor: 'pointer',
                   background: 'linear-gradient(160deg, #bfdbfe 0%, #7dd3fc 40%, #38bdf8 100%)',
-                  color: '#000',
+                  color: '#fff',
                   boxShadow: '0 0 60px rgba(125,211,252,0.55), 0 0 120px rgba(56,189,248,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                   animation: 'ctaPulse 2.5s ease-in-out infinite',
                   transition: 'all 0.3s ease',
