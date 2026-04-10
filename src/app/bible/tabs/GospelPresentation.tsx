@@ -343,8 +343,26 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
 
 
 
+      {/* ─── Prayer image ─── */}
+      {showPrayer && (
+        <img
+          src="/gospel-prayer.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0, left: 0, right: 0,
+            width: '100%', height: '65%',
+            objectFit: 'cover', objectPosition: 'center center',
+            opacity: 0.50,
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+          }}
+        />
+      )}
+
       {/* ─── Slide image ─── */}
-      {slide.id === 'love' && (
+      {!showPrayer && slide.id === 'love' && (
         <img
           src="/gospel-love.jpg"
           alt=""
@@ -365,7 +383,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
-      {slide.id === 'problem' && (
+      {!showPrayer && slide.id === 'problem' && (
         <img
           src="/gospel-problem.jpg"
           alt=""
@@ -382,7 +400,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
-      {slide.id === 'cost' && (
+      {!showPrayer && slide.id === 'cost' && (
         <img
           src="/gospel-cost.jpg"
           alt=""
@@ -403,7 +421,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
-      {slide.id === 'solution' && (
+      {!showPrayer && slide.id === 'solution' && (
         <img
           src="/gospel-solution.jpg"
           alt=""
@@ -424,7 +442,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
-      {slide.id === 'response' && (
+      {!showPrayer && slide.id === 'response' && (
         <img
           src="/gospel-response.jpg"
           alt=""
@@ -445,7 +463,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
-      {slide.id === 'gift' && (
+      {!showPrayer && slide.id === 'gift' && (
         <img
           src="/gospel-gift.jpg"
           alt=""
@@ -466,7 +484,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
-      {slide.id === 'new-life' && (
+      {!showPrayer && slide.id === 'new-life' && (
         <img
           src="/gospel-new-life.jpg"
           alt=""
