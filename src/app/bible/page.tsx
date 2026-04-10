@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ApiBible, Passage, PassageSection, AltarNote, UserIdentity, BookDef,
   T, BOOKS, POPULAR_ABBRS, DAILY_VERSE_REFS, AVATAR_COLORS,
@@ -21,6 +22,7 @@ import TrophyRoom from './tabs/TrophyRoom';
 import AuthModal from './tabs/AuthModal';
 import Onboarding from './tabs/Onboarding';
 import { useAuth } from './lib/useAuth';
+import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'home' | 'read' | 'search' | 'study' | 'community';
 
@@ -131,6 +133,14 @@ export default function AltarApp() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const { user, profile, loading: authLoading, signOut } = useAuth();
+  const router = useRouter();
+
+  // ── Auth guard — redirect to sign-in if not authenticated ───────────────────
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/bible/auth');
+    }
+  }, [authLoading, user, router]);
 
   // Check onboarding status — wait for auth to finish loading first
   const authDone = !authLoading;
@@ -152,6 +162,7 @@ export default function AltarApp() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [ttsVoice, setTtsVoice] = useState('');
+  const [scriptureBackground, setScriptureBackground] = useState(true);
   const [ttsRate, setTtsRate] = useState(1);
   const [ttsMode, setTtsMode] = useState<'narrator' | 'crafted'>('narrator');
   const [defaultBible, setDefaultBible] = useState('KJV');
@@ -163,17 +174,18 @@ export default function AltarApp() {
     return () => clearInterval(interval);
   }, []);
 
-  // ── Compute notification badge count on mount ────────────────────────────────
+  // Badge count is driven entirely by onUnreadChange from NotificationsTab
+
+  // ── Sync real profile into identity when signed in ───────────────────────────
   useEffect(() => {
-    try {
-      const dismissed: string[] = JSON.parse(localStorage.getItem('trace-notifs-dismissed') || '[]');
-      const read: string[] = JSON.parse(localStorage.getItem('trace-notifs-read') || '[]');
-      // Quick estimate: count keys that could be notifications and aren't read or dismissed
-      const estimatedKeys = ['streak-notif', 'daily-verse-ready', 'tip-highlights'];
-      const unread = estimatedKeys.filter(k => !dismissed.includes(k) && !read.includes(k)).length;
-      if (unread > 0) setNotifUnread(unread);
-    } catch {}
-  }, []);
+    if (profile) {
+      setUserIdentity(prev => ({
+        ...prev,
+        name: profile.display_name || prev.name,
+        color: profile.avatar_color || prev.color,
+      }));
+    }
+  }, [profile]);
 
   // ── Init identity + load saved settings ─────────────────────────────────────
   useEffect(() => {
@@ -193,6 +205,7 @@ export default function AltarApp() {
         if (s.ttsVoice) setTtsVoice(s.ttsVoice);
         if (s.ttsRate) setTtsRate(s.ttsRate);
         if (s.ttsMode) setTtsMode(s.ttsMode);
+        if (s.scriptureBackground !== undefined) setScriptureBackground(s.scriptureBackground);
       }
     } catch {}
   }, []);
@@ -200,9 +213,9 @@ export default function AltarApp() {
   // ── Auto-save settings on change ───────────────────────────────────────────
   useEffect(() => {
     try {
-      localStorage.setItem('trace-settings', JSON.stringify({ themeId, fontSize, ttsEnabled, ttsVoice, ttsRate, ttsMode }));
+      localStorage.setItem('trace-settings', JSON.stringify({ themeId, fontSize, ttsEnabled, ttsVoice, ttsRate, ttsMode, scriptureBackground }));
     } catch {}
-  }, [themeId, fontSize, ttsEnabled, ttsVoice, ttsRate, ttsMode]);
+  }, [themeId, fontSize, ttsEnabled, ttsVoice, ttsRate, ttsMode, scriptureBackground]);
 
   // ── Load translations ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -497,13 +510,18 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
     setShowOnboarding(false);
   };
 
+  // Show nothing (black screen) while auth loads or if unauthenticated — router.replace handles redirect
+  if (authLoading || !user) {
+    return <div className="min-h-screen" style={{ background: '#000' }} />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: theme.bg, position: 'relative', overflow: 'hidden' }} suppressHydrationWarning>
       {/* Onboarding */}
       {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
 
       {/* Full-page flowing Scripture background */}
-      {!isWhiteTheme && (
+      {!isWhiteTheme && scriptureBackground && (
         <>
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes pageScriptureGlow { 0% { background-position: 0% 100%; } 100% { background-position: 0% -100%; } }
@@ -697,25 +715,21 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               experienceLevel={xp}
               jumpToVerse={jumpToVerse}
               onJumpHandled={() => setJumpToVerse(undefined)}
-              onShareNote={(noteText, bookName, chapter) => {
-                // Add note as a community post
-                const post = {
-                  id: crypto.randomUUID(),
-                  authorToken: userIdentity.token,
-                  authorName: userIdentity.name,
-                  authorColor: userIdentity.color,
-                  authorPicture: userIdentity.profilePicture,
-                  content: noteText,
-                  verseRef: `${bookName} ${chapter}`,
-                  createdAt: new Date().toISOString(),
-                  likes: [] as string[],
-                  prayers: [] as string[],
-                  comments: [] as { id: string; authorToken: string; authorName: string; authorColor: string; content: string; createdAt: string; likes: string[] }[],
-                };
-                try {
-                  const existing = JSON.parse(localStorage.getItem('trace-community-posts') || '[]');
-                  localStorage.setItem('trace-community-posts', JSON.stringify([post, ...existing]));
-                } catch {}
+              onShareNote={async (noteText, bookName, chapter) => {
+                // Share note to community via Supabase if signed in
+                if (profile?.id) {
+                  try {
+                    const supabase = createClient();
+                    if (supabase) {
+                      await supabase.from('trace_posts').insert({
+                        author_id: profile.id,
+                        type: 'note',
+                        content: noteText,
+                        verse_ref: `${bookName} ${chapter}`,
+                      });
+                    }
+                  } catch {}
+                }
                 setTab('community');
               }}
             />
@@ -889,6 +903,8 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
         userName={profile?.display_name || user?.email?.split('@')[0] || ''}
         onSignOut={signOut}
         onOpenAuth={() => { setSettingsOpen(false); setAuthOpen(true); }}
+        scriptureBackground={scriptureBackground}
+        setScriptureBackground={setScriptureBackground}
       />
 
       {/* ── Notifications Panel ─────────────────────────────────────────────── */}

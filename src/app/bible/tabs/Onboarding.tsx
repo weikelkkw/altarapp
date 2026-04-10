@@ -40,7 +40,7 @@ const THEME_PICKS = [
   { id: 'black-purple', label: 'Purple', accent: '#a855f7', bg: '#000' },
   { id: 'black-red', label: 'Red', accent: '#ef4444', bg: '#000' },
   { id: 'black-cyan', label: 'Cyan', accent: '#06b6d4', bg: '#000' },
-  { id: 'trace', label: 'Trace', accent: '#00d084', bg: '#0f1f18' },
+  { id: 'trace', label: 'The Altar', accent: '#00d084', bg: '#0f1f18' },
   { id: 'midnight', label: 'Midnight', accent: '#60a5fa', bg: '#0f1729' },
   { id: 'warm', label: 'Warm', accent: '#d4a853', bg: '#1a1610' },
   { id: 'white-blue', label: 'Light Blue', accent: '#2563eb', bg: '#fff' },
@@ -165,13 +165,13 @@ export default function Onboarding({ onComplete }: Props) {
         }} />
       ))}
 
-      {/* Background "TRACE" watermark */}
+      {/* Background watermark */}
       <div style={{
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        fontSize: 'min(30vw, 200px)', fontWeight: 900, letterSpacing: '0.2em',
+        fontSize: 'min(18vw, 130px)', fontWeight: 900, letterSpacing: '0.1em',
         color: `${accent}`, opacity: 0.02, pointerEvents: 'none', userSelect: 'none',
         whiteSpace: 'nowrap',
-      }}>TRACE</div>
+      }}>THE ALTAR</div>
 
       {/* ── Progress bar ─────────────────────────────────────── */}
       <div style={{ position: 'relative', height: 4, background: 'rgba(255,255,255,0.04)', zIndex: 10 }}>
@@ -235,7 +235,7 @@ export default function Onboarding({ onComplete }: Props) {
             </div>
 
             <h1 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-              Welcome to<br /><span style={{ color: accent }}>Trace</span>
+              Welcome to<br /><span style={{ color: accent }}>The Altar</span>
             </h1>
             <p style={{ fontSize: 15, color: 'rgba(232,240,236,0.45)', marginBottom: 40, fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>
               Your personal Bible companion.<br />Let&apos;s make it yours.
@@ -496,7 +496,7 @@ export default function Onboarding({ onComplete }: Props) {
               fontSize: 16, padding: '18px',
               animation: 'obGlowPulse 3s ease-in-out infinite',
             }}>
-              Enter Trace ✦
+              Enter The Altar ✦
             </button>
           </div>
         )}

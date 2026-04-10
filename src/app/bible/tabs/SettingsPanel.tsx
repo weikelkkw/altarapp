@@ -42,6 +42,8 @@ interface Props {
   userName?: string;
   onSignOut?: () => void | Promise<void>;
   onOpenAuth?: () => void;
+  scriptureBackground?: boolean;
+  setScriptureBackground?: (v: boolean) => void;
 }
 
 export default function SettingsPanel({
@@ -53,6 +55,7 @@ export default function SettingsPanel({
   ttsMode, setTtsMode,
   defaultBible, onSetDefaultBible,
   isSignedIn, userName, onSignOut, onOpenAuth,
+  scriptureBackground, setScriptureBackground,
 }: Props) {
   const [allVoices, setAllVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [matchedVoices, setMatchedVoices] = useState<{ label: string; gender: 'male' | 'female'; voiceName: string }[]>([]);
@@ -690,6 +693,24 @@ export default function SettingsPanel({
                   <p className="text-[8px] mt-1.5" style={{ color: 'rgba(232,240,236,0.2)' }}>This will be your default when you open the Read tab</p>
                 </div>
               )}
+
+              {/* Scripture background toggle */}
+              {setScriptureBackground && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: '#f0f8f4' }}>Scripture Background</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.3)' }}>Flowing verse glow behind the app</p>
+                  </div>
+                  <button
+                    onClick={() => setScriptureBackground(!(scriptureBackground ?? true))}
+                    className="w-12 h-7 rounded-full transition-all relative"
+                    style={{ background: (scriptureBackground ?? true) ? accentColor : 'rgba(255,255,255,0.1)' }}
+                  >
+                    <div className="absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-md"
+                      style={{ left: (scriptureBackground ?? true) ? '26px' : '2px' }} />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -850,16 +871,16 @@ export default function SettingsPanel({
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white"
                   style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>T</div>
                 <div>
-                  <p className="text-sm font-bold" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', letterSpacing: '0.05em' }}>TRACE</p>
-                  <p className="text-xs" style={{ color: `${accentColor}66` }}>Truth & Grace</p>
+                  <p className="text-sm font-bold" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', letterSpacing: '0.05em' }}>THE ALTAR</p>
+                  <p className="text-xs" style={{ color: `${accentColor}66` }}>The Entrance</p>
                 </div>
               </div>
               <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.4)' }}>
-                On mission to leave a Trace of God&apos;s love everywhere we go. Powered by AI to help you study Scripture deeper.
+                A sacred space to encounter God through His Word. Powered by AI to help you study Scripture deeper.
               </p>
               <div className="pt-2" style={{ borderTop: `1px solid ${accentColor}10` }}>
                 <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>Scripture via api.bible · AI powered by Claude</p>
-                <p className="text-[10px] mt-1" style={{ color: 'rgba(232,240,236,0.2)' }}>Trace Church · Colorado Springs, CO</p>
+                <p className="text-[10px] mt-1" style={{ color: 'rgba(232,240,236,0.2)' }}>The Altar · thealtarco.app</p>
               </div>
             </div>
           )}

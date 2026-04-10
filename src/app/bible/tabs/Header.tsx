@@ -55,26 +55,40 @@ export default function Header({
       <div className="relative max-w-4xl mx-auto px-4 pt-5 pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <div className="mb-2">
-              {/* TRACE wordmark */}
-              <div className="flex items-baseline gap-0 relative w-fit">
-                <span className="relative font-black select-none" style={{
-                  fontFamily: 'Montserrat, system-ui, sans-serif',
-                  fontSize: 26, lineHeight: 1, letterSpacing: '0.06em', color: '#00d084',
-                }}>T</span>
-                <span className="relative font-black select-none" style={{
-                  fontFamily: 'Montserrat, system-ui, sans-serif',
-                  fontSize: 26, lineHeight: 1, letterSpacing: '0.06em', color: '#ffffff',
-                }}>RACE</span>
-                <div className="absolute -top-1 -right-2.5 w-2 h-2 rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.6)', animation: 'dotPulse 2s ease-in-out infinite' }} />
+            <div className="mb-1.5">
+              {/* The Altar logo lockup */}
+              <div className="flex items-center gap-2.5">
+                {/* Cross icon */}
+                <svg width="14" height="20" viewBox="0 0 14 20" fill="none" style={{ filter: `drop-shadow(0 0 4px ${accentColor}88)`, flexShrink: 0 }}>
+                  <rect x="5.5" y="0" width="3" height="20" rx="0.75" fill={accentColor} />
+                  <rect x="0" y="5" width="14" height="3" rx="0.75" fill={accentColor} />
+                </svg>
+                {/* Wordmark */}
+                <div className="relative overflow-hidden">
+                  <span className="font-black select-none block" style={{
+                    fontFamily: 'Montserrat, system-ui, sans-serif',
+                    fontSize: 22, lineHeight: 1, letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    background: `linear-gradient(160deg, #fff 0%, ${accentColor} 70%)`,
+                    backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent',
+                    filter: `drop-shadow(0 0 8px ${accentColor}44)`,
+                  }}>The Altar</span>
+                  {/* Shimmer sweep */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div style={{
+                      position: 'absolute', top: 0, bottom: 0, width: '30%',
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)',
+                      animation: 'shimmer 6s ease-in-out 2s infinite',
+                    }} />
+                  </div>
+                </div>
               </div>
-              <div className="relative mt-0.5 w-fit overflow-hidden">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.22em]" style={{ color: '#00d08488', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Truth & Grace</p>
-                <div className="absolute inset-0 pointer-events-none" style={{
-                  background: 'linear-gradient(90deg, transparent 0%, transparent 25%, rgba(255,255,255,0.2) 50%, transparent 75%, transparent 100%)',
-                  animation: 'glistenSweep 6s ease-in-out 1.5s infinite',
-                }} />
-              </div>
+              <p className="text-[8px] font-bold uppercase mt-1" style={{
+                color: `${accentColor}55`,
+                letterSpacing: '0.22em',
+                fontFamily: 'Montserrat, system-ui, sans-serif',
+                paddingLeft: 22,
+              }}>The Entrance</p>
             </div>
 
             {tab === 'read' && (
@@ -135,8 +149,6 @@ export default function Header({
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
-        @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
-        @keyframes glistenSweep { 0%, 100% { transform: translateX(-150%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 95%, 100% { transform: translateX(250%); opacity: 0; } }
       `}} />
     </header>
   );

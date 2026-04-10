@@ -273,23 +273,23 @@ export default function HomeTab({
   useEffect(() => {
     try {
       const s = localStorage.getItem('trace-streak');
+      const todayUtc = new Date().toISOString().split('T')[0];
+      const yesterdayUtc = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       if (s) {
         const data = JSON.parse(s);
-        const lastDate = new Date(data.lastDate).toDateString();
-        const today = new Date().toDateString();
-        const yesterday = new Date(Date.now() - 86400000).toDateString();
-        if (lastDate === today) setStreak(data.count);
-        else if (lastDate === yesterday) {
-          const updated = { count: data.count + 1, lastDate: new Date().toISOString() };
+        const lastDate = new Date(data.lastDate).toISOString().split('T')[0];
+        if (lastDate === todayUtc) setStreak(data.count);
+        else if (lastDate === yesterdayUtc) {
+          const updated = { count: data.count + 1, lastDate: todayUtc };
           localStorage.setItem('trace-streak', JSON.stringify(updated));
           setStreak(updated.count);
         } else {
-          const reset = { count: 1, lastDate: new Date().toISOString() };
+          const reset = { count: 1, lastDate: todayUtc };
           localStorage.setItem('trace-streak', JSON.stringify(reset));
           setStreak(1);
         }
       } else {
-        const init = { count: 1, lastDate: new Date().toISOString() };
+        const init = { count: 1, lastDate: todayUtc };
         localStorage.setItem('trace-streak', JSON.stringify(init));
         setStreak(1);
       }

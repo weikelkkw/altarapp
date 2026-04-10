@@ -231,7 +231,7 @@ function Sidebar({ active, onNavigate, collapsed, onToggle }: {
         }}>T</div>
         {!collapsed && (
           <div>
-            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 15, color: COLORS.text }}>Trace Admin</div>
+            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 15, color: COLORS.text }}>The Altar Admin</div>
             <div style={{ fontSize: 11, color: COLORS.textMuted }}>Bible App Portal</div>
           </div>
         )}
@@ -1108,7 +1108,7 @@ function SettingsSection() {
         <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
           value={settings.announcementText}
           onChange={e => setSettings({ ...settings, announcementText: e.target.value })}
-          placeholder="e.g., Welcome to Trace Bible! New reading plans available now."
+          placeholder="e.g., Welcome to The Altar! New reading plans available now."
           rows={3}
           style={{
             background: 'rgba(255,255,255,0.05)', border: `1px solid ${COLORS.border}`,
@@ -1124,7 +1124,7 @@ function SettingsSection() {
           Feature Flags
         </h3>
         <p style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
-          Toggle features on or off for the Trace Bible app.
+          Toggle features on or off for The Altar app.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 12 }}>
           {Object.entries(settings.features).map(([key, enabled]) => (
@@ -1309,16 +1309,16 @@ export default function TraceAdminPortal() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 28, fontWeight: 800, color: '#000', margin: '0 auto 24px',
           }}>T</div>
-          <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Trace Admin</h1>
+          <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>The Altar Admin</h1>
           <p style={{ color: COLORS.textMuted, fontSize: 15, marginBottom: 24, lineHeight: 1.5 }}>
-            You must be signed in to access the admin portal. Please sign in through the Trace Bible app first.
+            You must be signed in to access the admin portal. Please sign in through The Altar app first.
           </p>
           <Link href="/bible" style={{
             display: 'inline-block', padding: '12px 32px', borderRadius: 10,
             background: COLORS.accent, color: '#000', fontWeight: 700, fontSize: 15,
             textDecoration: 'none',
           }}>
-            Go to Trace Bible
+            Go to The Altar
           </Link>
         </div>
       </div>
@@ -1348,7 +1348,7 @@ export default function TraceAdminPortal() {
         }}>
           <div>
             <div style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 4, letterSpacing: 1, textTransform: 'uppercase' }}>
-              Trace Bible Admin
+              The Altar Admin
             </div>
             <h1 style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 28, fontWeight: 700, color: COLORS.text, margin: 0 }}>
               {NAV_ITEMS.find(n => n.id === section)?.label || 'Dashboard'}

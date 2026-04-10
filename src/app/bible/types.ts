@@ -315,9 +315,9 @@ export function timeAgo(date: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// Theme constants — Trace Church branding
+// Theme constants — The Altar branding
 export const T = {
-  gold: '#00d084',           // Trace green (primary)
+  gold: '#00d084',           // primary accent
   goldFaint: 'rgba(0,208,132,0.08)',
   goldBorder: 'rgba(0,208,132,0.18)',
   cream: '#e8f0ec',

@@ -21,14 +21,14 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://traceapp.com';
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'Trace — Bible Study',
-    template: '%s | Trace',
+    default: 'The Altar — Bible Study',
+    template: '%s | The Altar',
   },
-  description: 'A modern Bible study app with community, reading plans, and deep study tools.',
+  description: 'The Entrance. Bible study, community, reading plans, and deep study tools.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'Trace',
+    title: 'The Altar',
     statusBarStyle: 'black-translucent',
     startupImage: [
       // iPhone 15 Pro Max
@@ -48,14 +48,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: baseUrl,
-    title: 'Trace — Bible Study',
-    description: 'A modern Bible study app with community, reading plans, and deep study tools.',
-    siteName: 'Trace',
+    title: 'The Altar — Bible Study',
+    description: 'The Entrance. Bible study, community, reading plans, and deep study tools.',
+    siteName: 'The Altar',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Trace — Bible Study',
-    description: 'A modern Bible study app with community, reading plans, and deep study tools.',
+    title: 'The Altar — Bible Study',
+    description: 'The Entrance. Bible study, community, reading plans, and deep study tools.',
   },
   robots: { index: true, follow: true },
 };

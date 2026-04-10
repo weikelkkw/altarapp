@@ -1,7 +1,7 @@
 {
-  "name": "Trace — Bible Study",
-  "short_name": "Trace",
-  "description": "A modern Bible study app with community, reading plans, and deep study tools.",
+  "name": "The Altar — Bible Study",
+  "short_name": "The Altar",
+  "description": "A place to meet God. Bible study, community, reading plans, and deep study tools.",
   "start_url": "/bible",
   "scope": "/",
   "display": "standalone",

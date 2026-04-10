@@ -236,7 +236,7 @@ export default function AuthModal({ open, onClose, onAuth, accentColor }: Props)
             margin: 0,
             letterSpacing: '-0.01em',
           }}>
-            Trace Bible
+            The Altar
           </h2>
           <p style={{
             fontSize: 13,

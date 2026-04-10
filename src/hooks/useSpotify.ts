@@ -188,7 +188,7 @@ export function useSpotify(): SpotifyState & SpotifyActions {
 
     (window as any).onSpotifyWebPlaybackSDKReady = () => {
       const player = new (window as any).Spotify.Player({
-        name: 'Trace Bible App',
+        name: 'The Altar',
         getOAuthToken: async (cb: (t: string) => void) => {
           const token = await getAccessToken();
           if (token) cb(token);
