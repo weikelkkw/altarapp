@@ -290,7 +290,7 @@ export default function Onboarding({ onComplete }: Props) {
                 Dedicated to
               </p>
               <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.75)', margin: '0 0 4px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
-                Bruce Mavis
+                Bruce Mavis · 1962–2026
               </p>
               <p style={{ fontSize: 12, color: 'rgba(147,197,253,0.45)', margin: 0, fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
                 A man who loved Jesus with everything he had.
