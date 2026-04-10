@@ -112,7 +112,7 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
 
   // Highlights
   const hCount = highlighted.size;
-  const hMilestone = [250, 100, 50, 25, 10, 5, 1].find(m => hCount >= m);
+  const hMilestone = [250, 100, 50, 25, 10, 5].find(m => hCount >= m);
   if (hMilestone) out.push({
     id: `hl-${hMilestone}`, type: 'milestone', icon: '✨',
     title: `${hCount} Verse${hCount === 1 ? '' : 's'} Highlighted`,

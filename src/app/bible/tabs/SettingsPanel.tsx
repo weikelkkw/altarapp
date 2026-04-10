@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { UserIdentity, AVATAR_COLORS } from '../types';
+import { createClient } from '@/lib/supabase/client';
 
 type ThemeId = string;
 
@@ -44,6 +45,7 @@ interface Props {
   onOpenAuth?: () => void;
   scriptureBackground?: boolean;
   setScriptureBackground?: (v: boolean) => void;
+  authUser?: { id: string } | null;
 }
 
 export default function SettingsPanel({
@@ -56,6 +58,7 @@ export default function SettingsPanel({
   defaultBible, onSetDefaultBible,
   isSignedIn, userName, onSignOut, onOpenAuth,
   scriptureBackground, setScriptureBackground,
+  authUser,
 }: Props) {
   const [allVoices, setAllVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [matchedVoices, setMatchedVoices] = useState<{ label: string; gender: 'male' | 'female'; voiceName: string }[]>([]);
@@ -100,8 +103,8 @@ export default function SettingsPanel({
 
   const markChanged = () => { setHasChanges(true); setSaved(false); };
 
-  const handleSaveAll = () => {
-    // Commit identity
+  const handleSaveAll = async () => {
+    // Commit identity locally
     setUserIdentity(draftIdentity);
     localStorage.setItem('trace-identity', JSON.stringify(draftIdentity));
     // Commit appearance
@@ -116,6 +119,31 @@ export default function SettingsPanel({
     setHasChanges(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+
+    // Sync to Supabase
+    if (authUser?.id) {
+      try {
+        const sb = createClient();
+        if (sb) {
+          const { bio, testimony, dateOfBirth, location, church, savedDate, baptismDate,
+            denomination, favoriteVerse, favoriteBook, spiritualGifts, prayerFor, lifeVerse,
+            mentor, discipling, ministryRole, readingGoal, favoriteHymn, favoritePreacher,
+            profilePicture, isPublic } = draftIdentity;
+          await sb.from('trace_profiles').update({
+            display_name: draftIdentity.name,
+            avatar_color: draftIdentity.color,
+            experience_level: draftIdentity.experienceLevel,
+            is_public: isPublic !== false,
+            profile_data: {
+              bio, testimony, dateOfBirth, location, church, savedDate, baptismDate,
+              denomination, favoriteVerse, favoriteBook, spiritualGifts, prayerFor, lifeVerse,
+              mentor, discipling, ministryRole, readingGoal, favoriteHymn, favoritePreacher,
+              profilePicture,
+            },
+          }).eq('auth_id', authUser.id);
+        }
+      } catch { /* silent — local save already done */ }
+    }
   };
 
   const stopPreview = useCallback(() => {
@@ -414,7 +442,7 @@ export default function SettingsPanel({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Date of Birth</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="date"
+                  <input type="date"
                     defaultValue={id.dateOfBirth || ''}
                     onChange={e => saveIdentity({ dateOfBirth: e.target.value })}
                     className="w-full rounded-lg px-3 py-2 text-sm outline-none"
@@ -446,7 +474,7 @@ export default function SettingsPanel({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Date Saved</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="date"
+                  <input type="date"
                     defaultValue={id.savedDate || ''}
                     onChange={e => saveIdentity({ savedDate: e.target.value })}
                     className="w-full rounded-lg px-3 py-2 text-sm outline-none"
@@ -454,7 +482,7 @@ export default function SettingsPanel({
                 </div>
                 <div>
                   <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Date Baptized</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="date"
+                  <input type="date"
                     defaultValue={id.baptismDate || ''}
                     onChange={e => saveIdentity({ baptismDate: e.target.value })}
                     className="w-full rounded-lg px-3 py-2 text-sm outline-none"

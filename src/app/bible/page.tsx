@@ -180,14 +180,53 @@ export default function AltarApp() {
 
   // ── Sync real profile into identity when signed in ───────────────────────────
   useEffect(() => {
-    if (profile) {
-      setUserIdentity(prev => ({
-        ...prev,
-        name: profile.display_name || prev.name,
-        color: profile.avatar_color || prev.color,
-      }));
-    }
-  }, [profile]);
+    if (!user?.id) return;
+    const sb = createClient();
+    if (!sb) return;
+    sb.from('trace_profiles')
+      .select('display_name, avatar_color, experience_level, is_public, profile_data')
+      .eq('auth_id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (!data) return;
+        const pd: Record<string, any> = (data as any).profile_data || {};
+        setUserIdentity(prev => ({
+          ...prev,
+          name: (data as any).display_name || prev.name,
+          color: (data as any).avatar_color || prev.color,
+          experienceLevel: (data as any).experience_level || prev.experienceLevel,
+          isPublic: (data as any).is_public !== false,
+          // Merge profile_data fields — only override if Supabase has a non-empty value
+          ...(pd.bio        ? { bio: pd.bio }               : {}),
+          ...(pd.testimony  ? { testimony: pd.testimony }   : {}),
+          ...(pd.church     ? { church: pd.church }         : {}),
+          ...(pd.location   ? { location: pd.location }     : {}),
+          ...(pd.lifeVerse  ? { lifeVerse: pd.lifeVerse }   : {}),
+          ...(pd.favoriteVerse ? { favoriteVerse: pd.favoriteVerse } : {}),
+          ...(pd.spiritualGifts ? { spiritualGifts: pd.spiritualGifts } : {}),
+          ...(pd.ministryRole   ? { ministryRole: pd.ministryRole }   : {}),
+          ...(pd.profilePicture ? { profilePicture: pd.profilePicture } : {}),
+          ...(pd.dateOfBirth    ? { dateOfBirth: pd.dateOfBirth }     : {}),
+          ...(pd.savedDate      ? { savedDate: pd.savedDate }         : {}),
+          ...(pd.baptismDate    ? { baptismDate: pd.baptismDate }     : {}),
+          ...(pd.denomination   ? { denomination: pd.denomination }   : {}),
+          ...(pd.prayerFor      ? { prayerFor: pd.prayerFor }         : {}),
+          ...(pd.mentor         ? { mentor: pd.mentor }               : {}),
+          ...(pd.discipling     ? { discipling: pd.discipling }       : {}),
+          ...(pd.readingGoal    ? { readingGoal: pd.readingGoal }     : {}),
+          ...(pd.favoriteHymn   ? { favoriteHymn: pd.favoriteHymn }   : {}),
+          ...(pd.favoritePreacher ? { favoritePreacher: pd.favoritePreacher } : {}),
+        }));
+        // Persist merged identity locally
+        localStorage.setItem('trace-identity', JSON.stringify({
+          ...JSON.parse(localStorage.getItem('trace-identity') || '{}'),
+          ...pd,
+          name: (data as any).display_name,
+          color: (data as any).avatar_color,
+        }));
+      })
+      .catch(() => {});
+  }, [user?.id]);
 
   // ── Init identity + load saved settings ─────────────────────────────────────
   useEffect(() => {
@@ -917,6 +956,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
         onOpenAuth={() => { setSettingsOpen(false); setAuthOpen(true); }}
         scriptureBackground={scriptureBackground}
         setScriptureBackground={setScriptureBackground}
+        authUser={user}
       />
 
       {/* ── Notifications Panel ─────────────────────────────────────────────── */}
