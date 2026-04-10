@@ -673,11 +673,11 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     {/* Jesus image with sweep glow — isolated so glow doesn't hit text */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ isolation: 'isolate' }}>
                       <img src="/jesus.jpg" alt="" style={{ position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.40, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
-                      {/* Sweep glow — brightens image only */}
+                      {/* Sweep glow — thin subtle line brightens image */}
                       <div style={{
-                        position: 'absolute', top: 0, left: 0, width: '55%', height: '100%',
-                        background: 'linear-gradient(105deg, transparent 0%, rgba(180,210,255,0.55) 50%, transparent 100%)',
-                        animation: 'gospelImgSweep 7s ease-in-out infinite',
+                        position: 'absolute', top: 0, left: 0, width: '18%', height: '100%',
+                        background: 'linear-gradient(105deg, transparent 0%, rgba(210,228,255,0.35) 50%, transparent 100%)',
+                        animation: 'gospelImgSweep 9s ease-in-out infinite',
                         mixBlendMode: 'soft-light',
                       }} />
                     </div>
