@@ -402,6 +402,27 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
         </svg>
       </div>
 
+      {/* ─── Slide image ─── */}
+      {slide.id === 'cost' && (
+        <img
+          src="/gospel-cost.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            opacity: animating ? 0 : 0.28,
+            transition: 'opacity 0.6s ease',
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)',
+          }}
+        />
+      )}
+
       {/* ─── Top bar ─── */}
       <div
         style={{
