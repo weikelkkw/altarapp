@@ -258,22 +258,17 @@ export default function Onboarding({ onComplete }: Props) {
       }}>
 
         {/* ── Memorial slides ─────────────────────────────── */}
-        {step === 'welcome' && memorialSlide < 3 && (() => {
+        {step === 'welcome' && memorialSlide < 2 && (() => {
           const slides = [
+            {
+              eyebrow: 'In Loving Memory',
+              body: 'Bruce Mavis',
+              sub: 'A man of Jesus. A good father. A faithful servant of the Lord.',
+            },
             {
               eyebrow: 'A word for the journey',
               body: '"Well done, good and faithful servant."',
               sub: '— Matthew 25:23',
-            },
-            {
-              eyebrow: 'In his memory',
-              body: 'He was a man of Jesus — a good father, and a faithful servant of the Lord.',
-              sub: 'His faith lives on in the lives he touched.',
-            },
-            {
-              eyebrow: 'In Loving Memory',
-              body: 'Bruce Mavis',
-              sub: 'A life poured out for Jesus.',
             },
           ];
           const s = slides[memorialSlide];
@@ -308,7 +303,7 @@ export default function Onboarding({ onComplete }: Props) {
 
               {/* Dots */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 32 }}>
-                {[0,1,2].map(i => (
+                {[0,1].map(i => (
                   <div key={i} style={{ width: i === memorialSlide ? 24 : 6, height: 6, borderRadius: 3, background: i === memorialSlide ? 'rgba(147,197,253,0.7)' : 'rgba(255,255,255,0.1)', transition: 'all 0.4s ease' }} />
                 ))}
               </div>
@@ -317,14 +312,14 @@ export default function Onboarding({ onComplete }: Props) {
                 onClick={() => setMemorialSlide(s => s + 1)}
                 style={{ ...primaryBtn, background: 'none', border: '1px solid rgba(147,197,253,0.2)', boxShadow: 'none', color: 'rgba(147,197,253,0.6)', fontSize: 13, letterSpacing: 2, padding: '14px' }}
               >
-                {memorialSlide < 2 ? 'Continue' : 'Enter The Altar'}
+                {memorialSlide < 1 ? 'Continue' : 'Enter The Altar'}
               </button>
             </div>
           );
         })()}
 
         {/* ── Welcome ──────────────────────────────────────── */}
-        {step === 'welcome' && memorialSlide >= 3 && (
+        {step === 'welcome' && memorialSlide >= 2 && (
           <div style={{ textAlign: 'center', width: '100%' }}>
             {/* Logo mark */}
             <div style={{ margin: '0 auto 28px', width: 80, animation: 'obGlowPulse 4s ease-in-out infinite', filter: `drop-shadow(0 0 18px ${accent}88) drop-shadow(0 0 40px ${accent}44)` }}>
