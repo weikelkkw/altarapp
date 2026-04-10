@@ -241,7 +241,7 @@ function AuthPageInner() {
           </div>
 
           <p style={{ fontSize: 13, color: `${gold}77`, letterSpacing: '0.28em', textTransform: 'uppercase', fontWeight: 600, marginTop: 12 }}>
-            The Entrance.
+            The Ultimate Bible Study App.
           </p>
 
           {/* Divider */}
