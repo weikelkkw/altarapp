@@ -163,7 +163,7 @@ export default function Onboarding({ onComplete }: Props) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 99999, overflow: 'hidden',
+      position: 'fixed', inset: 0, zIndex: 99999, overflow: 'hidden', display: 'flex', flexDirection: 'column',
       background: 'linear-gradient(180deg, #04081a 0%, #0b1535 30%, #0f1f4a 60%, #07102a 100%)',
       fontFamily: "'Montserrat', system-ui, sans-serif",
     }}>
@@ -244,12 +244,14 @@ export default function Onboarding({ onComplete }: Props) {
 
       {/* ── Content ──────────────────────────────────────────── */}
       <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '20px 24px 40px', maxWidth: 440, margin: '0 auto', width: '100%',
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
+        padding: '20px 24px 48px', maxWidth: 440, margin: '0 auto', width: '100%',
         opacity: animating ? 0 : (mounted ? 1 : 0),
         transform: animating ? 'translateY(20px) scale(0.98)' : 'translateY(0) scale(1)',
         transition: 'all 0.4s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative', zIndex: 10,
+        overflowY: 'auto', overflowX: 'hidden',
+        height: 'calc(100vh - 80px)',
       }}>
 
         {/* ── Welcome ──────────────────────────────────────── */}
