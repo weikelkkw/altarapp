@@ -53,7 +53,8 @@ function AuthPageInner() {
     const t = setTimeout(() => setCheckingAuth(false), 3000);
     s.auth.getSession().then(({ data: { session } }: any) => {
       clearTimeout(t);
-      if (session?.user) router.push('/bible'); else setCheckingAuth(false);
+      const next = searchParams.get('next') || '/bible';
+      if (session?.user) router.push(next); else setCheckingAuth(false);
     }).catch(() => { clearTimeout(t); setCheckingAuth(false); });
   }, [router, searchParams]);
 
@@ -80,6 +81,7 @@ function AuthPageInner() {
     }
     const sb = createClient();
     if (!sb) { setError('Unable to connect. Please try again later.'); return; }
+    const nextUrl = searchParams.get('next') || '/bible';
     setLoading(true);
     try {
       if (mode === 'signin') {
@@ -88,12 +90,12 @@ function AuthPageInner() {
         if (data.user) {
           await ensureProfile(sb, data.user.id, data.user.user_metadata?.name || email.split('@')[0]);
           try { localStorage.setItem('trace-onboarding-done', 'true'); localStorage.setItem(`trace-onboarding-done-${data.user.id}`, 'true'); } catch {}
-          router.push('/bible');
+          router.push(nextUrl);
         }
       } else {
         const { data, error: err } = await sb.auth.signUp({ email: email.trim(), password, options: { data: { name: displayName.trim() } } });
         if (err) throw err;
-        if (data.session && data.user) { await ensureProfile(sb, data.user.id, displayName.trim()); router.push('/bible'); }
+        if (data.session && data.user) { await ensureProfile(sb, data.user.id, displayName.trim()); router.push(nextUrl); }
         else { setMessage('Check your email for a confirmation link, then sign in.'); setMode('signin'); }
       }
     } catch (err: any) { setError(err?.message || 'Something went wrong. Please try again.'); }

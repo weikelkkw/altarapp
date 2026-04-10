@@ -1313,12 +1313,12 @@ export default function TraceAdminPortal() {
           <p style={{ color: COLORS.textMuted, fontSize: 15, marginBottom: 24, lineHeight: 1.5 }}>
             You must be signed in to access the admin portal. Please sign in through The Altar app first.
           </p>
-          <Link href="/bible" style={{
+          <Link href="/bible/auth?next=/bible/admin" style={{
             display: 'inline-block', padding: '12px 32px', borderRadius: 10,
             background: COLORS.accent, color: '#000', fontWeight: 700, fontSize: 15,
             textDecoration: 'none',
           }}>
-            Go to The Altar
+            Sign In to Access Admin
           </Link>
         </div>
       </div>
