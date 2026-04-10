@@ -696,7 +696,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       {/* Cycling text — below gospel */}
                       <div className="h-8 flex items-center justify-center overflow-hidden" style={{ marginTop: 14 }}>
                         <p key={gospelIdx} className="text-[12px] italic text-center" style={{
-                          color: 'rgba(147,197,253,0.7)', fontFamily: 'Georgia, serif',
+                          color: 'rgba(255,255,255,0.75)', fontFamily: 'Georgia, serif',
                           animation: 'gospelTextFade 4s ease-in-out',
                         }}>
                           {gospelLines[gospelIdx]}
