@@ -354,14 +354,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             left: 0,
             right: 0,
             width: '100%',
-            height: '55%',
+            height: '65%',
             objectFit: 'cover',
             objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
@@ -372,13 +372,13 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           style={{
             position: 'absolute',
             bottom: 0, left: 0, right: 0,
-            width: '100%', height: '55%',
+            width: '100%', height: '65%',
             objectFit: 'cover', objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
@@ -392,14 +392,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             left: 0,
             right: 0,
             width: '100%',
-            height: '55%',
+            height: '65%',
             objectFit: 'cover',
             objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
@@ -413,14 +413,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             left: 0,
             right: 0,
             width: '100%',
-            height: '55%',
+            height: '65%',
             objectFit: 'cover',
             objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
@@ -434,14 +434,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             left: 0,
             right: 0,
             width: '100%',
-            height: '55%',
+            height: '65%',
             objectFit: 'cover',
             objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
@@ -455,14 +455,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             left: 0,
             right: 0,
             width: '100%',
-            height: '55%',
+            height: '65%',
             objectFit: 'cover',
             objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
@@ -476,14 +476,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             left: 0,
             right: 0,
             width: '100%',
-            height: '55%',
+            height: '65%',
             objectFit: 'cover',
             objectPosition: 'center center',
             opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.97) 100%)',
           }}
         />
       )}
