@@ -647,7 +647,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 @keyframes gospelStar { 0%,100% { opacity: 0.1; } 50% { opacity: 0.7; } }
                 @keyframes crossPulseGospel { 0%,100% { box-shadow: 0 0 20px rgba(96,165,250,0.3), 0 0 40px rgba(96,165,250,0.1); } 50% { box-shadow: 0 0 30px rgba(96,165,250,0.5), 0 0 60px rgba(147,197,253,0.2), 0 0 80px rgba(96,165,250,0.08); } }
                 @keyframes gospelTextFade { 0% { opacity: 0; transform: translateY(8px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-8px); } }
-                @keyframes gospelImgSweep { 0%, 5% { -webkit-mask-position: -50% 0; mask-position: -50% 0; } 60%, 100% { -webkit-mask-position: 150% 0; mask-position: 150% 0; } }
+                @keyframes gospelImgSweep { 0%, 10% { transform: translateX(-160%); } 65%, 100% { transform: translateX(360%); } }
               `}} />
               {(() => {
                 return (
@@ -670,12 +670,19 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     ))}
                     {/* Background "JESUS" watermark */}
                     <div className="absolute pointer-events-none select-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 'min(20vw, 110px)', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.04)', whiteSpace: 'nowrap', fontFamily: "'Montserrat', system-ui, sans-serif" }}>JESUS</div>
-                    {/* Jesus image — base + brighter sweeping layer */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      {/* Base image */}
+                    {/* Jesus image with soft drifting glow */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ isolation: 'isolate' }}>
                       <img src="/jesus.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.40, WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
-                      {/* Brighter copy — soft mask sweeps across revealing it */}
-                      <img src="/jesus.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.62, WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, black 30%, black 70%, transparent 100%), linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', maskImage: 'linear-gradient(90deg, transparent 0%, black 30%, black 70%, transparent 100%), linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskSize: '45% 100%, 100% 100%', maskSize: '45% 100%, 100% 100%', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskComposite: 'source-in', maskComposite: 'intersect', animation: 'gospelImgSweep 9s ease-in-out infinite' }} />
+                      {/* Soft blurry light blob — no hard edges, just brightness */}
+                      <div style={{
+                        position: 'absolute', top: '-30%', left: '-15%',
+                        width: '40%', height: '160%',
+                        background: 'rgba(210,228,255,0.45)',
+                        filter: 'blur(38px)',
+                        borderRadius: '50%',
+                        animation: 'gospelImgSweep 10s ease-in-out infinite',
+                        mixBlendMode: 'soft-light',
+                      }} />
                     </div>
 
 
