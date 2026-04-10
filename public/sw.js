@@ -1,7 +1,7 @@
-// Trace Bible App — Service Worker
+// The Altar — Service Worker
 // Caches shell assets for offline reading; API calls always go to network.
 
-const CACHE = 'trace-v1';
+const CACHE = 'altar-v2';
 const OFFLINE_URL = '/bible';
 
 // Assets to pre-cache on install
@@ -88,11 +88,11 @@ self.addEventListener('push', event => {
   if (!event.data) return;
   const data = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Trace', {
+    self.registration.showNotification(data.title || 'The Altar', {
       body: data.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-96.png',
-      tag: data.tag || 'trace-notification',
+      tag: data.tag || 'altar-notification',
       data: { url: data.url || '/bible' },
     })
   );
