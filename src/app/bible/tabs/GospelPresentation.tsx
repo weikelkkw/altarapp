@@ -341,27 +341,6 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 35% at 80% 70%, rgba(196,181,253,0.03), transparent 50%)', pointerEvents: 'none' }} />
 
 
-      {/* ─── Background "JESUS" watermark ─── */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          opacity: 0.03,
-          pointerEvents: 'none',
-          fontSize: 'min(28vw, 220px)',
-          fontWeight: 900,
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
-          color: `rgba(${gospelBlue},0.6)`,
-          whiteSpace: 'nowrap',
-          userSelect: 'none',
-          fontFamily: "'Montserrat', system-ui, sans-serif",
-        }}
-      >
-        JESUS
-      </div>
 
 
       {/* ─── Slide image ─── */}
@@ -406,6 +385,48 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
       {slide.id === 'cost' && (
         <img
           src="/gospel-cost.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: '55%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            opacity: animating ? 0 : 0.50,
+            transition: 'opacity 0.6s ease',
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+          }}
+        />
+      )}
+      {slide.id === 'solution' && (
+        <img
+          src="/gospel-solution.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: '55%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            opacity: animating ? 0 : 0.50,
+            transition: 'opacity 0.6s ease',
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+          }}
+        />
+      )}
+      {slide.id === 'response' && (
+        <img
+          src="/gospel-response.jpg"
           alt=""
           style={{
             position: 'absolute',
@@ -699,7 +720,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                             onClick={() => setExpandedVerse(null)}
                             style={{
                               padding: '20px 24px', borderRadius: 14, textAlign: 'center', cursor: 'pointer',
-                              background: `linear-gradient(135deg, rgba(${accentRgb},0.08), rgba(${accentRgb},0.03))`,
+                              background: `linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.35))`,
                               borderLeft: `3px solid rgba(${accentRgb},0.4)`,
                               animation: 'gospelFadeUp 0.3s ease both',
                             }}>
@@ -718,8 +739,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                           <button
                             onClick={() => setExpandedVerse(vi)}
                             style={{
-                              width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
-                              padding: '8px 0 8px 14px', borderLeft: `2px solid rgba(${accentRgb},0.15)`,
+                              width: '100%', textAlign: 'left', background: 'rgba(0,0,0,0.35)', border: 'none', cursor: 'pointer',
+                              padding: '8px 12px 8px 14px', borderRadius: 10, borderLeft: `2px solid rgba(${accentRgb},0.25)`,
                               transition: 'all 0.2s',
                             }}>
                             <p style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: `rgba(${accentRgb},0.6)`, margin: 0, fontWeight: 600 }}>

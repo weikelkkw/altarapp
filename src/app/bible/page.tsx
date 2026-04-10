@@ -668,12 +668,10 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                         animation: `gospelStar ${2.5 + (i % 4)}s ease-in-out ${i * 0.3}s infinite`,
                       }} />
                     ))}
-                    {/* Background "JESUS" watermark */}
-                    <div className="absolute pointer-events-none select-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 'min(20vw, 110px)', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.04)', whiteSpace: 'nowrap', fontFamily: "'Montserrat', system-ui, sans-serif" }}>JESUS</div>
                     {/* Jesus image with soft drifting glow */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ isolation: 'isolate' }}>
                       <img src="/jesus.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.40, WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
-                      {/* Soft blurry light blob — no hard edges, just brightness */}
+                      {/* Soft blurry light blob */}
                       <div style={{
                         position: 'absolute', top: '-30%', left: '-15%',
                         width: '40%', height: '160%',
@@ -684,7 +682,6 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                         mixBlendMode: 'soft-light',
                       }} />
                     </div>
-
 
                     <div className="px-5 relative z-10" style={{ paddingBottom: '16px' }}>
                       {/* Greatest Story — pinned near top */}
