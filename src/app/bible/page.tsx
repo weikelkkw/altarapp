@@ -673,15 +673,15 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     <img src="/jesus.jpg" alt="" className="absolute pointer-events-none" style={{ left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.35, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
 
 
-                    <div className="px-5 relative z-10" style={{ paddingTop: '48px', paddingBottom: '16px' }}>
-                      {/* Greatest Story + Gospel — centered, no cross */}
-                      <div className="text-center mb-2">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
-                        <h2 className="text-xl font-black uppercase tracking-wider" style={{ color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
-                      </div>
+                    <div className="px-5 relative z-10" style={{ paddingBottom: '16px' }}>
+                      {/* Greatest Story — pinned near top */}
+                      <p className="text-center" style={{ paddingTop: 10, fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
 
-                      {/* Cycling text */}
-                      <div className="h-8 flex items-center justify-center overflow-hidden">
+                      {/* The Gospel — lower, bigger */}
+                      <h2 className="text-center font-black uppercase tracking-wider" style={{ marginTop: 28, fontSize: 26, color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
+
+                      {/* Cycling text — below gospel */}
+                      <div className="h-8 flex items-center justify-center overflow-hidden" style={{ marginTop: 14 }}>
                         <p key={gospelIdx} className="text-[12px] italic text-center" style={{
                           color: 'rgba(147,197,253,0.7)', fontFamily: 'Georgia, serif',
                           animation: 'gospelTextFade 4s ease-in-out',
@@ -690,11 +690,8 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                         </p>
                       </div>
 
-                      {/* Divider + CTA */}
-                      <div className="mt-3 mb-1">
-                        <div className="h-px mx-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(96,165,250,0.2), transparent)' }} />
-                      </div>
-                      <p className="text-center mt-2 text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(96,165,250,0.35)' }}>
+                      {/* CTA */}
+                      <p className="text-center text-[9px] font-bold uppercase tracking-widest" style={{ marginTop: 12, color: 'rgba(96,165,250,0.35)' }}>
                         Tap to experience →
                       </p>
                     </div>
