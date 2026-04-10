@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface OnboardingResult {
   name: string;
@@ -9,13 +9,23 @@ interface OnboardingResult {
   weeklyGoals: { chapters: number; prayers: number; devotionals: number; quizzes: number };
   themeId: string;
   defaultBible: string;
+  voiceId: string;
 }
+
+const ONBOARDING_VOICES = [
+  { id: 'eleven:88cgASIFJ5iO94COdgBO', name: 'Bryan',     style: 'American · Steady',   emoji: '🌊', gender: 'male' },
+  { id: 'eleven:10xsyNwkKUXCUZPaoXgm', name: 'Marcus',    style: 'Soul · Rich',          emoji: '🎙', gender: 'male' },
+  { id: 'eleven:6r6oh5UtSHSD2htZsxdz', name: 'Oliver',    style: 'British · Refined',    emoji: '📜', gender: 'male' },
+  { id: 'eleven:uTnyvloPM4RqXGSsx4Du', name: 'Ashley',    style: 'American · Bright',    emoji: '🌸', gender: 'female' },
+  { id: 'eleven:XXoNoVctCSPJPEz3bIKW', name: 'Grace',     style: 'Soul · Warm',          emoji: '🌙', gender: 'female' },
+  { id: 'eleven:b55ueajWHRh5UzJ6mLZ8', name: 'Charlotte', style: 'British · Calm',       emoji: '🕯', gender: 'female' },
+];
 
 interface Props {
   onComplete: (result: OnboardingResult) => void;
 }
 
-const STEPS = ['welcome', 'experience', 'focus', 'goals', 'theme', 'translation', 'ready'] as const;
+const STEPS = ['welcome', 'experience', 'focus', 'goals', 'theme', 'translation', 'voice', 'ready'] as const;
 type Step = typeof STEPS[number];
 
 const EXPERIENCE_OPTIONS = [
@@ -76,6 +86,7 @@ const STEP_VERSES: Record<Step, string> = {
   goals: '"Commit your way to the Lord; trust in Him." — Psalm 37:5',
   theme: '"He has made everything beautiful in its time." — Ecclesiastes 3:11',
   translation: '"All Scripture is breathed out by God." — 2 Timothy 3:16',
+  voice: '"Let everything that has breath praise the Lord." — Psalm 150:6',
   ready: '"Behold, I am making all things new." — Revelation 21:5',
 };
 
@@ -87,6 +98,9 @@ export default function Onboarding({ onComplete }: Props) {
   const [goals, setGoals] = useState({ chapters: 7, prayers: 5, devotionals: 5, quizzes: 2 });
   const [themeId, setThemeId] = useState('black-blue');
   const [defaultBible, setDefaultBible] = useState('NIV');
+  const [voiceId, setVoiceId] = useState('eleven:88cgASIFJ5iO94COdgBO');
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const [animating, setAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -113,8 +127,24 @@ export default function Onboarding({ onComplete }: Props) {
   const toggleFocus = (id: string) => setFocuses(prev => prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]);
   const adjustGoal = (key: keyof typeof goals, delta: number) => setGoals(prev => ({ ...prev, [key]: Math.max(1, Math.min(99, prev[key] + delta)) }));
 
+  const previewVoice = (id: string) => {
+    if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current.src = ''; }
+    if (previewingId === id) { setPreviewingId(null); return; }
+    setPreviewingId(id);
+    fetch('/api/tts', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'The Lord is my shepherd. I shall not want.', voiceId: id }),
+    }).then(r => r.blob()).then(blob => {
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      previewAudioRef.current = audio;
+      audio.play();
+      audio.onended = () => { URL.revokeObjectURL(url); setPreviewingId(null); };
+    }).catch(() => setPreviewingId(null));
+  };
+
   const handleComplete = () => {
-    onComplete({ name: name.trim() || 'Friend', experienceLevel: experience || 'beginner', focuses, weeklyGoals: goals, themeId, defaultBible });
+    onComplete({ name: name.trim() || 'Friend', experienceLevel: experience || 'beginner', focuses, weeklyGoals: goals, themeId, defaultBible, voiceId });
   };
 
   // Shared button style
@@ -435,6 +465,53 @@ export default function Onboarding({ onComplete }: Props) {
                     <p style={{ fontSize: 17, fontWeight: 900, color: sel ? accent : 'rgba(232,240,236,0.5)', margin: 0 }}>{t.abbr}</p>
                     <p style={{ fontSize: 9, color: sel ? 'rgba(232,240,236,0.5)' : 'rgba(232,240,236,0.2)', margin: '4px 0 0', fontFamily: 'Georgia, serif' }}>{t.desc}</p>
                   </button>
+                );
+              })}
+            </div>
+            <button onClick={goNext} style={primaryBtn}>Continue</button>
+          </div>
+        )}
+
+        {/* ── Voice ────────────────────────────────────────── */}
+        {step === 'voice' && (
+          <div style={{ textAlign: 'center', width: '100%' }}>
+            <h2 style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 6, letterSpacing: '-0.02em' }}>Pick Your<br />Reading Voice</h2>
+            <p style={{ fontSize: 13, color: 'rgba(232,240,236,0.35)', marginBottom: 28, fontFamily: 'Georgia, serif' }}>Tap a name to preview. Tap again to stop.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
+              {ONBOARDING_VOICES.map(v => {
+                const sel = voiceId === v.id;
+                const previewing = previewingId === v.id;
+                return (
+                  <div key={v.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 18,
+                    background: sel ? `linear-gradient(135deg, ${accent}12, ${accent}06)` : 'rgba(255,255,255,0.02)',
+                    border: sel ? `2px solid ${accent}55` : '2px solid rgba(255,255,255,0.05)',
+                    cursor: 'pointer', transition: 'all 0.3s ease',
+                    boxShadow: sel ? `0 4px 20px ${accent}15` : 'none',
+                  }} onClick={() => setVoiceId(v.id)}>
+                    <div style={{
+                      width: 46, height: 46, borderRadius: 14, flexShrink: 0,
+                      background: sel ? `${accent}18` : 'rgba(255,255,255,0.04)',
+                      border: sel ? `1px solid ${accent}33` : '1px solid rgba(255,255,255,0.06)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+                    }}>{v.emoji}</div>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <p style={{ fontSize: 15, fontWeight: 800, color: sel ? '#fff' : 'rgba(232,240,236,0.6)', margin: 0 }}>{v.name}</p>
+                      <p style={{ fontSize: 11, color: 'rgba(232,240,236,0.3)', margin: '3px 0 0', fontFamily: 'Georgia, serif' }}>{v.style}</p>
+                    </div>
+                    <button onClick={e => { e.stopPropagation(); previewVoice(v.id); }} style={{
+                      width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: previewing ? accent : `${accent}18`,
+                      color: previewing ? '#fff' : accent,
+                      fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, transition: 'all 0.2s',
+                    }}>
+                      {previewing ? '■' : '▶'}
+                    </button>
+                    {sel && <div style={{ width: 22, height: 22, borderRadius: 11, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ color: '#fff', fontSize: 13, fontWeight: 900 }}>✓</span>
+                    </div>}
+                  </div>
                 );
               })}
             </div>

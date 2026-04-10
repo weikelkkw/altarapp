@@ -437,7 +437,7 @@ export default function SettingsPanel({
                 <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
                   defaultValue={id.church || ''}
                   onBlur={e => saveIdentity({ church: e.target.value })}
-                  placeholder="e.g. Trace Church, Colorado Springs"
+                  placeholder="e.g. Grace Community Church, Austin"
                   className="w-full rounded-lg px-3 py-2 text-sm outline-none"
                   style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
               </div>

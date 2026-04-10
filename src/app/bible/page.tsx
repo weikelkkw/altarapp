@@ -21,6 +21,7 @@ import { IdentityWidget } from './tabs/IdentityBuilder';
 import TrophyRoom from './tabs/TrophyRoom';
 import AuthModal from './tabs/AuthModal';
 import Onboarding from './tabs/Onboarding';
+import AppTour from './tabs/AppTour';
 import { useAuth } from './lib/useAuth';
 import { createClient } from '@/lib/supabase/client';
 
@@ -131,6 +132,7 @@ export default function AltarApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
@@ -479,7 +481,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
   const { gold, goldFaint, goldBorder, dark } = T;
 
   // ── Onboarding handler ─────────────────────────────────────────────────────
-  const handleOnboardingComplete = (result: { name: string; experienceLevel: 'beginner' | 'intermediate' | 'expert'; focuses: string[]; weeklyGoals: { chapters: number; prayers: number; devotionals: number; quizzes: number }; themeId: string; defaultBible: string }) => {
+  const handleOnboardingComplete = (result: { name: string; experienceLevel: 'beginner' | 'intermediate' | 'expert'; focuses: string[]; weeklyGoals: { chapters: number; prayers: number; devotionals: number; quizzes: number }; themeId: string; defaultBible: string; voiceId: string }) => {
     // Save identity
     const identity = getOrCreateIdentity();
     identity.name = result.name;
@@ -503,11 +505,18 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
     const match = bibles.find(b => b.abbreviationLocal === result.defaultBible);
     if (match) setSelectedBible(match);
 
+    // Save voice
+    if (result.voiceId) {
+      setTtsVoice(result.voiceId);
+      localStorage.setItem('trace-tts-voice', result.voiceId);
+    }
+
     // Mark onboarding done
     const userId = user?.id || 'anon';
     localStorage.setItem(`trace-onboarding-done-${userId}`, 'true');
     localStorage.setItem('trace-onboarding-done', 'true'); // legacy fallback
     setShowOnboarding(false);
+    setShowTour(true);
   };
 
   // Show nothing (black screen) while auth loads or if unauthenticated — router.replace handles redirect
@@ -519,6 +528,9 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
     <div className="min-h-screen flex flex-col" style={{ background: theme.bg, position: 'relative', overflow: 'hidden' }} suppressHydrationWarning>
       {/* Onboarding */}
       {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
+
+      {/* App Tour */}
+      {showTour && <AppTour accentColor={theme.accent} onDone={() => setShowTour(false)} />}
 
       {/* Full-page flowing Scripture background */}
       {!isWhiteTheme && scriptureBackground && (
