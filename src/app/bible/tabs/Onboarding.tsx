@@ -149,10 +149,13 @@ export default function Onboarding({ onComplete }: Props) {
 
   // Shared button style
   const primaryBtn = {
-    width: '100%', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer',
-    background: `linear-gradient(135deg, ${accent}, ${accent}bb)`, color: '#fff',
-    fontSize: 15, fontWeight: 900 as const, letterSpacing: '0.1em', textTransform: 'uppercase' as const,
-    boxShadow: `0 4px 24px ${accent}40, 0 0 60px ${accent}15`,
+    width: '100%', padding: '18px', borderRadius: 16,
+    border: '1px solid rgba(186,230,253,0.3)', cursor: 'pointer',
+    background: 'linear-gradient(160deg, #93c5fd 0%, #3b82f6 45%, #1d4ed8 100%)',
+    color: '#fff',
+    fontSize: 16, fontWeight: 900 as const, letterSpacing: '0.08em', textTransform: 'uppercase' as const,
+    fontFamily: "'Montserrat', system-ui, sans-serif",
+    boxShadow: '0 0 40px rgba(59,130,246,0.5), 0 0 80px rgba(59,130,246,0.2), 0 4px 20px rgba(0,0,0,0.4)',
     transition: 'all 0.3s ease',
   };
 
@@ -161,7 +164,7 @@ export default function Onboarding({ onComplete }: Props) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 99999, overflow: 'hidden',
-      background: 'linear-gradient(160deg, #000 0%, #020810 30%, #050d1a 60%, #000 100%)',
+      background: 'linear-gradient(180deg, #04081a 0%, #0b1535 30%, #0f1f4a 60%, #07102a 100%)',
       fontFamily: "'Montserrat', system-ui, sans-serif",
     }}>
       {/* ── Ambient effects ──────────────────────────────────── */}
@@ -195,13 +198,13 @@ export default function Onboarding({ onComplete }: Props) {
         }} />
       ))}
 
-      {/* Background watermark */}
-      <div style={{
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        fontSize: 'min(18vw, 130px)', fontWeight: 900, letterSpacing: '0.1em',
-        color: `${accent}`, opacity: 0.02, pointerEvents: 'none', userSelect: 'none',
-        whiteSpace: 'nowrap',
-      }}>THE ALTAR</div>
+      {/* Background cross watermark */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -55%)', opacity: 0.03, pointerEvents: 'none', userSelect: 'none' }}>
+        <svg width="300" height="360" viewBox="0 0 300 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="116" y="0" width="68" height="360" rx="10" fill="#93c5fd"/>
+          <rect x="0" y="100" width="300" height="68" rx="10" fill="#93c5fd"/>
+        </svg>
+      </div>
 
       {/* ── Progress bar ─────────────────────────────────────── */}
       <div style={{ position: 'relative', height: 4, background: 'rgba(255,255,255,0.04)', zIndex: 10 }}>
@@ -253,15 +256,18 @@ export default function Onboarding({ onComplete }: Props) {
         {step === 'welcome' && (
           <div style={{ textAlign: 'center', width: '100%' }}>
             {/* Logo mark */}
-            <div style={{
-              width: 80, height: 80, borderRadius: 24, margin: '0 auto 28px',
-              background: `linear-gradient(135deg, ${accent}22, ${accent}08)`,
-              border: `1px solid ${accent}33`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 0 40px ${accent}20, 0 0 80px ${accent}08`,
-              animation: 'obGlowPulse 4s ease-in-out infinite',
-            }}>
-              <span style={{ fontSize: 36, color: accent, fontWeight: 900 }}>✦</span>
+            <div style={{ margin: '0 auto 28px', width: 80, animation: 'obGlowPulse 4s ease-in-out infinite', filter: `drop-shadow(0 0 18px ${accent}88) drop-shadow(0 0 40px ${accent}44)` }}>
+              <svg width="80" height="96" viewBox="0 0 80 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="31" y="0" width="18" height="96" rx="5" fill="url(#obCrossGrad)"/>
+                <rect x="0" y="26" width="80" height="18" rx="5" fill="url(#obCrossGrad)"/>
+                <defs>
+                  <linearGradient id="obCrossGrad" x1="0" y1="0" x2="80" y2="96" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#bfdbfe"/>
+                    <stop offset="50%" stopColor="#60a5fa"/>
+                    <stop offset="100%" stopColor="#3b82f6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
 
             <h1 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
@@ -523,15 +529,18 @@ export default function Onboarding({ onComplete }: Props) {
         {step === 'ready' && (
           <div style={{ textAlign: 'center', width: '100%' }}>
             {/* Big glowing logo */}
-            <div style={{
-              width: 100, height: 100, borderRadius: 28, margin: '0 auto 24px',
-              background: `linear-gradient(135deg, ${accent}25, ${accent}0a)`,
-              border: `1px solid ${accent}44`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 0 50px ${accent}30, 0 0 100px ${accent}10`,
-              animation: 'obGlowPulse 3s ease-in-out infinite',
-            }}>
-              <span style={{ fontSize: 48, color: accent, fontWeight: 900 }}>✦</span>
+            <div style={{ margin: '0 auto 24px', width: 96, animation: 'obGlowPulse 3s ease-in-out infinite', filter: `drop-shadow(0 0 24px ${accent}99) drop-shadow(0 0 60px ${accent}55)` }}>
+              <svg width="96" height="116" viewBox="0 0 96 116" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="37" y="0" width="22" height="116" rx="6" fill="url(#obCrossGrad2)"/>
+                <rect x="0" y="30" width="96" height="22" rx="6" fill="url(#obCrossGrad2)"/>
+                <defs>
+                  <linearGradient id="obCrossGrad2" x1="0" y1="0" x2="96" y2="116" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#bfdbfe"/>
+                    <stop offset="50%" stopColor="#60a5fa"/>
+                    <stop offset="100%" stopColor="#3b82f6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
 
             <h2 style={{ fontSize: 32, fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.02em' }}>
