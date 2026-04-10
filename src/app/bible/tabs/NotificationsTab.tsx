@@ -6,18 +6,18 @@ import { createClient } from '@/lib/supabase/client';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type NotifType = 'achievement' | 'community' | 'verse' | 'prayer' | 'system' | 'milestone';
-type FilterId = 'all' | 'community' | 'achievements' | 'reminders';
+type FilterId  = 'all' | 'community' | 'achievements' | 'reminders';
 
-interface Notification {
+interface Notif {
   id: string;
   type: NotifType;
   title: string;
   body: string;
-  timestamp: string; // ISO
+  timestamp: string;
   read: boolean;
   icon: string;
   accent?: string;
-  action?: { label: string; tab?: string };
+  action?: { label: string; tab: string };
 }
 
 interface Props {
@@ -29,35 +29,9 @@ interface Props {
   onUnreadChange?: (count: number) => void;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  if (d === 1) return 'yesterday';
-  if (d < 7) return `${d}d ago`;
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function groupByDay(notifs: Notification[]): { label: string; items: Notification[] }[] {
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  const groups: Record<string, Notification[]> = {};
-  for (const n of notifs) {
-    const day = new Date(n.timestamp).toDateString();
-    const label = day === today ? 'Today' : day === yesterday ? 'Yesterday' : new Date(n.timestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-    if (!groups[label]) groups[label] = [];
-    groups[label].push(n);
-  }
-  return Object.entries(groups).map(([label, items]) => ({ label, items }));
-}
-
-const TYPE_COLORS: Record<NotifType, string> = {
+const TYPE_COLOR: Record<NotifType, string> = {
   achievement: '#f59e0b',
   community:   '#60a5fa',
   verse:       '#a78bfa',
@@ -66,169 +40,6 @@ const TYPE_COLORS: Record<NotifType, string> = {
   milestone:   '#f472b6',
 };
 
-// ── Notification generators ────────────────────────────────────────────────────
-
-function buildLocalNotifications(
-  highlighted: Set<string>,
-  notes: Record<string, string>,
-): Notification[] {
-  const notifs: Notification[] = [];
-  const now = new Date();
-
-  // ── Reading streak ──────────────────────────────────────────────────────────
-  try {
-    const streakRaw = localStorage.getItem('trace-streak');
-    const streak = streakRaw ? parseInt(streakRaw) : 0;
-    if (streak >= 3) {
-      notifs.push({
-        id: 'streak-notif',
-        type: 'achievement',
-        title: `${streak}-Day Reading Streak!`,
-        body: `You've opened the Word ${streak} days in a row. Keep going — consistency transforms a life.`,
-        timestamp: new Date(now.getTime() - 5 * 60000).toISOString(),
-        read: false,
-        icon: '🔥',
-      });
-    }
-  } catch {}
-
-  // ── Highlights milestone ────────────────────────────────────────────────────
-  const hCount = highlighted.size;
-  const milestones = [1, 5, 10, 25, 50, 100, 250];
-  const reached = [...milestones].reverse().find(m => hCount >= m);
-  if (reached) {
-    notifs.push({
-      id: `highlight-milestone-${reached}`,
-      type: 'milestone',
-      title: `${hCount} Verse${hCount === 1 ? '' : 's'} Highlighted`,
-      body: reached >= 50
-        ? `Over ${reached} verses marked — you are building a living concordance in your heart.`
-        : reached >= 10
-        ? `${reached}+ highlights and counting. Scripture is taking root in you.`
-        : `Your first highlighted verses. The Word is becoming personal.`,
-      timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
-      read: false,
-      icon: '✨',
-    });
-  }
-
-  // ── Notes milestone ─────────────────────────────────────────────────────────
-  const noteCount = Object.values(notes).filter(v => v?.trim()).length;
-  if (noteCount >= 1) {
-    const noteLabel = noteCount >= 20 ? '20+' : noteCount >= 10 ? '10+' : noteCount >= 5 ? '5' : '1';
-    notifs.push({
-      id: `notes-milestone-${noteLabel}`,
-      type: 'milestone',
-      title: `${noteCount} Study Note${noteCount === 1 ? '' : 's'} Written`,
-      body: noteCount >= 10
-        ? `You have written ${noteCount} notes — your commentary on the Word is taking shape.`
-        : `Every note you write deepens what you've read. Keep journaling your insights.`,
-      timestamp: new Date(now.getTime() - 2 * 3600000).toISOString(),
-      read: true,
-      icon: '📝',
-    });
-  }
-
-  // ── Daily verse ready ───────────────────────────────────────────────────────
-  try {
-    const today = new Date().toDateString();
-    const hasDailyVerse = !!localStorage.getItem(`trace-daily-verse-${today}`);
-    if (hasDailyVerse) {
-      notifs.push({
-        id: 'daily-verse-ready',
-        type: 'verse',
-        title: 'Your Word for Today is Ready',
-        body: 'A personalized verse has been selected for you. Open the Home tab to receive it.',
-        timestamp: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6).toISOString(),
-        read: false,
-        icon: '📖',
-        action: { label: 'Go to Home', tab: 'home' },
-      });
-    }
-  } catch {}
-
-  // ── Prayer reminders ────────────────────────────────────────────────────────
-  try {
-    const prayerRaw = localStorage.getItem('trace-prayers');
-    if (prayerRaw) {
-      const prayers: { id: string; text: string; status: string; createdAt: string }[] = JSON.parse(prayerRaw);
-      const active = prayers.filter(p => p.status === 'active' || p.status === 'ongoing');
-      if (active.length > 0) {
-        const oldest = active.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
-        const daysSince = Math.floor((Date.now() - new Date(oldest.createdAt).getTime()) / 86400000);
-        notifs.push({
-          id: `prayer-reminder-${oldest.id}`,
-          type: 'prayer',
-          title: `${active.length} Prayer${active.length === 1 ? '' : 's'} Waiting`,
-          body: daysSince >= 1
-            ? `You have ${active.length} active prayer${active.length === 1 ? '' : 's'}. The oldest has been lifted ${daysSince} day${daysSince === 1 ? '' : 's'} — God has not forgotten.`
-            : `Your prayer list is active. Keep bringing these needs before the Lord.`,
-          timestamp: new Date(now.getTime() - 4 * 3600000).toISOString(),
-          read: false,
-          icon: '🙏',
-          action: { label: 'View Prayers', tab: 'home' },
-        });
-      }
-      const answered = prayers.filter(p => p.status === 'answered');
-      if (answered.length >= 1) {
-        notifs.push({
-          id: `answered-prayers-${answered.length}`,
-          type: 'achievement',
-          title: `${answered.length} Answered Prayer${answered.length === 1 ? '' : 's'}`,
-          body: `Faithfulness recorded. ${answered.length} prayer${answered.length === 1 ? ' has' : 's have'} been answered. He hears every word.`,
-          timestamp: new Date(now.getTime() - 6 * 3600000).toISOString(),
-          read: true,
-          icon: '✝️',
-        });
-      }
-    }
-  } catch {}
-
-  // ── Reading plans ───────────────────────────────────────────────────────────
-  try {
-    const plansRaw = localStorage.getItem('trace-reading-plans');
-    if (plansRaw) {
-      const plans: { id: string; title: string; progress: number; total: number }[] = JSON.parse(plansRaw);
-      const active = plans.filter(p => p.progress < p.total);
-      if (active.length > 0) {
-        const plan = active[0];
-        const pct = Math.round((plan.progress / plan.total) * 100);
-        notifs.push({
-          id: `reading-plan-${plan.id}`,
-          type: 'system',
-          title: `Reading Plan: ${plan.title}`,
-          body: `${pct}% complete — ${plan.total - plan.progress} day${plan.total - plan.progress === 1 ? '' : 's'} remaining. Stay the course.`,
-          timestamp: new Date(now.getTime() - 8 * 3600000).toISOString(),
-          read: true,
-          icon: '📅',
-          action: { label: 'Continue Plan', tab: 'study' },
-        });
-      }
-    }
-  } catch {}
-
-  // ── Onboarding tip (first-time) ─────────────────────────────────────────────
-  try {
-    const onboarded = !!localStorage.getItem('trace-onboarding-done');
-    if (onboarded && hCount === 0 && noteCount === 0) {
-      notifs.push({
-        id: 'tip-highlights',
-        type: 'system',
-        title: 'Tip: Highlight Verses as You Read',
-        body: 'Long-press or tap the highlight icon next to any verse in the Read tab to mark it. Your highlights are saved and tracked.',
-        timestamp: new Date(now.getTime() - 24 * 3600000).toISOString(),
-        read: false,
-        icon: '💡',
-        action: { label: 'Start Reading', tab: 'read' },
-      });
-    }
-  } catch {}
-
-  return notifs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-}
-
-// ── Filter config ─────────────────────────────────────────────────────────────
-
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'all',          label: 'All'          },
   { id: 'community',    label: 'Community'    },
@@ -236,206 +47,304 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'reminders',    label: 'Reminders'    },
 ];
 
-function applyFilter(notifs: Notification[], filter: FilterId): Notification[] {
-  if (filter === 'all') return notifs;
-  if (filter === 'community') return notifs.filter(n => n.type === 'community');
-  if (filter === 'achievements') return notifs.filter(n => n.type === 'achievement' || n.type === 'milestone');
-  if (filter === 'reminders') return notifs.filter(n => n.type === 'prayer' || n.type === 'system' || n.type === 'verse');
-  return notifs;
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)  return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return 'yesterday';
+  if (d < 7)  return `${d}d ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ── Notification card ──────────────────────────────────────────────────────────
+function matchFilter(n: Notif, f: FilterId): boolean {
+  if (f === 'all') return true;
+  if (f === 'community')    return n.type === 'community';
+  if (f === 'achievements') return n.type === 'achievement' || n.type === 'milestone';
+  if (f === 'reminders')    return n.type === 'prayer' || n.type === 'system' || n.type === 'verse';
+  return true;
+}
 
-function NotifCard({
-  notif,
-  accentColor,
-  onRead,
-  onDismiss,
-  onAction,
-}: {
-  notif: Notification;
-  accentColor: string;
+function groupByDay(notifs: Notif[]): { label: string; items: Notif[] }[] {
+  const today     = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const map: Record<string, Notif[]> = {};
+  for (const n of notifs) {
+    const day = new Date(n.timestamp).toDateString();
+    const label =
+      day === today     ? 'Today'     :
+      day === yesterday ? 'Yesterday' :
+      new Date(n.timestamp).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    (map[label] ??= []).push(n);
+  }
+  return Object.entries(map).map(([label, items]) => ({ label, items }));
+}
+
+// ── Notification builder ───────────────────────────────────────────────────────
+
+function buildLocal(highlighted: Set<string>, notes: Record<string, string>): Notif[] {
+  const out: Notif[] = [];
+  const now = Date.now();
+
+  // Streak
+  try {
+    const s = parseInt(localStorage.getItem('trace-streak') || '0');
+    if (s >= 3) out.push({
+      id: 'streak', type: 'achievement', icon: '🔥',
+      title: `${s}-Day Reading Streak`,
+      body: `${s} days in a row. Consistency transforms a life.`,
+      timestamp: new Date(now - 5 * 60000).toISOString(), read: false,
+    });
+  } catch {}
+
+  // Highlights
+  const hCount = highlighted.size;
+  const hMilestone = [250, 100, 50, 25, 10, 5, 1].find(m => hCount >= m);
+  if (hMilestone) out.push({
+    id: `hl-${hMilestone}`, type: 'milestone', icon: '✨',
+    title: `${hCount} Verse${hCount === 1 ? '' : 's'} Highlighted`,
+    body: hMilestone >= 50
+      ? 'You are building a living concordance in your heart.'
+      : hMilestone >= 10
+      ? 'Scripture is taking root in you.'
+      : 'The Word is becoming personal.',
+    timestamp: new Date(now - 30 * 60000).toISOString(), read: false,
+  });
+
+  // Notes
+  const nCount = Object.values(notes).filter(v => v?.trim()).length;
+  if (nCount >= 1) out.push({
+    id: `notes-${nCount}`, type: 'milestone', icon: '📝',
+    title: `${nCount} Study Note${nCount === 1 ? '' : 's'} Written`,
+    body: nCount >= 10
+      ? 'Your commentary on the Word is taking shape.'
+      : 'Every note deepens what you have read.',
+    timestamp: new Date(now - 2 * 3600000).toISOString(), read: true,
+  });
+
+  // Daily verse
+  try {
+    if (localStorage.getItem(`trace-daily-verse-${new Date().toDateString()}`)) {
+      out.push({
+        id: 'daily-verse', type: 'verse', icon: '📖',
+        title: 'Your Word for Today is Ready',
+        body: 'A personalized verse has been selected for you.',
+        timestamp: new Date(new Date().setHours(6, 0, 0, 0)).toISOString(), read: false,
+        action: { label: 'Open Home', tab: 'home' },
+      });
+    }
+  } catch {}
+
+  // Prayers
+  try {
+    const raw = localStorage.getItem('trace-prayers');
+    if (raw) {
+      const prayers: { id: string; status: string; createdAt: string }[] = JSON.parse(raw);
+      const active   = prayers.filter(p => p.status === 'active' || p.status === 'ongoing');
+      const answered = prayers.filter(p => p.status === 'answered');
+      if (active.length > 0) {
+        const oldest = active.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))[0];
+        const days   = Math.floor((now - +new Date(oldest.createdAt)) / 86400000);
+        out.push({
+          id: `prayer-${oldest.id}`, type: 'prayer', icon: '🙏',
+          title: `${active.length} Prayer${active.length === 1 ? '' : 's'} Active`,
+          body: days >= 1
+            ? `${days} day${days === 1 ? '' : 's'} lifting these needs — God has not forgotten.`
+            : 'Keep bringing these needs before the Lord.',
+          timestamp: new Date(now - 4 * 3600000).toISOString(), read: false,
+          action: { label: 'View Prayers', tab: 'home' },
+        });
+      }
+      if (answered.length >= 1) out.push({
+        id: `answered-${answered.length}`, type: 'achievement', icon: '✝️',
+        title: `${answered.length} Answered Prayer${answered.length === 1 ? '' : 's'}`,
+        body: 'Faithfulness recorded. He hears every word.',
+        timestamp: new Date(now - 6 * 3600000).toISOString(), read: true,
+      });
+    }
+  } catch {}
+
+  // Tip
+  try {
+    if (localStorage.getItem('trace-onboarding-done') && hCount === 0 && nCount === 0) {
+      out.push({
+        id: 'tip-highlight', type: 'system', icon: '💡',
+        title: 'Tip: Highlight Verses as You Read',
+        body: 'Tap the highlight icon next to any verse in the Read tab to mark it.',
+        timestamp: new Date(now - 24 * 3600000).toISOString(), read: false,
+        action: { label: 'Start Reading', tab: 'read' },
+      });
+    }
+  } catch {}
+
+  return out.sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+function NotifCard({ n, accent, onRead, onDismiss, onAction }: {
+  n: Notif;
+  accent: string;
   onRead: (id: string) => void;
   onDismiss: (id: string) => void;
   onAction?: (tab: string) => void;
 }) {
-  const color = notif.accent || TYPE_COLORS[notif.type] || accentColor;
+  const color = n.accent ?? TYPE_COLOR[n.type] ?? accent;
 
   return (
     <div
-      onClick={() => onRead(notif.id)}
-      className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
+      onClick={() => onRead(n.id)}
       style={{
-        background: notif.read
-          ? 'rgba(255,255,255,0.03)'
-          : `linear-gradient(135deg, ${color}08 0%, rgba(255,255,255,0.04) 100%)`,
-        border: `1px solid ${notif.read ? 'rgba(255,255,255,0.06)' : color + '28'}`,
-        boxShadow: notif.read ? 'none' : `0 2px 20px ${color}10`,
+        position: 'relative',
+        borderRadius: 16,
+        padding: '12px 14px 12px 16px',
+        background: n.read ? 'rgba(255,255,255,0.03)' : `${color}0c`,
+        border: `1px solid ${n.read ? 'rgba(255,255,255,0.07)' : color + '30'}`,
+        cursor: 'pointer',
       }}
     >
-      {/* Unread indicator */}
-      {!notif.read && (
-        <div
-          className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-full"
-          style={{ background: `linear-gradient(180deg, ${color}, ${color}44)` }}
-        />
+      {/* Unread left bar */}
+      {!n.read && (
+        <div style={{
+          position: 'absolute', left: 0, top: 8, bottom: 8, width: 3,
+          borderRadius: '0 3px 3px 0',
+          background: `linear-gradient(180deg, ${color}, ${color}55)`,
+        }} />
       )}
 
-      <div className="flex items-start gap-3 px-4 py-3.5">
-        {/* Icon bubble */}
-        <div
-          className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-          style={{
-            background: `${color}18`,
-            border: `1px solid ${color}25`,
-            boxShadow: notif.read ? 'none' : `0 0 12px ${color}20`,
-          }}
-        >
-          {notif.icon}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        {/* Icon */}
+        <div style={{
+          flexShrink: 0, width: 40, height: 40, borderRadius: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18,
+          background: `${color}18`,
+          border: `1px solid ${color}28`,
+        }}>
+          {n.icon}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <p
-              className="text-[13px] font-bold leading-snug"
-              style={{ color: notif.read ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.92)', fontFamily: 'Montserrat, system-ui, sans-serif' }}
-            >
-              {notif.title}
+        {/* Text */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+            <p style={{
+              margin: 0,
+              fontSize: 13, fontWeight: 700, lineHeight: 1.3,
+              color: n.read ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.92)',
+              fontFamily: 'Montserrat, system-ui, sans-serif',
+            }}>
+              {n.title}
             </p>
-            <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-              {!notif.read && (
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginTop: 1 }}>
+              {!n.read && (
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
               )}
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                {timeAgo(notif.timestamp)}
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap' }}>
+                {timeAgo(n.timestamp)}
               </span>
             </div>
           </div>
 
-          <p
-            className="text-[12px] leading-relaxed mt-1"
-            style={{ color: 'rgba(255,255,255,0.42)', fontFamily: 'Georgia, serif' }}
-          >
-            {notif.body}
+          <p style={{
+            margin: '4px 0 0',
+            fontSize: 12, lineHeight: 1.55,
+            color: 'rgba(255,255,255,0.4)',
+            fontFamily: 'Georgia, serif',
+          }}>
+            {n.body}
           </p>
 
-          {notif.action && (
-            <button
-              onClick={e => { e.stopPropagation(); onAction?.(notif.action!.tab || 'home'); }}
-              className="mt-2 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg transition-all"
-              style={{
-                color,
-                background: `${color}14`,
-                border: `1px solid ${color}25`,
-              }}
-            >
-              {notif.action.label} →
-            </button>
-          )}
-        </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+            {n.action ? (
+              <button
+                onClick={e => { e.stopPropagation(); onAction?.(n.action!.tab); }}
+                style={{
+                  fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
+                  padding: '4px 10px', borderRadius: 8,
+                  color, background: `${color}16`, border: `1px solid ${color}28`,
+                  cursor: 'pointer',
+                }}
+              >
+                {n.action.label} →
+              </button>
+            ) : <div />}
 
-        {/* Dismiss */}
-        <button
-          onClick={e => { e.stopPropagation(); onDismiss(notif.id); }}
-          className="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-[11px] transition-opacity opacity-0 group-hover:opacity-100 mt-0.5"
-          style={{ color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.05)' }}
-          title="Dismiss"
-        >
-          ✕
-        </button>
+            <button
+              onClick={e => { e.stopPropagation(); onDismiss(n.id); }}
+              style={{
+                width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, color: 'rgba(255,255,255,0.25)',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                cursor: 'pointer',
+              }}
+              title="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function NotificationsTab({ accentColor, authUser, highlighted, notes, onNavigate, onUnreadChange }: Props) {
-  const [filter, setFilter] = useState<FilterId>('all');
-  const [notifs, setNotifs] = useState<Notification[]>([]);
+  const [filter,    setFilter]    = useState<FilterId>('all');
+  const [notifs,    setNotifs]    = useState<Notif[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  const [loading,   setLoading]   = useState(true);
 
-  // ── Load notifications ──────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true);
 
-    // Dismissed set from localStorage
-    let dismissedSet = new Set<string>();
-    try {
-      const raw = localStorage.getItem('trace-notifs-dismissed');
-      if (raw) dismissedSet = new Set(JSON.parse(raw));
-    } catch {}
-    setDismissed(dismissedSet);
+    let dis = new Set<string>();
+    let rd  = new Set<string>();
+    try { dis = new Set(JSON.parse(localStorage.getItem('trace-notifs-dismissed') || '[]')); } catch {}
+    try { rd  = new Set(JSON.parse(localStorage.getItem('trace-notifs-read')      || '[]')); } catch {}
+    setDismissed(dis);
 
-    // Read set from localStorage
-    let readSet = new Set<string>();
-    try {
-      const raw = localStorage.getItem('trace-notifs-read');
-      if (raw) readSet = new Set(JSON.parse(raw));
-    } catch {}
-
-    // Build local notifications
-    const local = buildLocalNotifications(highlighted, notes).map(n => ({
-      ...n,
-      read: readSet.has(n.id) ? true : n.read,
+    const local: Notif[] = buildLocal(highlighted, notes).map(n => ({
+      ...n, read: rd.has(n.id) || n.read,
     }));
 
-    // Community notifications from Supabase (if signed in)
-    const community: Notification[] = [];
+    const community: Notif[] = [];
     if (authUser) {
       try {
-        const supabase = createClient();
-        // Fetch likes on the user's posts
-        const { data: likes } = await supabase
-          .from('trace_post_likes')
-          .select('post_id, created_at, user_id')
-          .neq('user_id', authUser.id)
-          .order('created_at', { ascending: false })
-          .limit(10);
+        const sb = createClient();
+        const { data: likes } = await sb
+          .from('trace_post_likes').select('post_id, created_at, user_id')
+          .neq('user_id', authUser.id).order('created_at', { ascending: false }).limit(10);
+        if (likes?.length) community.push({
+          id: `cl-${likes.length}`, type: 'community', icon: '❤️', accent: '#f472b6',
+          title: `${likes.length} Reaction${likes.length === 1 ? '' : 's'} on Your Posts`,
+          body: `${likes.length} member${likes.length === 1 ? ' has' : 's have'} responded to your words.`,
+          timestamp: likes[0].created_at, read: rd.has(`cl-${likes.length}`),
+        });
 
-        if (likes && likes.length > 0) {
-          community.push({
-            id: `community-likes-${likes.length}`,
-            type: 'community',
-            title: `${likes.length} Reaction${likes.length === 1 ? '' : 's'} on Your Posts`,
-            body: `Your community reflections are resonating. ${likes.length} member${likes.length === 1 ? ' has' : 's have'} responded to your words.`,
-            timestamp: likes[0].created_at,
-            read: readSet.has(`community-likes-${likes.length}`),
-            icon: '❤️',
-            accent: '#f472b6',
-          });
-        }
-
-        // Fetch comments on user's posts
-        const { data: comments } = await supabase
-          .from('trace_comments')
-          .select('id, content, created_at, user_id')
-          .neq('user_id', authUser.id)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (comments && comments.length > 0) {
-          community.push({
-            id: `community-comments-${comments.length}`,
-            type: 'community',
-            title: `New Comment${comments.length === 1 ? '' : 's'} on Your Posts`,
-            body: `${comments.length} member${comments.length === 1 ? ' has' : 's have'} replied to your reflection. The conversation continues.`,
-            timestamp: comments[0].created_at,
-            read: readSet.has(`community-comments-${comments.length}`),
-            icon: '💬',
-            accent: '#60a5fa',
-          });
-        }
-      } catch {
-        // Network or permission error — silently skip community notifs
-      }
+        const { data: comments } = await sb
+          .from('trace_comments').select('id, created_at, user_id')
+          .neq('user_id', authUser.id).order('created_at', { ascending: false }).limit(5);
+        if (comments?.length) community.push({
+          id: `cc-${comments.length}`, type: 'community', icon: '💬', accent: '#60a5fa',
+          title: `${comments.length} New Comment${comments.length === 1 ? '' : 's'}`,
+          body: `${comments.length} member${comments.length === 1 ? ' has' : 's have'} replied to your reflection.`,
+          timestamp: comments[0].created_at, read: rd.has(`cc-${comments.length}`),
+        });
+      } catch {}
     }
 
     const all = [...community, ...local]
-      .filter(n => !dismissedSet.has(n.id))
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      .filter(n => !dis.has(n.id))
+      .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
 
     setNotifs(all);
     setLoading(false);
@@ -444,7 +353,6 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
 
   useEffect(() => { load(); }, [load]);
 
-  // ── Mark as read ────────────────────────────────────────────────────────────
   const markRead = useCallback((id: string) => {
     setNotifs(prev => {
       const next = prev.map(n => n.id === id ? { ...n, read: true } : n);
@@ -452,33 +360,25 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
       return next;
     });
     try {
-      const raw = localStorage.getItem('trace-notifs-read');
-      const set: string[] = raw ? JSON.parse(raw) : [];
-      if (!set.includes(id)) {
-        set.push(id);
-        localStorage.setItem('trace-notifs-read', JSON.stringify(set));
-      }
+      const arr: string[] = JSON.parse(localStorage.getItem('trace-notifs-read') || '[]');
+      if (!arr.includes(id)) localStorage.setItem('trace-notifs-read', JSON.stringify([...arr, id]));
     } catch {}
   }, [onUnreadChange]);
 
   const markAllRead = useCallback(() => {
-    const ids = notifs.map(n => n.id);
     setNotifs(prev => prev.map(n => ({ ...n, read: true })));
     onUnreadChange?.(0);
     try {
-      const raw = localStorage.getItem('trace-notifs-read');
-      const set: string[] = raw ? JSON.parse(raw) : [];
-      const merged = [...new Set([...set, ...ids])];
+      const existing: string[] = JSON.parse(localStorage.getItem('trace-notifs-read') || '[]');
+      const merged = [...new Set([...existing, ...notifs.map(n => n.id)])];
       localStorage.setItem('trace-notifs-read', JSON.stringify(merged));
     } catch {}
   }, [notifs, onUnreadChange]);
 
-  // ── Dismiss ─────────────────────────────────────────────────────────────────
   const dismiss = useCallback((id: string) => {
     setNotifs(prev => prev.filter(n => n.id !== id));
     setDismissed(prev => {
-      const next = new Set(prev);
-      next.add(id);
+      const next = new Set([...prev, id]);
       try { localStorage.setItem('trace-notifs-dismissed', JSON.stringify([...next])); } catch {}
       return next;
     });
@@ -494,76 +394,79 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
     });
   }, [notifs]);
 
-  // ── Derived ─────────────────────────────────────────────────────────────────
-  const filtered = applyFilter(notifs, filter);
-  const unreadCount = notifs.filter(n => !n.read).length;
-  const groups = groupByDay(filtered);
+  const filtered   = notifs.filter(n => matchFilter(n, filter));
+  const unread     = notifs.filter(n => !n.read).length;
+  const groups     = groupByDay(filtered);
 
   return (
-    <div className="space-y-4">
-
-      {/* ── Header row ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-          <span className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+    <div>
+      {/* ── Title row ──────────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 3, height: 20, borderRadius: 2, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+          <span style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
             Notifications
           </span>
-          {unreadCount > 0 && (
-            <span
-              className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-              style={{ background: accentColor, color: '#000', minWidth: 20, textAlign: 'center' }}
-            >
-              {unreadCount}
+          {unread > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 20,
+              background: accentColor, color: '#000',
+            }}>
+              {unread}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllRead}
-              className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg transition-all"
-              style={{ color: accentColor, background: `${accentColor}12`, border: `1px solid ${accentColor}20` }}
-            >
-              Mark all read
+        <div style={{ display: 'flex', gap: 8 }}>
+          {unread > 0 && (
+            <button onClick={markAllRead} style={{
+              fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8,
+              color: accentColor, background: `${accentColor}14`, border: `1px solid ${accentColor}25`,
+              cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.06em',
+            }}>
+              Read all
             </button>
           )}
           {notifs.length > 0 && (
-            <button
-              onClick={clearAll}
-              className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg transition-all"
-              style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              Clear all
+            <button onClick={clearAll} style={{
+              fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8,
+              color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+              textTransform: 'uppercase', letterSpacing: '0.06em',
+            }}>
+              Clear
             </button>
           )}
         </div>
       </div>
 
       {/* ── Filter chips ───────────────────────────────────────────────────── */}
-      <div className="flex gap-2 flex-wrap">
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
         {FILTERS.map(f => {
-          const active = filter === f.id;
+          const active      = filter === f.id;
+          const chipUnread  = f.id === 'all' ? 0 : notifs.filter(n => matchFilter(n, f.id) && !n.read).length;
           return (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl transition-all"
-              style={active
-                ? { background: accentColor, color: '#000' }
-                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }
-              }
+              style={{
+                fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 20,
+                textTransform: 'uppercase', letterSpacing: '0.07em', cursor: 'pointer',
+                background: active ? accentColor : 'rgba(255,255,255,0.07)',
+                color:      active ? '#000'       : 'rgba(255,255,255,0.45)',
+                border:     active ? 'none'        : '1px solid rgba(255,255,255,0.1)',
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}
             >
               {f.label}
-              {f.id !== 'all' && (() => {
-                const count = applyFilter(notifs, f.id).filter(n => !n.read).length;
-                return count > 0 ? (
-                  <span className="ml-1.5 text-[9px] px-1 py-0.5 rounded-full"
-                    style={{ background: active ? 'rgba(0,0,0,0.25)' : accentColor, color: active ? '#000' : '#000' }}>
-                    {count}
-                  </span>
-                ) : null;
-              })()}
+              {chipUnread > 0 && (
+                <span style={{
+                  fontSize: 9, fontWeight: 800, padding: '1px 5px', borderRadius: 10,
+                  background: active ? 'rgba(0,0,0,0.25)' : accentColor,
+                  color: '#000',
+                }}>
+                  {chipUnread}
+                </span>
+              )}
             </button>
           );
         })}
@@ -571,53 +474,57 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
 
       {/* ── Loading ─────────────────────────────────────────────────────────── */}
       {loading && (
-        <div className="flex flex-col items-center py-12 gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: `${accentColor}44`, borderTopColor: accentColor }} />
-          <p className="text-[11px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>Loading</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: 12 }}>
+          <div className="animate-spin" style={{
+            width: 28, height: 28, borderRadius: '50%',
+            border: `2px solid ${accentColor}33`, borderTopColor: accentColor,
+          }} />
+          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            Loading
+          </span>
         </div>
       )}
 
-      {/* ── Empty state ─────────────────────────────────────────────────────── */}
+      {/* ── Empty ───────────────────────────────────────────────────────────── */}
       {!loading && filtered.length === 0 && (
-        <div className="flex flex-col items-center py-14 gap-4 text-center">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
-            style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}20` }}
-          >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: 12, textAlign: 'center' }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16, fontSize: 26,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: `${accentColor}10`, border: `1px solid ${accentColor}20`,
+          }}>
             🔔
           </div>
-          <div>
-            <p className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>
-              {filter === 'all' ? 'All caught up' : `No ${filter} notifications`}
-            </p>
-            <p className="text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: 'Georgia, serif' }}>
-              {filter === 'all'
-                ? 'Keep reading, praying, and highlighting — your activity will appear here.'
-                : 'Nothing here yet. Keep engaging with the Word.'}
-            </p>
-          </div>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+            {filter === 'all' ? 'All caught up' : `No ${filter} yet`}
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: 'Georgia, serif', maxWidth: 240, lineHeight: 1.6 }}>
+            {filter === 'all'
+              ? 'Keep reading and praying — activity appears here.'
+              : 'Nothing here yet. Keep engaging with the Word.'}
+          </p>
         </div>
       )}
 
-      {/* ── Grouped notifications ───────────────────────────────────────────── */}
+      {/* ── Groups ──────────────────────────────────────────────────────────── */}
       {!loading && groups.map(group => (
-        <div key={group.label} className="space-y-2">
-          {/* Day label */}
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>
+        <div key={group.label} style={{ marginBottom: 20 }}>
+          {/* Day divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'rgba(255,255,255,0.2)' }}>
               {group.label}
             </span>
-            <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
           </div>
 
           {/* Cards */}
-          <div className="group space-y-2">
-            {group.items.map(notif => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {group.items.map(n => (
               <NotifCard
-                key={notif.id}
-                notif={notif}
-                accentColor={accentColor}
+                key={n.id}
+                n={n}
+                accent={accentColor}
                 onRead={markRead}
                 onDismiss={dismiss}
                 onAction={onNavigate}
@@ -627,13 +534,12 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
         </div>
       ))}
 
-      {/* ── Footer note ─────────────────────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────────────────────── */}
       {!loading && notifs.length > 0 && (
-        <p className="text-center text-[10px] pb-2" style={{ color: 'rgba(255,255,255,0.12)', fontFamily: 'Georgia, serif' }}>
-          Notifications are generated from your local activity and, when signed in, from community interactions.
+        <p style={{ margin: '4px 0 0', textAlign: 'center', fontSize: 10, color: 'rgba(255,255,255,0.1)', fontFamily: 'Georgia, serif' }}>
+          Based on your local activity{authUser ? ' and community interactions' : ''}.
         </p>
       )}
-
     </div>
   );
 }
