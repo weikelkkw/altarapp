@@ -1482,6 +1482,8 @@ export default function ReadTab({
   const [languageFilter, setLanguageFilter] = useState('eng');
   const [showNotes, setShowNotes] = useState(false);
   const [note, setNote] = useState(notes[`${selectedBook.name} ${selectedChapter}`] || '');
+  const [showVerseNote, setShowVerseNote] = useState(false);
+  const [verseNote, setVerseNote] = useState('');
 
   // TTS state
   const [speaking, setSpeaking] = useState(false);
@@ -1784,10 +1786,10 @@ export default function ReadTab({
     setPressingVerse(v.verse);
     longPressTimer.current = setTimeout(() => {
       longPressTimer.current = null; // mark as fired so onTouchEnd skips tap
-      setMultiSelectMode(true);
-      setSelectedVerses(new Set([v.verse]));
-      setActiveVerse(null);
+      setActiveVerse(v);
       setAiMode(null);
+      setShowVerseNote(true);
+      setVerseNote('');
       setPressingVerse(null);
     }, 500);
   }, []);
@@ -1975,9 +1977,12 @@ export default function ReadTab({
         if (activeVerse?.verse === v.verse) {
           setActiveVerse(null);
           setAiMode(null);
+          setShowVerseNote(false);
         } else {
           setActiveVerse(v);
           setAiMode(null);
+          setShowVerseNote(false);
+          setVerseNote('');
           setExplanation('');
           setCrossRefs([]);
           setAskAnswer('');
@@ -3317,9 +3322,8 @@ export default function ReadTab({
               </button>
             </div>
 
-            {/* Action buttons */}
-            <div className="flex gap-2">
-              {/* Read from this verse */}
+            {/* Action buttons — row 1: TTS + Highlight + Note */}
+            <div className="flex gap-2 mb-2">
               {ttsEnabled && (
                 <button
                   onClick={() => { setActiveVerse(null); playTTS(activeVerse.verse); }}
@@ -3327,28 +3331,54 @@ export default function ReadTab({
                   style={{ background: speaking ? `${accentColor}22` : `${accentColor}0d`, color: speaking ? accentColor : tx2, border: `1px solid ${accentColor}1c` }}
                 >
                   <span>▶</span>
-                  <span>From here</span>
+                  <span>Read</span>
                 </button>
               )}
-              {([
-                { id: 'highlight' as const, label: 'Highlight', icon: '✦', min: 'beginner' as const },
-                { id: 'explain'   as const, label: 'Explain',   icon: '📖', min: 'intermediate' as const },
-                { id: 'crossref'  as const, label: 'Cross-Ref', icon: '🔗', min: 'intermediate' as const },
-                { id: 'ask'       as const, label: 'Ask',       icon: '💬', min: 'expert' as const },
-              ]).filter(btn => {
-                const order = { beginner: 0, intermediate: 1, expert: 2 };
-                return order[experienceLevel] >= order[btn.min];
-              }).map(btn => {
+              {(() => {
                 const vKey = `${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`;
                 const isHighlighted = highlighted.has(vKey);
+                const verseNoteKey = `${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`;
+                const hasNote = !!notes[verseNoteKey];
+                return (
+                  <>
+                    <button
+                      onClick={() => toggleHighlight(vKey)}
+                      className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold flex-1 justify-center transition-all active:scale-95"
+                      style={isHighlighted
+                        ? { background: 'rgba(212,168,83,0.18)', color: '#d4a853', border: '1px solid rgba(212,168,83,0.32)' }
+                        : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }}
+                    >
+                      <span>✦</span>
+                      <span>{isHighlighted ? 'Saved' : 'Highlight'}</span>
+                    </button>
+                    <button
+                      onClick={() => { setShowVerseNote(n => !n); if (!showVerseNote) setVerseNote(notes[verseNoteKey] || ''); }}
+                      className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold flex-1 justify-center transition-all active:scale-95"
+                      style={showVerseNote || hasNote
+                        ? { background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}44` }
+                        : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }}
+                    >
+                      <span>✍</span>
+                      <span>{hasNote ? 'Note ✓' : 'Note'}</span>
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Action buttons — row 2: Deep Study + Cross-Ref + Ask */}
+            <div className="flex gap-2">
+              {([
+                { id: 'explain'  as const, label: 'Deep Study', icon: '📖' },
+                { id: 'crossref' as const, label: 'Cross-Ref',  icon: '🔗' },
+                { id: 'ask'      as const, label: 'Ask AI',     icon: '💬' },
+              ]).map(btn => {
                 const isActive = aiMode === btn.id;
                 return (
                   <button
                     key={btn.id}
                     onClick={() => {
-                      if (btn.id === 'highlight') {
-                        toggleHighlight(vKey);
-                      } else if (btn.id === 'explain') {
+                      if (btn.id === 'explain') {
                         doExplain();
                         setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
                       } else if (btn.id === 'crossref') {
@@ -3360,20 +3390,45 @@ export default function ReadTab({
                       }
                     }}
                     className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold flex-1 justify-center transition-all active:scale-95"
-                    style={
-                      isActive
-                        ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 0 10px ${accentColor}44` }
-                        : btn.id === 'highlight' && isHighlighted
-                          ? { background: 'rgba(212,168,83,0.18)', color: '#d4a853', border: '1px solid rgba(212,168,83,0.32)' }
-                          : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }
-                    }
+                    style={isActive
+                      ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 0 10px ${accentColor}44` }
+                      : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }}
                   >
                     <span>{btn.icon}</span>
-                    <span>{btn.id === 'highlight' && isHighlighted ? 'Saved' : btn.label}</span>
+                    <span>{btn.label}</span>
                   </button>
                 );
               })}
             </div>
+
+            {/* Verse note input */}
+            {showVerseNote && (
+              <div className="mt-3">
+                <textarea
+                  autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
+                  value={verseNote}
+                  onChange={e => setVerseNote(e.target.value)}
+                  placeholder={`Add a note for ${selectedBook.name} ${selectedChapter}:${activeVerse.verse}…`}
+                  rows={3}
+                  autoFocus
+                  className="w-full rounded-xl px-3 py-2.5 text-sm outline-none resize-none"
+                  style={{ background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)', border: `1px solid ${accentColor}33`, color: tx1 }}
+                />
+                <button
+                  onClick={() => {
+                    const verseNoteKey = `${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`;
+                    if (verseNote.trim()) {
+                      saveNote(verseNoteKey, verseNote.trim());
+                    }
+                    setShowVerseNote(false);
+                  }}
+                  className="mt-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}
+                >
+                  Save Note
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
