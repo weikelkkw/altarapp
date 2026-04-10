@@ -61,6 +61,15 @@ function AuthPageInner() {
 
   const accent = '#60a5fa';
 
+  async function ensureProfile(supabase: any, authId: string, name: string) {
+    const colors = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6', '#00d084'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    await supabase.from('trace_profiles').upsert(
+      { auth_id: authId, display_name: name || 'Friend', avatar_color: color },
+      { onConflict: 'auth_id', ignoreDuplicates: true }
+    );
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -110,14 +119,19 @@ function AuthPageInner() {
           email: email.trim(), password,
         });
         if (authError) throw authError;
-        if (data.user) router.push('/bible');
+        if (data.user) {
+          // Ensure profile row exists (handles users who signed up before this was added)
+          await ensureProfile(supabase, data.user.id, data.user.user_metadata?.name || email.split('@')[0]);
+          router.push('/bible');
+        }
       } else {
         const { data, error: authError } = await supabase.auth.signUp({
           email: email.trim(), password,
           options: { data: { name: displayName.trim() } },
         });
         if (authError) throw authError;
-        if (data.session) {
+        if (data.session && data.user) {
+          await ensureProfile(supabase, data.user.id, displayName.trim());
           router.push('/bible');
         } else {
           setMessage('Check your email for a confirmation link, then sign in.');
