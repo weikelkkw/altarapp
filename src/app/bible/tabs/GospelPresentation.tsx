@@ -177,6 +177,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
   const [speaking, setSpeaking] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
@@ -214,6 +215,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
   // Stop TTS on slide change or close
   useEffect(() => { stopTTS(); }, [current]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!open) stopTTS(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [current, showPrayer]);
 
   // Reset on open
   useEffect(() => {
@@ -582,6 +584,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
 
       {/* ─── Main slide content ─── */}
       <div
+        ref={scrollRef}
         style={{
           flex: 1,
           display: 'flex',
