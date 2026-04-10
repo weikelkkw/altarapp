@@ -528,7 +528,7 @@ export default function AdminPage() {
     const supabase = createClient();
     if (!supabase) { setAuthState('unauthorized'); return; }
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { router.push('/bible/auth'); return; }
+      if (!session) { router.push('/bible/auth?next=/admin'); return; }
       setUserEmail(session.user.email || '');
       load(session.access_token);
     });
