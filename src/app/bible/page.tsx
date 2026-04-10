@@ -669,6 +669,8 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     ))}
                     {/* Background "JESUS" watermark */}
                     <div className="absolute pointer-events-none select-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 'min(20vw, 110px)', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.04)', whiteSpace: 'nowrap', fontFamily: "'Montserrat', system-ui, sans-serif" }}>JESUS</div>
+                    {/* Jesus image — right side, fading in */}
+                    <img src="/jesus.jpg" alt="" className="absolute pointer-events-none" style={{ right: 0, top: 0, height: '100%', width: '55%', objectFit: 'cover', objectPosition: 'center top', opacity: 0.18, maskImage: 'linear-gradient(to left, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' }} />
 
 
                     <div className="px-5 py-4 relative z-10">
