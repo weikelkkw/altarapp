@@ -384,23 +384,6 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
         JESUS
       </div>
 
-      {/* ─── Background icon ─── */}
-      <div
-        key={slide.id + '-icon'}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          opacity: animating ? 0 : 0.035,
-          transition: 'opacity 0.6s ease',
-          pointerEvents: 'none',
-        }}
-      >
-        <svg width="360" height="360" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="0.3">
-          <path d={slide.icon} />
-        </svg>
-      </div>
 
       {/* ─── Slide image ─── */}
       {slide.id === 'cost' && (
@@ -416,7 +399,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             height: '55%',
             objectFit: 'cover',
             objectPosition: 'center center',
-            opacity: animating ? 0 : 0.32,
+            opacity: animating ? 0 : 0.50,
             transition: 'opacity 0.6s ease',
             pointerEvents: 'none',
             maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
