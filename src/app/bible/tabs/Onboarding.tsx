@@ -588,21 +588,17 @@ export default function Onboarding({ onComplete }: Props) {
             </button>
           </div>
         )}
-      </div>
 
-      {/* ── Bottom verse ─────────────────────────────────────── */}
-      <div style={{
-        position: 'absolute', bottom: 20, left: 0, right: 0,
-        textAlign: 'center', padding: '0 32px', zIndex: 10,
-      }}>
+        {/* ── Step verse — always below content ── */}
         <p style={{
-          fontSize: 11, color: 'rgba(232,240,236,0.15)',
-          fontFamily: 'Georgia, serif', fontStyle: 'italic',
-          animation: 'obPulse 6s ease-in-out infinite',
+          marginTop: 32, fontSize: 11, color: 'rgba(232,240,236,0.15)',
+          fontFamily: 'Georgia, serif', fontStyle: 'italic', textAlign: 'center',
+          animation: 'obPulse 6s ease-in-out infinite', paddingBottom: 8,
         }}>
           {STEP_VERSES[step]}
         </p>
       </div>
+
     </div>
   );
 }
