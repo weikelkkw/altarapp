@@ -22,15 +22,14 @@ import AuthModal from './tabs/AuthModal';
 import Onboarding from './tabs/Onboarding';
 import { useAuth } from './lib/useAuth';
 
-type Tab = 'home' | 'read' | 'search' | 'study' | 'community' | 'notifications';
+type Tab = 'home' | 'read' | 'search' | 'study' | 'community';
 
 const TAB_CONFIG: { id: Tab; label: string; icon: string }[] = [
-  { id: 'home',          label: 'Home',    icon: '🏠' },
-  { id: 'read',          label: 'Read',    icon: '📖' },
-  { id: 'search',        label: 'Search',  icon: '🔍' },
-  { id: 'study',         label: 'Study',   icon: '✦'  },
-  { id: 'community',     label: 'Church',  icon: '⛪' },
-  { id: 'notifications', label: 'Alerts',  icon: '🔔' },
+  { id: 'home',      label: 'Home',   icon: '🏠' },
+  { id: 'read',      label: 'Read',   icon: '📖' },
+  { id: 'search',    label: 'Search', icon: '🔍' },
+  { id: 'study',     label: 'Study',  icon: '✦'  },
+  { id: 'community', label: 'Church', icon: '⛪' },
 ];
 
 function getOrCreateIdentity(): UserIdentity {
@@ -150,6 +149,7 @@ export default function AltarApp() {
   const [gospelIdx, setGospelIdx] = useState(0);
   const [trophyOpen, setTrophyOpen] = useState(false);
   const [notifUnread, setNotifUnread] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [ttsVoice, setTtsVoice] = useState('');
   const [ttsRate, setTtsRate] = useState(1);
@@ -556,6 +556,8 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
         headerBg={theme.headerBg}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
+        onOpenNotifications={() => setNotifOpen(true)}
+        notifUnread={notifUnread}
         isSignedIn={!!user}
         userName={profile?.display_name}
       />
@@ -762,17 +764,6 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
             />
           )}
 
-          {tab === 'notifications' && (
-            <NotificationsTab
-              accentColor={theme.accent}
-              authUser={user}
-              highlighted={highlighted}
-              notes={notes}
-              onNavigate={(t) => setTab(t as Tab)}
-              onUnreadChange={setNotifUnread}
-            />
-          )}
-
         </div>
       </div>
 
@@ -784,25 +775,16 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
             <div className="flex items-center justify-around px-2 pt-2 pb-1">
               {TAB_CONFIG.map(t => {
                 const active = tab === t.id;
-                const badge = t.id === 'notifications' && notifUnread > 0 && !active;
                 return (
-                  <button key={t.id} onClick={() => { setTab(t.id); if (t.id === 'notifications') setNotifUnread(0); }}
+                  <button key={t.id} onClick={() => setTab(t.id)}
                     className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[56px]"
                     style={active ? { background: `${theme.accent}18` } : {}}>
-                    <div className="relative">
-                      <span className="text-lg transition-transform block" style={{
-                        filter: active ? 'none' : 'grayscale(1) opacity(0.4)',
-                        transform: active ? 'scale(1.15)' : 'scale(1)',
-                      }}>
-                        {t.icon}
-                      </span>
-                      {badge && (
-                        <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black"
-                          style={{ background: theme.accent, color: '#000' }}>
-                          {notifUnread > 9 ? '9+' : notifUnread}
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-lg transition-transform" style={{
+                      filter: active ? 'none' : 'grayscale(1) opacity(0.4)',
+                      transform: active ? 'scale(1.15)' : 'scale(1)',
+                    }}>
+                      {t.icon}
+                    </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',
                     }}>
@@ -906,6 +888,54 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
         onSignOut={signOut}
         onOpenAuth={() => { setSettingsOpen(false); setAuthOpen(true); }}
       />
+
+      {/* ── Notifications Panel ─────────────────────────────────────────────── */}
+      {notifOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[90]"
+            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+            onClick={() => { setNotifOpen(false); setNotifUnread(0); }}
+          />
+          {/* Slide-down panel */}
+          <div
+            className="fixed top-0 inset-x-0 z-[91] max-w-lg mx-auto"
+            style={{
+              background: 'linear-gradient(180deg, #060e0a 0%, #0a140e 100%)',
+              borderBottom: `1px solid ${theme.accent}22`,
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+              boxShadow: `0 8px 40px rgba(0,0,0,0.8), 0 0 0 1px ${theme.accent}12`,
+              animation: 'notifSlideDown 0.25s cubic-bezier(0.32,0.72,0,1)',
+              maxHeight: '85vh',
+              overflowY: 'auto',
+            }}
+          >
+            {/* Panel handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ background: `${theme.accent}30` }} />
+            </div>
+
+            <div className="px-4 pb-8">
+              <NotificationsTab
+                accentColor={theme.accent}
+                authUser={user}
+                highlighted={highlighted}
+                notes={notes}
+                onNavigate={(t) => { setNotifOpen(false); setTab(t as Tab); }}
+                onUnreadChange={setNotifUnread}
+              />
+            </div>
+          </div>
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes notifSlideDown {
+              from { transform: translateY(-100%); opacity: 0; }
+              to   { transform: translateY(0);     opacity: 1; }
+            }
+          `}} />
+        </>
+      )}
     </div>
     </div>
   );

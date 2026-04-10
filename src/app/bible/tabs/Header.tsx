@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { BookDef, BOOKS } from '../types';
 
 type Tab = 'home' | 'read' | 'search' | 'study' | 'community';
@@ -13,6 +12,8 @@ interface Props {
   headerBg: string;
   onOpenSettings: () => void;
   onOpenAuth?: () => void;
+  onOpenNotifications?: () => void;
+  notifUnread?: number;
   isSignedIn?: boolean;
   userName?: string;
 }
@@ -25,27 +26,12 @@ const TAB_SUBTITLES: Record<Tab, string> = {
   community: 'Together in Faith',
 };
 
-const TAB_ICONS: Record<Tab, string> = {
-  home: '🏠',
-  read: '📖',
-  search: '🔍',
-  study: '✦',
-  community: '💬',
-};
-
-
 export default function Header({
-  tab, selectedBook, selectedChapter, accentColor, headerBg, onOpenSettings, onOpenAuth, isSignedIn, userName,
+  tab, selectedBook, selectedChapter, accentColor, headerBg,
+  onOpenSettings, onOpenAuth, onOpenNotifications, notifUnread,
+  isSignedIn, userName,
 }: Props) {
   const isOT = BOOKS.indexOf(selectedBook) < 39;
-
-
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good Morning';
-    if (h < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  })();
 
   const contextLine = tab === 'read'
     ? `${isOT ? 'Old Testament' : 'New Testament'} · ${selectedBook.name} ${selectedChapter}`
@@ -56,10 +42,7 @@ export default function Header({
       <div className="absolute inset-0" style={{ background: headerBg }} />
       <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 60% 80% at 80% 40%, ${accentColor}14 0%, transparent 70%)` }} />
 
-
-
-
-      {/* Bottom line — glowing */}
+      {/* Bottom glow line */}
       <div className="absolute inset-x-0 bottom-0 h-px" style={{ background: `linear-gradient(90deg, transparent 10%, ${accentColor}44 50%, transparent 90%)` }} />
       <div className="absolute inset-x-0 bottom-0 h-px overflow-hidden">
         <div className="h-full w-1/4" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}, ${accentColor}, transparent)`, animation: 'shimmer 4s ease-in-out infinite', boxShadow: `0 0 8px ${accentColor}66, 0 0 16px ${accentColor}33` }} />
@@ -75,24 +58,16 @@ export default function Header({
             <div className="mb-2">
               {/* TRACE wordmark */}
               <div className="flex items-baseline gap-0 relative w-fit">
-                {/* Crisp T — Trace green, no glow */}
                 <span className="relative font-black select-none" style={{
                   fontFamily: 'Montserrat, system-ui, sans-serif',
-                  fontSize: 26, lineHeight: 1,
-                  letterSpacing: '0.06em',
-                  color: '#00d084',
+                  fontSize: 26, lineHeight: 1, letterSpacing: '0.06em', color: '#00d084',
                 }}>T</span>
-                {/* RACE — white */}
                 <span className="relative font-black select-none" style={{
                   fontFamily: 'Montserrat, system-ui, sans-serif',
-                  fontSize: 26, lineHeight: 1,
-                  letterSpacing: '0.06em',
-                  color: '#ffffff',
+                  fontSize: 26, lineHeight: 1, letterSpacing: '0.06em', color: '#ffffff',
                 }}>RACE</span>
-                {/* Live dot */}
                 <div className="absolute -top-1 -right-2.5 w-2 h-2 rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.6)', animation: 'dotPulse 2s ease-in-out infinite' }} />
               </div>
-              {/* Subtitle below with glisten shimmer */}
               <div className="relative mt-0.5 w-fit overflow-hidden">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.22em]" style={{ color: '#00d08488', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Truth & Grace</p>
                 <div className="absolute inset-0 pointer-events-none" style={{
@@ -102,7 +77,6 @@ export default function Header({
               </div>
             </div>
 
-            {/* Minimal context — only show on Read tab */}
             {tab === 'read' && (
               <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-md inline-flex" style={{ background: `${accentColor}0a` }}>
                 <span className="text-[10px] font-semibold" style={{ color: `${accentColor}66` }}>{contextLine}</span>
@@ -110,8 +84,31 @@ export default function Header({
             )}
           </div>
 
-          {/* Settings / Auth button — unified */}
+          {/* Right controls */}
           <div className="flex items-center gap-2">
+            {/* Bell button */}
+            {onOpenNotifications && (
+              <button
+                onClick={onOpenNotifications}
+                className="relative w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                style={{ background: `${accentColor}14`, border: `1px solid ${accentColor}2e` }}
+                aria-label="Notifications"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.75 }}>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {notifUnread != null && notifUnread > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[9px] font-black px-1"
+                    style={{ background: accentColor, color: '#000' }}
+                  >
+                    {notifUnread > 9 ? '9+' : notifUnread}
+                  </span>
+                )}
+              </button>
+            )}
+
             {!isSignedIn && onOpenAuth && (
               <button onClick={onOpenAuth}
                 className="h-9 rounded-xl flex items-center justify-center transition-all px-3 gap-1.5"
@@ -119,6 +116,7 @@ export default function Header({
                 <span className="text-[10px] font-bold" style={{ color: 'rgba(96,165,250,0.8)' }}>Sign In</span>
               </button>
             )}
+
             <button onClick={onOpenSettings}
               className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
               style={{ background: `${accentColor}14`, border: `1px solid ${accentColor}2e` }}>
@@ -136,14 +134,9 @@ export default function Header({
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes headerFloat { 0% { transform: translateY(0) translateX(0); opacity: 0.15; } 100% { transform: translateY(-12px) translateX(6px); opacity: 0.05; } }
-        @keyframes crossPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.05); } }
         @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
         @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
-        @keyframes glowLetterPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         @keyframes glistenSweep { 0%, 100% { transform: translateX(-150%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 95%, 100% { transform: translateX(250%); opacity: 0; } }
-        @keyframes headerScriptureGlow { 0% { background-position: 0% 100%; } 100% { background-position: 0% -100%; } }
-        @keyframes headerPhraseFade { 0% { opacity: 0; transform: scale(0.95); } 15% { opacity: 1; transform: scale(1); } 85% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.02); } }
       `}} />
     </header>
   );
