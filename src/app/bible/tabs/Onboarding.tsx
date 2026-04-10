@@ -244,14 +244,16 @@ export default function Onboarding({ onComplete }: Props) {
 
       {/* ── Content ──────────────────────────────────────────── */}
       <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
+        flex: 1, minHeight: 0,
+        overflowY: 'auto', overflowX: 'hidden',
+        width: '100%', position: 'relative', zIndex: 10,
+      }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
         padding: '20px 24px 48px', maxWidth: 440, margin: '0 auto', width: '100%',
         opacity: animating ? 0 : (mounted ? 1 : 0),
         transform: animating ? 'translateY(20px) scale(0.98)' : 'translateY(0) scale(1)',
         transition: 'all 0.4s cubic-bezier(0.4,0,0.2,1)',
-        position: 'relative', zIndex: 10,
-        overflowY: 'auto', overflowX: 'hidden',
-        height: 'calc(100vh - 80px)',
       }}>
 
         {/* ── Welcome ──────────────────────────────────────── */}
@@ -597,6 +599,7 @@ export default function Onboarding({ onComplete }: Props) {
         }}>
           {STEP_VERSES[step]}
         </p>
+      </div>
       </div>
 
     </div>
