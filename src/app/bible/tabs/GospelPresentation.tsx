@@ -355,7 +355,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             height: '70%',
             objectFit: 'cover',
             objectPosition: 'center top',
-            opacity: 0.08,
+            opacity: 0.20,
             maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)',
             WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)',
           }}
