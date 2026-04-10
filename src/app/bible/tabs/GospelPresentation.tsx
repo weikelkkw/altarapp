@@ -335,6 +335,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
       ))}
       {/* Breathing light */}
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 50% at 50% 30%, rgba(96,165,250,0.08), transparent 60%)', animation: 'heavenlyBreath 8s ease-in-out infinite', pointerEvents: 'none' }} />
+      {/* Dark vignette at top */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '35%', background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 50% 40% at 25% 80%, rgba(147,197,253,0.04), transparent 50%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 40% 35% at 80% 70%, rgba(196,181,253,0.03), transparent 50%)', pointerEvents: 'none' }} />
 
