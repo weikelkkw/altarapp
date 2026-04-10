@@ -670,7 +670,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     {/* Background "JESUS" watermark */}
                     <div className="absolute pointer-events-none select-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 'min(20vw, 110px)', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.04)', whiteSpace: 'nowrap', fontFamily: "'Montserrat', system-ui, sans-serif" }}>JESUS</div>
                     {/* Jesus image — centered background */}
-                    <img src="/jesus.jpg" alt="" className="absolute pointer-events-none" style={{ left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.35, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
+                    <img src="/jesus.jpg" alt="" className="absolute pointer-events-none" style={{ left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.40, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
 
 
                     <div className="px-5 relative z-10" style={{ paddingBottom: '16px' }}>
@@ -678,7 +678,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       <p className="text-center" style={{ paddingTop: 10, fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
 
                       {/* The Gospel — lower, bigger */}
-                      <h2 className="text-center font-black uppercase tracking-wider" style={{ marginTop: 28, fontSize: 26, color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
+                      <h2 className="text-center font-black uppercase tracking-wider" style={{ marginTop: 48, fontSize: 26, color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
 
                       {/* Cycling text — below gospel */}
                       <div className="h-8 flex items-center justify-center overflow-hidden" style={{ marginTop: 14 }}>
