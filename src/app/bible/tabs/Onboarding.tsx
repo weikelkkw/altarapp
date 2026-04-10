@@ -273,7 +273,7 @@ export default function Onboarding({ onComplete }: Props) {
             {
               eyebrow: 'In Loving Memory',
               body: 'Bruce Mavis',
-              sub: '1962 – 2026',
+              sub: 'A life poured out for Jesus.',
             },
           ];
           const s = slides[memorialSlide];
