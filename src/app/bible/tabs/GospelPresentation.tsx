@@ -674,9 +674,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
               {/* Key verse — featured prominently */}
               <div style={{
                 padding: '24px 28px', borderRadius: 16, marginBottom: 20, textAlign: 'center',
-                background: slide.id === 'cost' ? `linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.6))` : `linear-gradient(135deg, rgba(${accentRgb},0.08), rgba(${accentRgb},0.03))`,
+                background: `linear-gradient(135deg, rgba(${accentRgb},0.08), rgba(${accentRgb},0.03))`,
                 borderLeft: `3px solid rgba(${accentRgb},0.4)`,
-                backdropFilter: slide.id === 'cost' ? 'blur(8px)' : 'none',
               }}>
                 <p style={{
                   fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 17, lineHeight: 1.8,
