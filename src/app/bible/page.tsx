@@ -674,18 +674,11 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
 
 
                     <div className="px-5 py-4 relative z-10">
-                      {/* Greatest Story + Gospel + Cross — all centered */}
+                      {/* Greatest Story + Gospel — centered, no cross */}
                       <div className="text-center mb-2">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
-                        <h2 className="text-lg font-black uppercase tracking-wider" style={{ color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
-                        <div className="flex items-center justify-center gap-2 mt-1.5">
-                          <div className="h-px w-10" style={{ background: 'linear-gradient(90deg, transparent, rgba(96,165,250,0.25))' }} />
-                          <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110"
-                            style={{ background: 'linear-gradient(135deg, #2563eb, #3b82f6)', animation: 'crossPulseGospel 4s ease-in-out infinite' }}>
-                            <span className="text-sm text-white" style={{ fontFamily: 'Georgia, serif' }}>✝</span>
-                          </div>
-                          <div className="h-px w-10" style={{ background: 'linear-gradient(90deg, rgba(96,165,250,0.25), transparent)' }} />
-                        </div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
+                        <h2 className="text-xl font-black uppercase tracking-wider" style={{ color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
+                        <div className="h-px mx-12 mt-2" style={{ background: 'linear-gradient(90deg, transparent, rgba(96,165,250,0.3), transparent)' }} />
                       </div>
 
                       {/* Cycling text */}
