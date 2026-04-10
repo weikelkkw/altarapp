@@ -90,14 +90,14 @@ export default function TermsPage() {
 
         <Section title="4. Acceptable Use">
           <P>The Altar is a Christian faith community. You agree to use it respectfully and in good faith. You may:</P>
-          <UL([
+          <UL items={[
             'Share prayer requests, testimonies, and faith reflections',
             'Engage with other members in a spirit of grace and encouragement',
             'Use Bible study tools, reading plans, and personal journaling features',
             'Participate in or create Kingdom Groups',
-          ] as string[])} />
+          ]} />
           <P>You may <strong style={{ color: '#fff' }}>not</strong>:</P>
-          <UL([
+          <UL items={[
             'Post content that is hateful, abusive, harassing, or threatening',
             'Post sexually explicit, violent, or graphic content',
             'Promote or glorify harmful behavior, self-harm, or substance abuse',
@@ -108,17 +108,17 @@ export default function TermsPage() {
             'Share another user\'s private messages or personal information without consent',
             'Post content that infringes on any third party\'s intellectual property rights',
             'Use the platform for any illegal purpose',
-          ] as string[])} />
+          ]} />
         </Section>
 
         <Section title="5. Community Standards">
           <P>The Altar is built on the belief that all Christians — across every denomination, background, and tradition — deserve a place to seek God together. We ask that all members:</P>
-          <UL([
+          <UL items={[
             'Speak with grace, even in theological disagreement',
             'Respect that others may worship and interpret Scripture differently',
             'Pray for one another genuinely and without condition',
             'Treat this space as you would a house of God',
-          ] as string[])} />
+          ]} />
           <P>We reserve the right to remove any content, without explanation, that we determine violates the spirit of this community — even if not explicitly listed above.</P>
         </Section>
 

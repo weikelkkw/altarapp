@@ -76,21 +76,21 @@ export default function PrivacyPage() {
           <P><strong style={{ color: '#fff' }}>Account Information.</strong> When you create an account, we collect your email address, display name, and a password (stored securely — we never see it in plain text).</P>
           <P><strong style={{ color: '#fff' }}>Profile Information.</strong> You may optionally provide additional details including your experience level, church, denomination, bio, favorite verse, spiritual gifts, and other profile fields. All of this is voluntary.</P>
           <P><strong style={{ color: '#fff' }}>Content You Create.</strong> We store content you submit to the platform, including:</P>
-          <UL([
+          <UL items={[
             'Community posts (prayer requests, testimonies)',
             'Comments and prayer engagements on other posts',
             'Personal prayer journal entries',
             'Verse highlights and reading notes',
             'Group messages and direct messages',
             'Devotional and encounter entries',
-          ] as string[])} />
+          ]} />
           <P><strong style={{ color: '#fff' }}>Usage Data.</strong> We may collect basic usage information such as which features you use and your reading streaks, to improve the app experience.</P>
           <P><strong style={{ color: '#fff' }}>Device & Technical Data.</strong> We may collect your device type, browser, and IP address for security and error-diagnosis purposes.</P>
         </Section>
 
         <Section title="2. How We Use Your Information">
           <P>We use the information we collect to:</P>
-          <UL([
+          <UL items={[
             'Create and manage your account',
             'Provide, operate, and improve The Altar',
             'Show your content to other community members (for public posts)',
@@ -100,19 +100,19 @@ export default function PrivacyPage() {
             'Respond to your questions or support requests',
             'Send security alerts, such as password resets',
             'Ensure a safe, respectful community environment',
-          ] as string[])} />
+          ]} />
           <P>We do <strong style={{ color: '#fff' }}>not</strong> sell your personal information. We do not use your data for advertising.</P>
         </Section>
 
         <Section title="3. Third-Party Services">
           <P>The Altar uses the following third-party services to operate. Each has their own privacy policy:</P>
-          <UL([
+          <UL items={[
             'Supabase — database, authentication, and real-time features (supabase.com/privacy)',
             'Anthropic (Claude) — AI-powered study tools; your study queries may be processed by Claude (anthropic.com/privacy)',
             'ElevenLabs — text-to-speech audio for Scripture narration (elevenlabs.io/privacy)',
             'Mapbox — Bible geography maps (mapbox.com/legal/privacy)',
             'Spotify — optional worship music integration, used only if you connect it (spotify.com/privacy)',
-          ] as string[])} />
+          ]} />
           <P>We share only the minimum information necessary with these providers to deliver the features you use.</P>
         </Section>
 
@@ -133,13 +133,13 @@ export default function PrivacyPage() {
 
         <Section title="7. Your Rights">
           <P>Depending on your location, you may have the following rights regarding your data:</P>
-          <UL([
+          <UL items={[
             'Access — request a copy of the data we hold about you',
             'Correction — ask us to correct inaccurate information',
             'Deletion — request that we delete your account and personal data',
             'Portability — request your data in a portable format',
             'Opt-out — you may stop using the app and request account deletion at any time',
-          ] as string[])} />
+          ]} />
           <P>To exercise any of these rights, contact us at <span style={{ color: gold }}>privacy@thealtarco.app</span>. We will respond within 30 days.</P>
           <P>You can delete your account and data directly from the Settings tab inside the app.</P>
         </Section>
