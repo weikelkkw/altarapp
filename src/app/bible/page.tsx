@@ -678,7 +678,6 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       <div className="text-center mb-2">
                         <p className="text-[9px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
                         <h2 className="text-xl font-black uppercase tracking-wider" style={{ color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
-                        <div className="h-px mx-12 mt-2" style={{ background: 'linear-gradient(90deg, transparent, rgba(96,165,250,0.3), transparent)' }} />
                       </div>
 
                       {/* Cycling text */}
