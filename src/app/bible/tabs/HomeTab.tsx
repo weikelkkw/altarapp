@@ -214,11 +214,20 @@ export default function HomeTab({
 
   // Fetch weekly message of the week
   useEffect(() => {
-    // Cache key based on ISO week number so it rotates every Monday
+    // Cache key based on Sunday-week so it rotates every Sunday at midnight
     const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const weekNum = Math.ceil(((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
-    const cacheKey = `trace-identity-${now.getFullYear()}-w${weekNum}`;
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - now.getDay()); // rewind to Sunday (getDay() 0=Sun)
+    sunday.setHours(0, 0, 0, 0);
+    const weekNum = Math.floor(sunday.getTime() / (7 * 24 * 60 * 60 * 1000));
+    const cacheKey = `trace-identity-w${weekNum}`;
+    // Clean up old week caches
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('trace-identity-') && k !== cacheKey) localStorage.removeItem(k);
+      }
+    } catch {}
     const cached = localStorage.getItem(cacheKey);
     if (cached) { setIdentityStatement(cached); return; }
     const themes = [

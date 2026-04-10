@@ -418,8 +418,10 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       })
       .catch(() => {
         // Fallback to a simple fetch if AI fails
-        const fallbackRefs = ['PSA.46.1', 'ISA.40.31', 'PHP.4.6-PHP.4.7', 'PSA.37.4', 'ROM.15.13', 'HEB.12.1-HEB.12.2', 'PRO.16.3'];
-        const ref = fallbackRefs[new Date().getDate() % fallbackRefs.length];
+        const fallbackRefs = ['PSA.46.1', 'ISA.40.31', 'PHP.4.6-PHP.4.7', 'PSA.37.4', 'ROM.15.13', 'HEB.12.1-HEB.12.2', 'PRO.16.3', 'JHN.15.5', 'ROM.12.2', 'GAL.2.20', 'EPH.2.10', 'LAM.3.22-LAM.3.23', 'PSA.119.105', 'COL.3.23'];
+        const _now = new Date();
+        const dayOfYear = Math.floor((_now.getTime() - new Date(_now.getFullYear(), 0, 0).getTime()) / 86400000);
+        const ref = fallbackRefs[dayOfYear % fallbackRefs.length];
         const params = new URLSearchParams({
           path: `bibles/${selectedBible.id}/passages/${ref}`,
           'content-type': 'text', 'include-verse-numbers': 'true',
