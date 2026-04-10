@@ -650,20 +650,20 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                   borderRadius: 18,
                   border: 'none',
                   cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%)',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
                   color: '#fff',
                   fontSize: 18,
                   fontWeight: 900,
                   letterSpacing: 0.3,
                   fontFamily: 'Montserrat, system-ui, sans-serif',
-                  boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                  boxShadow: '0 0 60px rgba(59,130,246,0.6), 0 0 120px rgba(59,130,246,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                   animation: 'ctaPulse 2.5s ease-in-out infinite',
                   transition: 'all 0.3s ease',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
-                I Accept Jesus as My Lord and Savior
+                I Accept Jesus<br/>as My Lord and Savior
               </button>
               <button onClick={() => setShowPrayer(false)}
                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>
@@ -842,7 +842,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                     width: '100%',
                     maxWidth: 380,
                     padding: '20px 32px',
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%)',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
                     border: 'none',
                     borderRadius: 18,
                     color: '#fff',
@@ -932,24 +932,25 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
               onClick={goNext}
               disabled={current === SLIDES.length - 1}
               style={{
-                padding: '12px 28px',
-                borderRadius: 999,
+                padding: '14px 40px',
+                borderRadius: 14,
                 border: 'none',
                 background: current === SLIDES.length - 1
                   ? 'rgba(255,255,255,0.06)'
-                  : 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                  : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
                 color: current === SLIDES.length - 1 ? 'rgba(255,255,255,0.2)' : '#fff',
-                fontSize: 14,
-                fontWeight: 600,
+                fontSize: 15,
+                fontWeight: 800,
                 cursor: current === SLIDES.length - 1 ? 'default' : 'pointer',
                 transition: 'all 0.25s',
-                boxShadow: current === SLIDES.length - 1 ? 'none' : `0 0 24px ${accentGlow}`,
+                letterSpacing: 0.5,
+                boxShadow: current === SLIDES.length - 1 ? 'none' : '0 0 40px rgba(59,130,246,0.55), 0 4px 16px rgba(0,0,0,0.4)',
                 fontFamily: "'Montserrat', system-ui, sans-serif",
               }}
-              onMouseEnter={e => { if (!isLast) e.currentTarget.style.transform = 'scale(1.03)'; }}
-              onMouseLeave={e => { if (!isLast) e.currentTarget.style.transform = 'scale(1)'; }}
+              onMouseEnter={e => { if (!isLast) { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 0 60px rgba(59,130,246,0.75), 0 6px 20px rgba(0,0,0,0.5)'; } }}
+              onMouseLeave={e => { if (!isLast) { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.55), 0 4px 16px rgba(0,0,0,0.4)'; } }}
             >
-              Next
+              Next →
             </button>
           </div>
         </div>
@@ -1046,10 +1047,10 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                 style={{
                   width: '100%', maxWidth: 380,
                   padding: '20px 32px', borderRadius: 18, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%)',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
                   color: '#fff', fontSize: 18, fontWeight: 900,
                   fontFamily: 'Montserrat, sans-serif', letterSpacing: 0.3,
-                  boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                  boxShadow: '0 0 60px rgba(59,130,246,0.6), 0 0 120px rgba(59,130,246,0.25), 0 8px 32px rgba(0,0,0,0.5)',
                   animation: 'ctaPulse 2.5s ease-in-out infinite',
                   transition: 'all 0.3s ease',
                 }}
@@ -1086,8 +1087,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes ctaPulse {
-          0%, 100% { box-shadow: 0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4); }
-          50% { box-shadow: 0 0 80px rgba(245,158,11,0.7), 0 0 160px rgba(245,158,11,0.3), 0 8px 40px rgba(0,0,0,0.5); }
+          0%, 100% { box-shadow: 0 0 60px rgba(59,130,246,0.6), 0 0 120px rgba(59,130,246,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+          50% { box-shadow: 0 0 90px rgba(59,130,246,0.85), 0 0 180px rgba(59,130,246,0.4), 0 8px 40px rgba(0,0,0,0.6); }
         }
         @keyframes crossGlow {
           0%, 100% { filter: drop-shadow(0 0 12px rgba(96,165,250,0.6)) drop-shadow(0 0 28px rgba(96,165,250,0.3)); }

@@ -636,7 +636,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       {/* ── CONTENT ────────────────────────────────────────────────────────── */}
       <div className={`flex-1 overflow-y-auto pb-20 ${isWhiteTheme ? 'trace-light-mode' : ''}`}
         style={isWhiteTheme ? { color: '#1a1a2e' } : {}}>
-        <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+        <div className="max-w-4xl mx-auto px-5 py-4 space-y-4">
 
           {tab === 'home' && (
             <>
