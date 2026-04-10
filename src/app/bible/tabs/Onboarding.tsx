@@ -263,7 +263,7 @@ export default function Onboarding({ onComplete }: Props) {
             {
               eyebrow: 'In Loving Memory',
               body: 'Bruce Mavis',
-              sub: 'A man of Jesus. A good father. A faithful servant of the Lord.',
+              sub: 'A man of Jesus. A good man.',
             },
             {
               eyebrow: 'A word for the journey',
