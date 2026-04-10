@@ -386,6 +386,27 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
 
 
       {/* ─── Slide image ─── */}
+      {slide.id === 'love' && (
+        <img
+          src="/gospel-love.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: '55%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            opacity: animating ? 0 : 0.50,
+            transition: 'opacity 0.6s ease',
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+          }}
+        />
+      )}
       {slide.id === 'cost' && (
         <img
           src="/gospel-cost.jpg"
