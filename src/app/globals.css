@@ -1,0 +1,751 @@
+@import "tailwindcss";
+@source "../../src";
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  @apply bg-[#090a0c] text-white;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* ═══════════════════════════════════════════════
+   THEME SURFACE UTILITIES
+   Components use these instead of hardcoded bg/text classes.
+   Values come from the active visual theme's CSS variables.
+   ═══════════════════════════════════════════════ */
+
+/* Page background */
+.theme-page {
+  background-color: var(--theme-page-bg, #f8fafc);
+}
+.dark .theme-page,
+:where(.dark, .dark *) .theme-page {
+  background-color: var(--theme-page-bg-dark, #0f172a);
+}
+/* For all dark visual themes — use data attribute to override text/surface colors.
+   Dark themes: atlas, neon, glass, emerald, midnight, rose, sunset, arctic, ember */
+[data-visual-theme="atlas"] .theme-page,
+[data-visual-theme="neon"] .theme-page,
+[data-visual-theme="glass"] .theme-page,
+[data-visual-theme="emerald"] .theme-page,
+[data-visual-theme="midnight"] .theme-page,
+[data-visual-theme="rose"] .theme-page,
+[data-visual-theme="sunset"] .theme-page,
+[data-visual-theme="arctic"] .theme-page,
+[data-visual-theme="ember"] .theme-page {
+  background-color: var(--theme-page-bg, var(--theme-page-bg-dark));
+}
+
+/* Card surface */
+.theme-card {
+  background-color: var(--theme-card-bg, rgba(255,255,255,1));
+  border-color: var(--theme-card-border, rgba(229,231,235,1));
+  box-shadow: var(--theme-card-glow, none);
+}
+.dark .theme-card,
+:where(.dark, .dark *) .theme-card {
+  background-color: var(--theme-card-bg-dark, rgba(30,41,59,1));
+  border-color: var(--theme-card-border-dark, rgba(51,65,85,1));
+}
+[data-visual-theme="atlas"] .theme-card,
+[data-visual-theme="neon"] .theme-card,
+[data-visual-theme="glass"] .theme-card,
+[data-visual-theme="emerald"] .theme-card,
+[data-visual-theme="midnight"] .theme-card,
+[data-visual-theme="rose"] .theme-card,
+[data-visual-theme="sunset"] .theme-card,
+[data-visual-theme="arctic"] .theme-card,
+[data-visual-theme="ember"] .theme-card {
+  background-color: var(--theme-card-bg, var(--theme-card-bg-dark));
+  border-color: var(--theme-card-border, var(--theme-card-border-dark));
+  backdrop-filter: blur(12px);
+}
+
+/* Text colors */
+.theme-text { color: var(--theme-text-primary, #0f172a); }
+.dark .theme-text { color: var(--theme-text-primary-dark, #f1f5f9); }
+[data-visual-theme="atlas"] .theme-text,
+[data-visual-theme="neon"] .theme-text,
+[data-visual-theme="glass"] .theme-text,
+[data-visual-theme="emerald"] .theme-text,
+[data-visual-theme="midnight"] .theme-text,
+[data-visual-theme="rose"] .theme-text,
+[data-visual-theme="sunset"] .theme-text,
+[data-visual-theme="arctic"] .theme-text,
+[data-visual-theme="ember"] .theme-text {
+  color: var(--theme-text-primary, var(--theme-text-primary-dark));
+}
+
+.theme-text-secondary { color: var(--theme-text-secondary, #64748b); }
+.dark .theme-text-secondary { color: var(--theme-text-secondary-dark, #94a3b8); }
+[data-visual-theme="atlas"] .theme-text-secondary,
+[data-visual-theme="neon"] .theme-text-secondary,
+[data-visual-theme="glass"] .theme-text-secondary,
+[data-visual-theme="emerald"] .theme-text-secondary,
+[data-visual-theme="midnight"] .theme-text-secondary,
+[data-visual-theme="rose"] .theme-text-secondary,
+[data-visual-theme="sunset"] .theme-text-secondary,
+[data-visual-theme="arctic"] .theme-text-secondary,
+[data-visual-theme="ember"] .theme-text-secondary {
+  color: var(--theme-text-secondary, var(--theme-text-secondary-dark));
+}
+
+.theme-text-muted { color: var(--theme-text-muted, #94a3b8); }
+.dark .theme-text-muted { color: var(--theme-text-muted-dark, #475569); }
+[data-visual-theme="atlas"] .theme-text-muted,
+[data-visual-theme="neon"] .theme-text-muted,
+[data-visual-theme="glass"] .theme-text-muted,
+[data-visual-theme="emerald"] .theme-text-muted,
+[data-visual-theme="midnight"] .theme-text-muted,
+[data-visual-theme="rose"] .theme-text-muted,
+[data-visual-theme="sunset"] .theme-text-muted,
+[data-visual-theme="arctic"] .theme-text-muted,
+[data-visual-theme="ember"] .theme-text-muted {
+  color: var(--theme-text-muted, var(--theme-text-muted-dark));
+}
+
+/* Ambient glow behind content areas */
+.theme-ambient-glow::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--theme-glow-color, 245,158,11), 0.04) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   BUTTON EFFECTS
+   ═══════════════════════════════════════════════ */
+
+/* Shimmer sweep — a light streak across the button on hover */
+@keyframes btnShimmer {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+
+/* Glow pulse on hover */
+@keyframes btnGlowPulse {
+  0%, 100% { box-shadow: 0 0 20px var(--btn-glow, rgba(99,102,241,0.3)), 0 0 60px var(--btn-glow-wide, rgba(99,102,241,0.1)); }
+  50% { box-shadow: 0 0 30px var(--btn-glow, rgba(99,102,241,0.4)), 0 0 80px var(--btn-glow-wide, rgba(99,102,241,0.15)); }
+}
+
+/* Primary button — gradient + shimmer + glow */
+.btn-neon {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-neon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%) skewX(-15deg);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.btn-neon:hover::before {
+  animation: btnShimmer 0.6s ease-out;
+}
+
+.btn-neon:hover {
+  transform: translateY(-2px);
+  animation: btnGlowPulse 2s ease-in-out infinite;
+}
+
+.btn-neon:active {
+  transform: translateY(0px) scale(0.98);
+  animation: none;
+}
+
+/* Secondary / outline button — border glow on hover */
+.btn-ghost {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-ghost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-ghost:hover::before {
+  opacity: 1;
+}
+
+.btn-ghost:hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 20px rgba(255,255,255,0.04);
+}
+
+.btn-ghost:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* Light border sweep — animated border highlight */
+@keyframes borderSweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.btn-border-sweep {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.btn-border-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, rgba(var(--theme-glow-color, 245,158,11),0.0), rgba(var(--theme-glow-color, 245,158,11),0.4), rgba(var(--theme-glow-color, 245,158,11),0.4), rgba(var(--theme-glow-color, 245,158,11),0.0));
+  background-size: 200% 100%;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.btn-border-sweep:hover::after {
+  opacity: 1;
+  animation: borderSweep 2s linear infinite;
+}
+
+.btn-border-sweep:hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-neon:hover,
+  .btn-ghost:hover,
+  .btn-border-sweep:hover {
+    transform: none;
+    animation: none;
+  }
+  .btn-neon::before,
+  .btn-border-sweep::after {
+    animation: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   PRIMARY UTILITY CLASSES
+   Theme-aware components that use CSS variables
+   ═══════════════════════════════════════════════ */
+
+/* Primary button — gradient with hover/focus/active states */
+.btn-primary {
+  @apply relative overflow-hidden font-semibold text-white rounded-xl
+         transition-all duration-200;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-gradient-to));
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  filter: brightness(0.95);
+  transform: translateY(0) scale(0.98);
+}
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Input with primary focus ring */
+.input-primary:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-surface);
+  outline: none;
+}
+
+/* Loading spinner in primary color */
+.spinner-primary {
+  @apply animate-spin rounded-full h-5 w-5;
+  border: 2px solid var(--color-primary-surface);
+  border-top-color: var(--color-primary-500);
+}
+
+/* Fix native select/option elements in dark mode */
+.dark select,
+:where(.dark, .dark *) select {
+  background-color: rgb(30, 41, 59);
+  color: rgb(241, 245, 249);
+}
+.dark option,
+:where(.dark, .dark *) option {
+  background-color: rgb(30, 41, 59);
+  color: rgb(241, 245, 249);
+}
+
+/* Dark mode card utility classes (for dashboard) */
+.dark-card {
+  @apply bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700;
+}
+
+.dark-input {
+  @apply bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500;
+}
+
+.dark-text {
+  @apply text-gray-900 dark:text-slate-100;
+}
+
+.dark-text-secondary {
+  @apply text-gray-600 dark:text-slate-300;
+}
+
+.dark-text-muted {
+  @apply text-gray-500 dark:text-slate-400;
+}
+
+.dark-border {
+  @apply border-gray-200 dark:border-slate-700;
+}
+
+.dark-divide {
+  @apply divide-gray-200 dark:divide-slate-700;
+}
+
+.dark-hover {
+  @apply hover:bg-gray-50 dark:hover:bg-slate-700;
+}
+
+/* Page transition animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.2s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Smooth hover transitions for interactive elements */
+.smooth-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-hover:hover {
+  transform: translateX(2px);
+}
+
+/* Badge pulse animation */
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.badge-pulse {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer {
+    animation: none;
+  }
+}
+
+/* Dock neon pulse for active icon */
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(129,140,248,0.4), 0 0 4px rgba(99,102,241,0.3); }
+  50% { box-shadow: 0 0 20px rgba(129,140,248,0.6), 0 0 8px rgba(99,102,241,0.4); }
+}
+.dock-neon-active { animation: neonPulse 2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .dock-neon-active { animation: none; box-shadow: 0 0 12px rgba(129,140,248,0.4), 0 0 4px rgba(99,102,241,0.3); }
+}
+
+/* Hide scrollbar on dock scroll container */
+.dock-scroll-container::-webkit-scrollbar { display: none; }
+.dock-scroll-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Utility: hide scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Float animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes floatDelayed {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delayed { animation: floatDelayed 8s ease-in-out 2s infinite; }
+.animate-float-slow { animation: float 10s ease-in-out 1s infinite; }
+
+/* ═══════════════════════════════════════════════
+   AURORA / NEON EFFECTS (homepage)
+   ═══════════════════════════════════════════════ */
+
+/* Aurora beam pulse */
+@keyframes auroraBeamPulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes auroraBeamPulseDelayed {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes auroraScatter {
+  0% { opacity: 0.3; transform: translateX(-50%) scaleX(1); }
+  50% { opacity: 0.5; transform: translateX(-50%) scaleX(1.15); }
+  100% { opacity: 0.3; transform: translateX(-50%) scaleX(1); }
+}
+
+.aurora-beam-pulse {
+  animation: auroraBeamPulse 4s ease-in-out infinite;
+}
+
+.aurora-beam-pulse-delayed {
+  animation: auroraBeamPulseDelayed 5s ease-in-out 1s infinite;
+}
+
+.aurora-scatter {
+  background: radial-gradient(ellipse at center, rgba(245,158,11,0.08) 0%, rgba(249,115,22,0.04) 40%, transparent 70%);
+  animation: auroraScatter 6s ease-in-out infinite;
+}
+
+/* Neon border pulse for cards/screenshots */
+@keyframes neonBorderPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+.neon-border-pulse {
+  animation: neonBorderPulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-beam-pulse,
+  .aurora-beam-pulse-delayed,
+  .aurora-scatter,
+  .neon-border-pulse {
+    animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   VISUAL THEME SYSTEM (CRM dashboard)
+   CSS custom properties set by applyVisualTheme()
+   ═══════════════════════════════════════════════ */
+
+:root {
+  --theme-glow-color: 99, 102, 241;
+  --theme-glow-intensity: 0;
+  --theme-dock-bg: rgba(255,255,255,0.8);
+  --theme-dock-bg-dark: rgba(15,23,42,0.8);
+  --theme-dock-border: rgba(229,231,235,0.5);
+  --theme-dock-border-dark: rgba(255,255,255,0.1);
+  --theme-dock-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+  --theme-card-glow: none;
+  --theme-surface-glow: none;
+  --theme-neon-pulse: 0;
+}
+
+/* Neon theme dock glow animation */
+@keyframes dockNeonGlow {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(var(--theme-glow-color), 0.08),
+                0 0 60px rgba(var(--theme-glow-color), 0.04);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(var(--theme-glow-color), 0.12),
+                0 0 80px rgba(var(--theme-glow-color), 0.06);
+  }
+}
+
+/* Neon theme dock item glow */
+@keyframes dockItemNeonPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(var(--theme-glow-color), 0.4),
+                0 0 4px rgba(var(--theme-glow-color), 0.3);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(var(--theme-glow-color), 0.6),
+                0 0 8px rgba(var(--theme-glow-color), 0.4);
+  }
+}
+
+/* Applied when neon pulse is active */
+.theme-dock-neon-pulse {
+  animation: dockNeonGlow 3s ease-in-out infinite;
+}
+
+.theme-dock-item-neon-pulse {
+  animation: dockItemNeonPulse 2s ease-in-out infinite;
+}
+
+/* Card neon glow on hover (neon theme) */
+.theme-card-neon-hover:hover {
+  box-shadow: 0 0 20px rgba(var(--theme-glow-color), 0.1),
+              0 0 40px rgba(var(--theme-glow-color), 0.05);
+}
+
+/* Atlas theme — gold shimmer sweep across the dock */
+@keyframes dockGoldShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.theme-dock-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-dock-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(var(--theme-glow-color), 0.06) 25%,
+    rgba(var(--theme-glow-color), 0.12) 50%,
+    rgba(var(--theme-glow-color), 0.06) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: dockGoldShimmer 4s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  /* Only visible when glow is active (neon/atlas themes) */
+  opacity: var(--theme-glow-intensity, 0);
+}
+
+/* Gold glow border animation for Atlas theme cards */
+@keyframes goldBorderGlow {
+  0%, 100% { border-color: rgba(var(--theme-glow-color), 0.1); }
+  50% { border-color: rgba(var(--theme-glow-color), 0.25); }
+}
+
+.theme-card-gold-border {
+  animation: goldBorderGlow 3s ease-in-out infinite;
+}
+
+/* Atlas dock item — warm gold active pulse */
+@keyframes dockGoldActivePulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(245,158,11,0.3),
+                0 0 4px rgba(232,145,58,0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(245,158,11,0.5),
+                0 0 8px rgba(232,145,58,0.3),
+                0 0 40px rgba(245,158,11,0.1);
+  }
+}
+
+.theme-dock-item-gold-pulse {
+  animation: dockGoldActivePulse 2.5s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════
+   ANIMATED NEON BORDER STREAM
+   A rotating conic-gradient border that makes
+   cards and the dock feel alive.
+   ═══════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════
+   NEON BORDER GLOW
+   Gentle pulsing border glow that breathes,
+   making cards and the dock feel alive.
+   ═══════════════════════════════════════════════ */
+
+@keyframes borderGlow {
+  0%, 100% {
+    border-color: rgba(var(--theme-glow-color), 0.08);
+    box-shadow: 0 0 0 rgba(var(--theme-glow-color), 0),
+                inset 0 0 20px rgba(var(--theme-glow-color), 0.02);
+  }
+  50% {
+    border-color: rgba(var(--theme-glow-color), 0.25);
+    box-shadow: 0 0 20px rgba(var(--theme-glow-color), 0.06),
+                inset 0 0 30px rgba(var(--theme-glow-color), 0.04);
+  }
+}
+
+/* Card neon glow — gentle breathing border */
+.neon-border-glow {
+  border: 1px solid rgba(var(--theme-glow-color), 0.1);
+  animation: borderGlow 4s ease-in-out infinite;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.neon-border-glow:hover {
+  border-color: rgba(var(--theme-glow-color), 0.35) !important;
+  box-shadow: 0 0 25px rgba(var(--theme-glow-color), 0.1),
+              0 0 60px rgba(var(--theme-glow-color), 0.04),
+              inset 0 0 30px rgba(var(--theme-glow-color), 0.05) !important;
+  animation: none;
+}
+
+/* Stagger animation for adjacent cards so they don't all pulse in sync */
+.neon-border-glow:nth-child(2n) { animation-delay: -1s; }
+.neon-border-glow:nth-child(3n) { animation-delay: -2s; }
+.neon-border-glow:nth-child(4n) { animation-delay: -3s; }
+
+/* Dock neon glow — slightly stronger breathing */
+@keyframes dockBorderGlow {
+  0%, 100% {
+    border-color: rgba(var(--theme-glow-color), 0.1);
+    box-shadow: 0 0 30px rgba(var(--theme-glow-color), 0.05),
+                0 0 60px rgba(var(--theme-glow-color), 0.02);
+  }
+  50% {
+    border-color: rgba(var(--theme-glow-color), 0.3);
+    box-shadow: 0 0 40px rgba(var(--theme-glow-color), 0.1),
+                0 0 80px rgba(var(--theme-glow-color), 0.04);
+  }
+}
+
+.neon-dock-glow {
+  border: 1px solid rgba(var(--theme-glow-color), 0.12) !important;
+  animation: dockBorderGlow 3s ease-in-out infinite;
+}
+
+/* Only apply neon glow on themes that support it */
+[data-visual-theme="classic"] .neon-border-glow,
+[data-visual-theme="minimal"] .neon-border-glow,
+[data-visual-theme="classic"] .neon-dock-glow,
+[data-visual-theme="minimal"] .neon-dock-glow {
+  animation: none;
+  border-color: var(--theme-card-border, rgba(229,231,235,1));
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-dock-neon-pulse,
+  .theme-dock-item-neon-pulse,
+  .theme-dock-shimmer::after,
+  .theme-card-gold-border,
+  .theme-dock-item-gold-pulse,
+  .neon-border-glow,
+  .neon-dock-glow {
+    animation: none;
+  }
+}
+
+/* Trace Bible App — Light mode overrides */
+.trace-light-mode {
+  color: #1a1a2e;
+}
+.trace-light-mode p,
+.trace-light-mode span,
+.trace-light-mode h1,
+.trace-light-mode h2,
+.trace-light-mode h3,
+.trace-light-mode button,
+.trace-light-mode textarea,
+.trace-light-mode input,
+.trace-light-mode select,
+.trace-light-mode label {
+  color: inherit;
+}
+.trace-light-mode [style*="rgba(232,240,236"],
+.trace-light-mode [style*="rgba(245,236,212"],
+.trace-light-mode [style*="color: #f0f8f4"],
+.trace-light-mode [style*="color: #f5ecd4"] {
+  color: #1a1a2e !important;
+}
+.trace-light-mode [style*="rgba(255,255,255,0.0"] {
+  background: rgba(0,0,0,0.03) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}

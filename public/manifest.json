@@ -1,0 +1,35 @@
+{
+  "name": "Trace — Bible Study",
+  "short_name": "Trace",
+  "description": "A modern Bible study app with community, reading plans, and deep study tools.",
+  "start_url": "/bible",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00d084",
+  "orientation": "portrait-primary",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Read the Bible",
+      "short_name": "Read",
+      "description": "Open a Bible passage",
+      "url": "/bible?tab=read",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    },
+    {
+      "name": "Morning Encounter",
+      "short_name": "Devotional",
+      "description": "Start your morning encounter",
+      "url": "/bible?fire=morning",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
