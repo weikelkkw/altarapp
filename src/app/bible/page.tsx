@@ -688,7 +688,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
 
                     <div className="px-5 relative z-10" style={{ paddingBottom: '16px' }}>
                       {/* Greatest Story — pinned near top */}
-                      <p className="text-center" style={{ paddingTop: 10, fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
+                      <p className="text-center" style={{ paddingTop: 22, fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
 
                       {/* The Gospel — lower, bigger */}
                       <h2 className="text-center font-black uppercase tracking-wider" style={{ marginTop: 64, fontSize: 26, color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
