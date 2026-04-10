@@ -588,7 +588,7 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           flexDirection: 'column',
           justifyContent: 'flex-start',
           alignItems: 'center',
-          padding: '20px 24px 0',
+          padding: '20px 24px 180px',
           position: 'relative',
           zIndex: 2,
           overflowY: 'auto',
@@ -635,7 +635,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
             >
               {PRAYER_TEXT}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginTop: 32, width: '100%' }}>
+              <p style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', fontWeight: 600, margin: 0 }}>Make it official</p>
               <button
                 onClick={() => {
                   try { localStorage.setItem('trace-gospel-completed', 'true'); } catch {}
@@ -643,16 +644,29 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
                   setShowCelebration(true);
                 }}
                 style={{
-                  padding: '16px 48px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                  color: '#fff', fontSize: 16, fontWeight: 800, letterSpacing: 0.5,
+                  width: '100%',
+                  maxWidth: 420,
+                  padding: '22px 32px',
+                  borderRadius: 18,
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%)',
+                  color: '#fff',
+                  fontSize: 18,
+                  fontWeight: 900,
+                  letterSpacing: 0.3,
                   fontFamily: 'Montserrat, system-ui, sans-serif',
-                  boxShadow: '0 0 40px rgba(59,130,246,0.4), 0 4px 20px rgba(0,0,0,0.3)',
-                }}>
+                  boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                  animation: 'ctaPulse 2.5s ease-in-out infinite',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+              >
                 I Accept Jesus as My Lord and Savior
               </button>
               <button onClick={() => setShowPrayer(false)}
-                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 11, cursor: 'pointer' }}>
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>
                 Back to slides
               </button>
             </div>
@@ -820,28 +834,33 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
 
             {/* Accept button on last slide — goes straight to prayer + celebration */}
             {isLast && (
-              <button
-                onClick={() => setShowPrayer(true)}
-                style={{
-                  marginTop: 32,
-                  padding: '16px 40px',
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                  border: 'none',
-                  borderRadius: 999,
-                  color: '#fff',
-                  fontSize: 16,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  letterSpacing: 0.5,
-                  boxShadow: '0 0 40px rgba(59,130,246,0.4), 0 4px 20px rgba(0,0,0,0.3)',
-                  transition: 'all 0.3s ease',
-                  transform: 'scale(1)',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 0 60px rgba(59,130,246,0.5), 0 6px 30px rgba(0,0,0,0.4)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(59,130,246,0.4), 0 4px 20px rgba(0,0,0,0.3)'; }}
-              >
-                I&apos;m Ready to Pray
-              </button>
+              <div style={{ width: '100%', marginTop: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <p style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', fontWeight: 600, margin: 0 }}>This is the moment</p>
+                <button
+                  onClick={() => setShowPrayer(true)}
+                  style={{
+                    width: '100%',
+                    maxWidth: 380,
+                    padding: '20px 32px',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%)',
+                    border: 'none',
+                    borderRadius: 18,
+                    color: '#fff',
+                    fontSize: 18,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    letterSpacing: 0.3,
+                    fontFamily: 'Montserrat, system-ui, sans-serif',
+                    boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                    animation: 'ctaPulse 2.5s ease-in-out infinite',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                >
+                  I&apos;m Ready to Pray
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -966,8 +985,20 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 40%, rgba(96,165,250,0.1), transparent 60%)', animation: 'heavenlyBreath 8s ease-in-out infinite', pointerEvents: 'none' }} />
 
           <div style={{ textAlign: 'center', maxWidth: 440, position: 'relative', zIndex: 10, animation: 'gospelFadeUp 0.8s ease both' }}>
-            {/* Cross */}
-            <div style={{ fontSize: 72, marginBottom: 20, color: 'rgba(96,165,250,0.8)' }}>✝</div>
+            {/* SVG Cross */}
+            <div style={{ marginBottom: 24, animation: 'crossGlow 3s ease-in-out infinite' }}>
+              <svg width="72" height="88" viewBox="0 0 72 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="28" y="0" width="16" height="88" rx="4" fill="url(#crossGrad)"/>
+                <rect x="0" y="24" width="72" height="16" rx="4" fill="url(#crossGrad)"/>
+                <defs>
+                  <linearGradient id="crossGrad" x1="0" y1="0" x2="72" y2="88" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#93c5fd"/>
+                    <stop offset="50%" stopColor="#60a5fa"/>
+                    <stop offset="100%" stopColor="#3b82f6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
 
             <h1 style={{
               fontSize: 36, fontWeight: 900, color: '#fff', margin: '0 0 12px',
@@ -1009,17 +1040,23 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
               </div>
             </div>
 
-            <div style={{ marginTop: 8 }}>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Your journey with God begins now.</p>
+            <div style={{ marginTop: 8, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <p style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', fontWeight: 600, margin: 0 }}>Your journey starts now</p>
               <button onClick={onClose}
                 style={{
-                  padding: '16px 48px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff',
-                  fontSize: 15, fontWeight: 700, fontFamily: 'Montserrat, sans-serif',
-                  boxShadow: '0 0 40px rgba(59,130,246,0.3), 0 4px 16px rgba(0,0,0,0.3)',
-                  letterSpacing: 0.5,
-                }}>
-                Begin My Walk
+                  width: '100%', maxWidth: 380,
+                  padding: '20px 32px', borderRadius: 18, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%)',
+                  color: '#fff', fontSize: 18, fontWeight: 900,
+                  fontFamily: 'Montserrat, sans-serif', letterSpacing: 0.3,
+                  boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4)',
+                  animation: 'ctaPulse 2.5s ease-in-out infinite',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+              >
+                Begin My Walk with God
               </button>
             </div>
           </div>
@@ -1047,6 +1084,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
         @keyframes gospelFadeUp {
           from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes ctaPulse {
+          0%, 100% { box-shadow: 0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2), 0 8px 32px rgba(0,0,0,0.4); }
+          50% { box-shadow: 0 0 80px rgba(245,158,11,0.7), 0 0 160px rgba(245,158,11,0.3), 0 8px 40px rgba(0,0,0,0.5); }
+        }
+        @keyframes crossGlow {
+          0%, 100% { filter: drop-shadow(0 0 12px rgba(96,165,250,0.6)) drop-shadow(0 0 28px rgba(96,165,250,0.3)); }
+          50% { filter: drop-shadow(0 0 20px rgba(96,165,250,0.9)) drop-shadow(0 0 48px rgba(96,165,250,0.5)); }
         }
       `}</style>
     </div>
