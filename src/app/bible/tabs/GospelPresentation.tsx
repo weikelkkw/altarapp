@@ -445,6 +445,48 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           }}
         />
       )}
+      {slide.id === 'gift' && (
+        <img
+          src="/gospel-gift.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: '55%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            opacity: animating ? 0 : 0.50,
+            transition: 'opacity 0.6s ease',
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+          }}
+        />
+      )}
+      {slide.id === 'new-life' && (
+        <img
+          src="/gospel-new-life.jpg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: '55%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            opacity: animating ? 0 : 0.50,
+            transition: 'opacity 0.6s ease',
+            pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%)',
+          }}
+        />
+      )}
 
       {/* ─── Top bar ─── */}
       <div
@@ -884,6 +926,14 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: '0 32px', overflow: 'auto',
         }}>
+          {/* Welcome Home background image */}
+          <img src="/welcome-home.jpg" alt="" style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center center',
+            opacity: 0.35, pointerEvents: 'none',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)',
+          }} />
           {/* Stars */}
           {[...Array(30)].map((_, i) => (
             <div key={i} className="absolute rounded-full pointer-events-none" style={{
