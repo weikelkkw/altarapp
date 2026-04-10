@@ -91,15 +91,23 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
   const out: Notif[] = [];
   const now = Date.now();
 
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+  const todayAt6am = new Date(); todayAt6am.setHours(6, 0, 0, 0);
+
   // Streak
   try {
-    const s = parseInt(localStorage.getItem('trace-streak') || '0');
-    if (s >= 3) out.push({
-      id: 'streak', type: 'achievement', icon: '🔥',
-      title: `${s}-Day Reading Streak`,
-      body: `${s} days in a row. Consistency transforms a life.`,
-      timestamp: new Date(now - 5 * 60000).toISOString(), read: false,
-    });
+    const raw = localStorage.getItem('trace-streak');
+    if (raw) {
+      const data = JSON.parse(raw);
+      const s = data.count || 0;
+      if (s >= 3) out.push({
+        id: 'streak', type: 'achievement', icon: '🔥',
+        title: `${s}-Day Reading Streak`,
+        body: `${s} days in a row. Consistency transforms a life.`,
+        timestamp: data.lastDate ? new Date(data.lastDate).toISOString() : todayStart.toISOString(),
+        read: false,
+      });
+    }
   } catch {}
 
   // Highlights
@@ -113,7 +121,7 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
       : hMilestone >= 10
       ? 'Scripture is taking root in you.'
       : 'The Word is becoming personal.',
-    timestamp: new Date(now - 30 * 60000).toISOString(), read: false,
+    timestamp: todayStart.toISOString(), read: false,
   });
 
   // Notes
@@ -124,7 +132,7 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
     body: nCount >= 10
       ? 'Your commentary on the Word is taking shape.'
       : 'Every note deepens what you have read.',
-    timestamp: new Date(now - 2 * 3600000).toISOString(), read: true,
+    timestamp: todayStart.toISOString(), read: false,
   });
 
   // Daily verse
@@ -134,7 +142,7 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
         id: 'daily-verse', type: 'verse', icon: '📖',
         title: 'Your Word for Today is Ready',
         body: 'A personalized verse has been selected for you.',
-        timestamp: new Date(new Date().setHours(6, 0, 0, 0)).toISOString(), read: false,
+        timestamp: todayAt6am.toISOString(), read: false,
         action: { label: 'Open Home', tab: 'home' },
       });
     }
@@ -156,7 +164,7 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
           body: days >= 1
             ? `${days} day${days === 1 ? '' : 's'} lifting these needs — God has not forgotten.`
             : 'Keep bringing these needs before the Lord.',
-          timestamp: new Date(now - 4 * 3600000).toISOString(), read: false,
+          timestamp: oldest.createdAt, read: false,
           action: { label: 'View Prayers', tab: 'home' },
         });
       }
@@ -164,19 +172,19 @@ function buildLocal(highlighted: Set<string>, notes: Record<string, string>): No
         id: `answered-${answered.length}`, type: 'achievement', icon: '✝️',
         title: `${answered.length} Answered Prayer${answered.length === 1 ? '' : 's'}`,
         body: 'Faithfulness recorded. He hears every word.',
-        timestamp: new Date(now - 6 * 3600000).toISOString(), read: true,
+        timestamp: todayStart.toISOString(), read: true,
       });
     }
   } catch {}
 
-  // Tip
+  // Tip — only show if user has no activity at all
   try {
-    if (localStorage.getItem('trace-onboarding-done') && hCount === 0 && nCount === 0) {
+    if (hCount === 0 && nCount === 0) {
       out.push({
         id: 'tip-highlight', type: 'system', icon: '💡',
         title: 'Tip: Highlight Verses as You Read',
         body: 'Tap the highlight icon next to any verse in the Read tab to mark it.',
-        timestamp: new Date(now - 24 * 3600000).toISOString(), read: false,
+        timestamp: todayStart.toISOString(), read: false,
         action: { label: 'Start Reading', tab: 'read' },
       });
     }
@@ -320,25 +328,45 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
     if (authUser) {
       try {
         const sb = createClient();
-        const { data: likes } = await sb
-          .from('trace_post_likes').select('post_id, created_at, user_id')
-          .neq('user_id', authUser.id).order('created_at', { ascending: false }).limit(10);
-        if (likes?.length) community.push({
-          id: `cl-${likes.length}`, type: 'community', icon: '❤️', accent: '#f472b6',
-          title: `${likes.length} Reaction${likes.length === 1 ? '' : 's'} on Your Posts`,
-          body: `${likes.length} member${likes.length === 1 ? ' has' : 's have'} responded to your words.`,
-          timestamp: likes[0].created_at, read: rd.has(`cl-${likes.length}`),
-        });
+        if (sb) {
+          // Get current user's profile ID
+          const { data: profile } = await sb
+            .from('trace_profiles').select('id').eq('auth_id', authUser.id).single();
 
-        const { data: comments } = await sb
-          .from('trace_comments').select('id, created_at, user_id')
-          .neq('user_id', authUser.id).order('created_at', { ascending: false }).limit(5);
-        if (comments?.length) community.push({
-          id: `cc-${comments.length}`, type: 'community', icon: '💬', accent: '#60a5fa',
-          title: `${comments.length} New Comment${comments.length === 1 ? '' : 's'}`,
-          body: `${comments.length} member${comments.length === 1 ? ' has' : 's have'} replied to your reflection.`,
-          timestamp: comments[0].created_at, read: rd.has(`cc-${comments.length}`),
-        });
+          if (profile) {
+            // Get IDs of posts the current user wrote
+            const { data: myPosts } = await sb
+              .from('trace_posts').select('id').eq('user_id', profile.id);
+
+            if (myPosts?.length) {
+              const myPostIds = myPosts.map((p: any) => p.id);
+
+              // Prayers ("pray for this") on user's own posts by others
+              const { data: prayers } = await sb
+                .from('trace_post_prayers').select('post_id, created_at')
+                .in('post_id', myPostIds).neq('user_id', profile.id)
+                .order('created_at', { ascending: false }).limit(10);
+              if (prayers?.length) community.push({
+                id: `cp-${prayers.length}`, type: 'community', icon: '🙏', accent: '#34d399',
+                title: `${prayers.length} Person${prayers.length === 1 ? '' : 's'} Prayed for You`,
+                body: `${prayers.length} member${prayers.length === 1 ? ' has' : 's have'} lifted your prayer request.`,
+                timestamp: (prayers[0] as any).created_at, read: rd.has(`cp-${prayers.length}`),
+              });
+
+              // Comments on user's own posts by others
+              const { data: comments } = await sb
+                .from('trace_comments').select('id, created_at')
+                .in('post_id', myPostIds).neq('user_id', profile.id)
+                .order('created_at', { ascending: false }).limit(5);
+              if (comments?.length) community.push({
+                id: `cc-${comments.length}`, type: 'community', icon: '💬', accent: '#60a5fa',
+                title: `${comments.length} New Comment${comments.length === 1 ? '' : 's'}`,
+                body: `${comments.length} member${comments.length === 1 ? ' has' : 's have'} replied to your reflection.`,
+                timestamp: (comments[0] as any).created_at, read: rd.has(`cc-${comments.length}`),
+              });
+            }
+          }
+        }
       } catch {}
     }
 
