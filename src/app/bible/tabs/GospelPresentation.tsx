@@ -668,7 +668,6 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
               {/* Key verse — featured prominently */}
               <div style={{
                 padding: '24px 28px', borderRadius: 16, marginBottom: 20, textAlign: 'center',
-                background: `linear-gradient(135deg, rgba(${accentRgb},0.08), rgba(${accentRgb},0.03))`,
                 borderLeft: `3px solid rgba(${accentRgb},0.4)`,
               }}>
                 <p style={{
