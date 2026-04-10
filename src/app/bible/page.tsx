@@ -647,6 +647,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 @keyframes gospelStar { 0%,100% { opacity: 0.1; } 50% { opacity: 0.7; } }
                 @keyframes crossPulseGospel { 0%,100% { box-shadow: 0 0 20px rgba(96,165,250,0.3), 0 0 40px rgba(96,165,250,0.1); } 50% { box-shadow: 0 0 30px rgba(96,165,250,0.5), 0 0 60px rgba(147,197,253,0.2), 0 0 80px rgba(96,165,250,0.08); } }
                 @keyframes gospelTextFade { 0% { opacity: 0; transform: translateY(8px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-8px); } }
+                @keyframes gospelImgSweep { 0% { transform: translateX(-120%); opacity: 0; } 8% { opacity: 1; } 45% { opacity: 1; } 55%, 100% { transform: translateX(220%); opacity: 0; } }
               `}} />
               {(() => {
                 return (
@@ -669,8 +670,17 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     ))}
                     {/* Background "JESUS" watermark */}
                     <div className="absolute pointer-events-none select-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 'min(20vw, 110px)', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.04)', whiteSpace: 'nowrap', fontFamily: "'Montserrat', system-ui, sans-serif" }}>JESUS</div>
-                    {/* Jesus image — centered background */}
-                    <img src="/jesus.jpg" alt="" className="absolute pointer-events-none" style={{ left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.40, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
+                    {/* Jesus image with sweep glow — isolated so glow doesn't hit text */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ isolation: 'isolate' }}>
+                      <img src="/jesus.jpg" alt="" style={{ position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.40, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
+                      {/* Sweep glow — brightens image only */}
+                      <div style={{
+                        position: 'absolute', top: 0, left: 0, width: '55%', height: '100%',
+                        background: 'linear-gradient(105deg, transparent 0%, rgba(180,210,255,0.55) 50%, transparent 100%)',
+                        animation: 'gospelImgSweep 7s ease-in-out infinite',
+                        mixBlendMode: 'soft-light',
+                      }} />
+                    </div>
 
 
                     <div className="px-5 relative z-10" style={{ paddingBottom: '16px' }}>
@@ -678,7 +688,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       <p className="text-center" style={{ paddingTop: 10, fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
 
                       {/* The Gospel — lower, bigger */}
-                      <h2 className="text-center font-black uppercase tracking-wider" style={{ marginTop: 48, fontSize: 26, color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
+                      <h2 className="text-center font-black uppercase tracking-wider" style={{ marginTop: 64, fontSize: 26, color: '#e0eeff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>The Gospel</h2>
 
                       {/* Cycling text — below gospel */}
                       <div className="h-8 flex items-center justify-center overflow-hidden" style={{ marginTop: 14 }}>
