@@ -673,7 +673,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     <img src="/jesus.jpg" alt="" className="absolute pointer-events-none" style={{ left: 0, right: 0, top: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', opacity: 0.35, maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)' }} />
 
 
-                    <div className="px-5 py-4 relative z-10">
+                    <div className="px-5 relative z-10" style={{ paddingTop: '48px', paddingBottom: '16px' }}>
                       {/* Greatest Story + Gospel — centered, no cross */}
                       <div className="text-center mb-2">
                         <p className="text-[9px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: 'rgba(147,197,253,0.45)' }}>The Greatest Story Ever Told</p>
