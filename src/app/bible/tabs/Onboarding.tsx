@@ -103,6 +103,7 @@ export default function Onboarding({ onComplete }: Props) {
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const [animating, setAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [memorialSlide, setMemorialSlide] = useState(0); // 0,1,2 = slides; 3 = done
 
   useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);
 
@@ -256,8 +257,74 @@ export default function Onboarding({ onComplete }: Props) {
         transition: 'all 0.4s cubic-bezier(0.4,0,0.2,1)',
       }}>
 
+        {/* ── Memorial slides ─────────────────────────────── */}
+        {step === 'welcome' && memorialSlide < 3 && (() => {
+          const slides = [
+            {
+              eyebrow: 'A word for the journey',
+              body: '"Well done, good and faithful servant."',
+              sub: '— Matthew 25:23',
+            },
+            {
+              eyebrow: 'In his memory',
+              body: 'He was a man of Jesus — a good father, and a faithful servant of the Lord.',
+              sub: 'His faith lives on in the lives he touched.',
+            },
+            {
+              eyebrow: 'In Loving Memory',
+              body: 'Bruce Mavis',
+              sub: '1962 – 2026',
+            },
+          ];
+          const s = slides[memorialSlide];
+          return (
+            <div style={{ textAlign: 'center', width: '100%' }}>
+              {/* Cross */}
+              <div style={{ margin: '0 auto 32px', width: 56, filter: 'drop-shadow(0 0 14px rgba(147,197,253,0.6)) drop-shadow(0 0 32px rgba(96,165,250,0.3))', animation: 'obGlowPulse 4s ease-in-out infinite' }}>
+                <svg width="56" height="68" viewBox="0 0 56 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="22" y="0" width="12" height="68" rx="3" fill="url(#memCross)"/>
+                  <rect x="0" y="18" width="56" height="12" rx="3" fill="url(#memCross)"/>
+                  <defs>
+                    <linearGradient id="memCross" x1="0" y1="0" x2="56" y2="68" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#bfdbfe"/>
+                      <stop offset="50%" stopColor="#93c5fd"/>
+                      <stop offset="100%" stopColor="#60a5fa"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(147,197,253,0.45)', marginBottom: 24, fontFamily: 'Montserrat, sans-serif' }}>
+                {s.eyebrow}
+              </p>
+
+              <p style={{ fontSize: memorialSlide === 2 ? 28 : 20, fontWeight: memorialSlide === 2 ? 700 : 400, color: 'rgba(255,255,255,0.88)', fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: memorialSlide === 0 ? 'italic' : 'normal', lineHeight: 1.7, marginBottom: 16 }}>
+                {s.body}
+              </p>
+
+              <p style={{ fontSize: memorialSlide === 2 ? 16 : 13, color: 'rgba(147,197,253,0.5)', fontFamily: 'Georgia, serif', fontStyle: 'italic', marginBottom: 48, letterSpacing: memorialSlide === 2 ? 2 : 0 }}>
+                {s.sub}
+              </p>
+
+              {/* Dots */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 32 }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width: i === memorialSlide ? 24 : 6, height: 6, borderRadius: 3, background: i === memorialSlide ? 'rgba(147,197,253,0.7)' : 'rgba(255,255,255,0.1)', transition: 'all 0.4s ease' }} />
+                ))}
+              </div>
+
+              <button
+                onClick={() => setMemorialSlide(s => s + 1)}
+                style={{ ...primaryBtn, background: 'none', border: '1px solid rgba(147,197,253,0.2)', boxShadow: 'none', color: 'rgba(147,197,253,0.6)', fontSize: 13, letterSpacing: 2, padding: '14px' }}
+              >
+                {memorialSlide < 2 ? 'Continue' : 'Enter The Altar'}
+              </button>
+            </div>
+          );
+        })()}
+
         {/* ── Welcome ──────────────────────────────────────── */}
-        {step === 'welcome' && (
+        {step === 'welcome' && memorialSlide >= 3 && (
           <div style={{ textAlign: 'center', width: '100%' }}>
             {/* Logo mark */}
             <div style={{ margin: '0 auto 28px', width: 80, animation: 'obGlowPulse 4s ease-in-out infinite', filter: `drop-shadow(0 0 18px ${accent}88) drop-shadow(0 0 40px ${accent}44)` }}>
@@ -277,25 +344,9 @@ export default function Onboarding({ onComplete }: Props) {
             <h1 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
               Welcome to<br /><span style={{ color: accent }}>The Altar</span>
             </h1>
-            <p style={{ fontSize: 15, color: 'rgba(232,240,236,0.45)', marginBottom: 28, fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>
+            <p style={{ fontSize: 15, color: 'rgba(232,240,236,0.45)', marginBottom: 36, fontFamily: 'Georgia, serif', lineHeight: 1.7 }}>
               Your personal Bible companion.<br />Let&apos;s make it yours.
             </p>
-
-            {/* Dedication */}
-            <div style={{
-              marginBottom: 28, padding: '14px 20px', borderRadius: 14,
-              background: 'rgba(96,165,250,0.04)', border: '1px solid rgba(96,165,250,0.12)',
-            }}>
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(147,197,253,0.4)', margin: '0 0 6px', fontFamily: 'Montserrat, sans-serif' }}>
-                Dedicated to
-              </p>
-              <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.75)', margin: '0 0 4px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
-                Bruce Mavis · 1962–2026
-              </p>
-              <p style={{ fontSize: 12, color: 'rgba(147,197,253,0.45)', margin: 0, fontFamily: 'Georgia, serif', fontStyle: 'italic', lineHeight: 1.6 }}>
-                A man who loved Jesus with everything he had.
-              </p>
-            </div>
 
             <div style={{ marginBottom: 36 }}>
               <p style={{ fontSize: 10, fontWeight: 800, color: `${accent}66`, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.15em' }}>What should we call you?</p>
