@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserIdentity, BookDef, timeAgo } from '../types';
 import { createClient } from '@/lib/supabase/client';
 import BibleStudyMode from './BibleStudyMode';
@@ -48,6 +48,14 @@ interface KingdomGroup {
   privacy?: 'open' | 'request' | 'invite';
 }
 
+interface GroupMember {
+  id: string;
+  name: string;
+  color: string;
+  role: 'leader' | 'member';
+  isMe: boolean;
+}
+
 interface JoinRequest {
   id: string;
   userId: string;
@@ -57,10 +65,6 @@ interface JoinRequest {
 }
 
 const GROUP_ICONS = ['⚔️', '🌸', '🕊', '🔥', '📖', '✝️', '🙏', '🌿', '⭐', '🦁', '🌊', '👑'];
-
-const DEMO_MY_GROUPS: KingdomGroup[] = [];
-const DEMO_DISCOVER_GROUPS: KingdomGroup[] = [];
-const DEMO_JOIN_REQUESTS: JoinRequest[] = [];
 
 interface Props {
   selectedBook: BookDef;
@@ -110,17 +114,22 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
   const [groupTab, setGroupTab] = useState<'chat' | 'prayer' | 'members'>('chat');
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [groupMsgInput, setGroupMsgInput] = useState('');
+  const [groupMsgsLoading, setGroupMsgsLoading] = useState(false);
   const [chatMode, setChatMode] = useState<'group' | 'dm'>('group');
-  const [selectedDmMember, setSelectedDmMember] = useState<{ name: string; color: string } | null>(null);
+  const [selectedDmMember, setSelectedDmMember] = useState<GroupMember | null>(null);
+  const [dmConversationId, setDmConversationId] = useState<string | null>(null);
   const [dmMessages, setDmMessages] = useState<GroupMessage[]>([]);
   const [dmInput, setDmInput] = useState('');
+  const [dmLoading, setDmLoading] = useState(false);
   const [studyModeOpen, setStudyModeOpen] = useState(false);
 
   // Group management state
   const [groupView, setGroupView] = useState<'mine' | 'discover' | 'create'>('mine');
-  const [myGroups, setMyGroups] = useState<KingdomGroup[]>(DEMO_MY_GROUPS);
-  const [discoverGroups, setDiscoverGroups] = useState<KingdomGroup[]>(DEMO_DISCOVER_GROUPS);
-  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>(DEMO_JOIN_REQUESTS);
+  const [myGroups, setMyGroups] = useState<KingdomGroup[]>([]);
+  const [discoverGroups, setDiscoverGroups] = useState<KingdomGroup[]>([]);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createIcon, setCreateIcon] = useState('✝️');
@@ -142,6 +151,8 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
   // Announcements
   const [announcements, setAnnouncements] = useState<string[]>([]);
 
+  const groupChatChannelRef = useRef<any>(null);
+
   /* ── Resolve profile ID ─────────────────────────────────── */
   useEffect(() => {
     if (!authUser?.id) { setProfileId(null); return; }
@@ -151,13 +162,194 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       .then(({ data }) => { if (data) setProfileId(data.id); });
   }, [authUser?.id]);
 
-  /* ── Load announcements from localStorage (set via admin) ── */
+  /* ── Announcements ──────────────────────────────────────── */
   useEffect(() => {
     try {
       const ann = localStorage.getItem('trace-announcements');
       if (ann) setAnnouncements(JSON.parse(ann));
     } catch {}
   }, []);
+
+  /* ── Load my groups ─────────────────────────────────────── */
+  const loadMyGroups = useCallback(async () => {
+    if (!profileId) { setMyGroups([]); return; }
+    const supabase = createClient();
+    if (!supabase) return;
+    setGroupsLoading(true);
+    try {
+      const { data: memberships } = await supabase
+        .from('trace_group_members')
+        .select('group_id, role')
+        .eq('user_id', profileId)
+        .eq('status', 'approved');
+      if (!memberships?.length) { setMyGroups([]); return; }
+
+      const groupIds = memberships.map((m: any) => m.group_id);
+      const roleMap: Record<string, string> = {};
+      for (const m of memberships) roleMap[(m as any).group_id] = (m as any).role;
+
+      const { data: groups } = await supabase
+        .from('trace_groups')
+        .select('id, name, description, icon, privacy')
+        .in('id', groupIds);
+
+      const { data: counts } = await supabase
+        .from('trace_group_members')
+        .select('group_id')
+        .in('group_id', groupIds)
+        .eq('status', 'approved');
+      const countMap: Record<string, number> = {};
+      for (const c of (counts || [])) countMap[(c as any).group_id] = (countMap[(c as any).group_id] || 0) + 1;
+
+      setMyGroups((groups || []).map((g: any) => ({
+        id: g.id, name: g.name, description: g.description || '',
+        memberCount: countMap[g.id] || 1,
+        icon: g.icon || '✝️',
+        isMember: true, isLeader: roleMap[g.id] === 'leader',
+        privacy: g.privacy as any,
+      })));
+    } catch (err) { console.warn('loadMyGroups:', err); }
+    finally { setGroupsLoading(false); }
+  }, [profileId]);
+
+  /* ── Load discover groups ───────────────────────────────── */
+  const loadDiscoverGroups = useCallback(async () => {
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      const { data: groups } = await supabase
+        .from('trace_groups')
+        .select('id, name, description, icon, privacy')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (!groups?.length) { setDiscoverGroups([]); return; }
+
+      const allGroupIds = groups.map((g: any) => g.id);
+      let memberMap: Record<string, string> = {};
+      if (profileId) {
+        const { data: mine } = await supabase
+          .from('trace_group_members')
+          .select('group_id, status')
+          .eq('user_id', profileId)
+          .in('group_id', allGroupIds);
+        for (const m of (mine || [])) memberMap[(m as any).group_id] = (m as any).status;
+      }
+
+      const { data: counts } = await supabase
+        .from('trace_group_members')
+        .select('group_id')
+        .in('group_id', allGroupIds)
+        .eq('status', 'approved');
+      const countMap: Record<string, number> = {};
+      for (const c of (counts || [])) countMap[(c as any).group_id] = (countMap[(c as any).group_id] || 0) + 1;
+
+      setDiscoverGroups((groups || [])
+        .filter((g: any) => memberMap[g.id] !== 'approved')
+        .map((g: any) => ({
+          id: g.id, name: g.name, description: g.description || '',
+          memberCount: countMap[g.id] || 0,
+          icon: g.icon || '✝️',
+          isMember: false, isLeader: false,
+          pendingJoin: memberMap[g.id] === 'pending',
+          privacy: g.privacy as any,
+        }))
+      );
+    } catch (err) { console.warn('loadDiscoverGroups:', err); }
+  }, [profileId]);
+
+  /* ── Load group members ─────────────────────────────────── */
+  const loadGroupMembers = useCallback(async (groupId: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      const { data: members } = await supabase
+        .from('trace_group_members')
+        .select('user_id, role')
+        .eq('group_id', groupId)
+        .eq('status', 'approved');
+      if (!members?.length) { setGroupMembers([]); return; }
+
+      const userIds = members.map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from('trace_profiles')
+        .select('id, display_name, avatar_color')
+        .in('id', userIds);
+      const profMap: Record<string, any> = {};
+      for (const p of (profiles || [])) profMap[(p as any).id] = p;
+
+      setGroupMembers(members.map((m: any) => ({
+        id: m.user_id,
+        name: profMap[m.user_id]?.display_name || 'Member',
+        color: profMap[m.user_id]?.avatar_color || '#6366f1',
+        role: m.role as 'leader' | 'member',
+        isMe: m.user_id === profileId,
+      })));
+    } catch (err) { console.warn('loadGroupMembers:', err); }
+  }, [profileId]);
+
+  /* ── Load join requests ─────────────────────────────────── */
+  const loadJoinRequests = useCallback(async (groupId: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      const { data: pending } = await supabase
+        .from('trace_group_members')
+        .select('user_id, joined_at')
+        .eq('group_id', groupId)
+        .eq('status', 'pending');
+      if (!pending?.length) { setJoinRequests([]); return; }
+
+      const userIds = pending.map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from('trace_profiles')
+        .select('id, display_name, avatar_color')
+        .in('id', userIds);
+      const profMap: Record<string, any> = {};
+      for (const p of (profiles || [])) profMap[(p as any).id] = p;
+
+      setJoinRequests(pending.map((m: any) => ({
+        id: m.user_id,
+        userId: m.user_id,
+        userName: profMap[m.user_id]?.display_name || 'User',
+        userColor: profMap[m.user_id]?.avatar_color || '#6366f1',
+        requestedAt: m.joined_at,
+      })));
+    } catch (err) { console.warn('loadJoinRequests:', err); }
+  }, []);
+
+  /* ── Load group messages ────────────────────────────────── */
+  const loadGroupMessages = useCallback(async (groupId: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    setGroupMsgsLoading(true);
+    try {
+      const { data: msgs } = await supabase
+        .from('trace_group_messages')
+        .select('id, sender_id, content, created_at')
+        .eq('group_id', groupId)
+        .order('created_at', { ascending: true })
+        .limit(60);
+      if (!msgs?.length) { setGroupMessages([]); return; }
+
+      const senderIds = [...new Set(msgs.map((m: any) => m.sender_id))];
+      const { data: profiles } = await supabase
+        .from('trace_profiles')
+        .select('id, display_name, avatar_color')
+        .in('id', senderIds);
+      const profMap: Record<string, any> = {};
+      for (const p of (profiles || [])) profMap[(p as any).id] = p;
+
+      setGroupMessages(msgs.map((m: any) => ({
+        id: m.id,
+        authorName: profMap[m.sender_id]?.display_name || 'Member',
+        authorColor: profMap[m.sender_id]?.avatar_color || '#6366f1',
+        content: m.content,
+        createdAt: m.created_at,
+        isMine: m.sender_id === profileId,
+      })));
+    } catch (err) { console.warn('loadGroupMessages:', err); }
+    finally { setGroupMsgsLoading(false); }
+  }, [profileId]);
 
   /* ── Load prayer requests ───────────────────────────────── */
   const loadPrayers = useCallback(async () => {
@@ -173,8 +365,8 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
       if (!posts || posts.length === 0) { setPrayers([]); setPrayerLoading(false); return; }
 
-      const authorIds = [...new Set(posts.map(p => p.user_id))];
-      const postIds = posts.map(p => p.id);
+      const authorIds = [...new Set(posts.map((p: any) => p.user_id))];
+      const postIds = posts.map((p: any) => p.id);
 
       const [profilesRes, prayersRes] = await Promise.all([
         supabase.from('trace_profiles').select('id, display_name, avatar_color').in('id', authorIds),
@@ -183,15 +375,15 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
       const profiles: Record<string, { name: string; color: string }> = {};
       for (const p of (profilesRes.data || [])) {
-        profiles[p.id] = { name: p.display_name || 'User', color: p.avatar_color || '#6366f1' };
+        profiles[(p as any).id] = { name: (p as any).display_name || 'User', color: (p as any).avatar_color || '#6366f1' };
       }
 
       const prayerCounts: Record<string, string[]> = {};
       for (const p of (prayersRes.data || [])) {
-        (prayerCounts[p.post_id] ??= []).push(p.user_id);
+        (prayerCounts[(p as any).post_id] ??= []).push((p as any).user_id);
       }
 
-      setPrayers(posts.map(p => {
+      setPrayers(posts.map((p: any) => {
         const prof = profiles[p.user_id];
         return {
           id: p.id, userId: p.user_id,
@@ -223,15 +415,15 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
       if (!posts || posts.length === 0) { setTestimonies([]); setTestimonyLoading(false); return; }
 
-      const authorIds = [...new Set(posts.map(p => p.user_id))];
+      const authorIds = [...new Set(posts.map((p: any) => p.user_id))];
       const { data: profilesData } = await supabase.from('trace_profiles').select('id, display_name, avatar_color').in('id', authorIds);
 
       const profiles: Record<string, { name: string; color: string }> = {};
       for (const p of (profilesData || [])) {
-        profiles[p.id] = { name: p.display_name || 'User', color: p.avatar_color || '#6366f1' };
+        profiles[(p as any).id] = { name: (p as any).display_name || 'User', color: (p as any).avatar_color || '#6366f1' };
       }
 
-      setTestimonies(posts.map(p => {
+      setTestimonies(posts.map((p: any) => {
         const prof = profiles[p.user_id];
         return {
           id: p.id, userId: p.user_id,
@@ -247,33 +439,248 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     }
   }, []);
 
+  /* ── Effects ────────────────────────────────────────────── */
   useEffect(() => { loadPrayers(); }, [loadPrayers]);
   useEffect(() => { loadTestimonies(); }, [loadTestimonies]);
+  useEffect(() => {
+    if (profileId) { loadMyGroups(); loadDiscoverGroups(); }
+    else { setMyGroups([]); setDiscoverGroups([]); }
+  }, [profileId, loadMyGroups, loadDiscoverGroups]);
 
-  /* ── Submit prayer request ──────────────────────────────── */
+  // When selected group changes — load messages, members, join requests + set up real-time
+  useEffect(() => {
+    if (groupChatChannelRef.current) {
+      groupChatChannelRef.current.unsubscribe();
+      groupChatChannelRef.current = null;
+    }
+    if (!selectedGroup) {
+      setGroupMessages([]); setGroupMembers([]); setJoinRequests([]);
+      return;
+    }
+    loadGroupMessages(selectedGroup.id);
+    loadGroupMembers(selectedGroup.id);
+    if (selectedGroup.isLeader) loadJoinRequests(selectedGroup.id);
+
+    const supabase = createClient();
+    if (supabase) {
+      const channel = supabase
+        .channel(`group-chat-${selectedGroup.id}`)
+        .on('postgres_changes' as any, {
+          event: 'INSERT', schema: 'public',
+          table: 'trace_group_messages',
+          filter: `group_id=eq.${selectedGroup.id}`,
+        }, () => { loadGroupMessages(selectedGroup.id); })
+        .subscribe();
+      groupChatChannelRef.current = channel;
+    }
+    return () => {
+      if (groupChatChannelRef.current) {
+        groupChatChannelRef.current.unsubscribe();
+        groupChatChannelRef.current = null;
+      }
+    };
+  }, [selectedGroup?.id]); // eslint-disable-line
+
+  /* ── Group actions ──────────────────────────────────────── */
+  const createGroupHandler = async () => {
+    if (!createName.trim() || !profileId) return;
+    setCreateLoading(true);
+    try {
+      const supabase = createClient();
+      if (!supabase) return;
+      const { data: newGroup, error } = await supabase
+        .from('trace_groups')
+        .insert({ name: createName.trim(), description: createDesc.trim(), icon: createIcon, privacy: createPrivacy, created_by: profileId })
+        .select('id').single();
+      if (error || !newGroup) throw error || new Error('No data returned');
+      await supabase.from('trace_group_members').insert({ group_id: (newGroup as any).id, user_id: profileId, role: 'leader', status: 'approved' });
+      setCreateName(''); setCreateDesc(''); setCreateIcon('✝️'); setCreatePrivacy('request');
+      setGroupView('mine');
+      await loadMyGroups();
+    } catch (err) { console.error('Create group:', err); }
+    finally { setCreateLoading(false); }
+  };
+
+  const joinGroup = async (group: KingdomGroup) => {
+    if (!profileId) { onOpenAuth?.(); return; }
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      const status = group.privacy === 'open' ? 'approved' : 'pending';
+      await supabase.from('trace_group_members').insert({ group_id: group.id, user_id: profileId, role: 'member', status });
+      await Promise.all([loadMyGroups(), loadDiscoverGroups()]);
+    } catch (err) { console.error('Join group:', err); }
+  };
+
+  const leaveGroup = async () => {
+    if (!profileId || !selectedGroup) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      await supabase.from('trace_group_members').delete().eq('group_id', selectedGroup.id).eq('user_id', profileId);
+      setSelectedGroup(null);
+      await Promise.all([loadMyGroups(), loadDiscoverGroups()]);
+    } catch (err) { console.error('Leave group:', err); }
+  };
+
+  const approveRequest = async (req: JoinRequest) => {
+    if (!selectedGroup) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      await supabase.from('trace_group_members').update({ status: 'approved' }).eq('group_id', selectedGroup.id).eq('user_id', req.userId);
+      setJoinRequests(prev => prev.filter(r => r.id !== req.id));
+      setMyGroups(prev => prev.map(g => g.id === selectedGroup.id ? { ...g, memberCount: g.memberCount + 1 } : g));
+      loadGroupMembers(selectedGroup.id);
+    } catch (err) { console.error('Approve request:', err); }
+  };
+
+  const denyRequest = async (req: JoinRequest) => {
+    if (!selectedGroup) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      await supabase.from('trace_group_members').delete().eq('group_id', selectedGroup.id).eq('user_id', req.userId);
+      setJoinRequests(prev => prev.filter(r => r.id !== req.id));
+    } catch (err) { console.error('Deny request:', err); }
+  };
+
+  const removeMember = async (memberId: string) => {
+    if (!selectedGroup) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      await supabase.from('trace_group_members').delete().eq('group_id', selectedGroup.id).eq('user_id', memberId);
+      setGroupMembers(prev => prev.filter(m => m.id !== memberId));
+      setMyGroups(prev => prev.map(g => g.id === selectedGroup.id ? { ...g, memberCount: Math.max(0, g.memberCount - 1) } : g));
+    } catch (err) { console.error('Remove member:', err); }
+  };
+
+  const sendGroupMessage = async () => {
+    if (!groupMsgInput.trim() || !profileId || !selectedGroup) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    const text = groupMsgInput.trim();
+    setGroupMsgInput('');
+    try {
+      await supabase.from('trace_group_messages').insert({ group_id: selectedGroup.id, sender_id: profileId, content: text });
+      // Real-time subscription will update the messages list; do an explicit reload as fallback
+      setTimeout(() => loadGroupMessages(selectedGroup.id), 500);
+    } catch (err) { console.error('Send group message:', err); setGroupMsgInput(text); }
+  };
+
+  /* ── DM helpers ─────────────────────────────────────────── */
+  const findOrCreateDm = async (otherProfileId: string): Promise<string | null> => {
+    if (!profileId) return null;
+    const supabase = createClient();
+    if (!supabase) return null;
+    try {
+      // Find existing DM conversation with this person
+      const { data: mine } = await supabase
+        .from('trace_conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', profileId);
+      const myConvIds = (mine || []).map((r: any) => r.conversation_id);
+
+      if (myConvIds.length > 0) {
+        const { data: shared } = await supabase
+          .from('trace_conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', otherProfileId)
+          .in('conversation_id', myConvIds)
+          .limit(1);
+        if (shared?.length) return (shared[0] as any).conversation_id;
+      }
+
+      // Create new conversation
+      const { data: conv } = await supabase
+        .from('trace_conversations')
+        .insert({})
+        .select('id').single();
+      if (!conv) return null;
+
+      await supabase.from('trace_conversation_participants').insert([
+        { conversation_id: (conv as any).id, user_id: profileId },
+        { conversation_id: (conv as any).id, user_id: otherProfileId },
+      ]);
+      return (conv as any).id;
+    } catch (err) { console.error('findOrCreateDm:', err); return null; }
+  };
+
+  const loadDmMessages = async (conversationId: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    setDmLoading(true);
+    try {
+      const { data: msgs } = await supabase
+        .from('trace_messages')
+        .select('id, sender_id, content, created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(60);
+      if (!msgs?.length) { setDmMessages([]); return; }
+
+      const senderIds = [...new Set(msgs.map((m: any) => m.sender_id))];
+      const { data: profiles } = await supabase
+        .from('trace_profiles')
+        .select('id, display_name, avatar_color')
+        .in('id', senderIds);
+      const profMap: Record<string, any> = {};
+      for (const p of (profiles || [])) profMap[(p as any).id] = p;
+
+      setDmMessages(msgs.map((m: any) => ({
+        id: m.id,
+        authorName: profMap[m.sender_id]?.display_name || 'User',
+        authorColor: profMap[m.sender_id]?.avatar_color || '#6366f1',
+        content: m.content,
+        createdAt: m.created_at,
+        isMine: m.sender_id === profileId,
+      })));
+    } catch (err) { console.error('loadDmMessages:', err); }
+    finally { setDmLoading(false); }
+  };
+
+  const sendDm = async () => {
+    if (!dmInput.trim() || !profileId || !dmConversationId) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    const text = dmInput.trim();
+    setDmInput('');
+    try {
+      await supabase.from('trace_messages').insert({ conversation_id: dmConversationId, sender_id: profileId, content: text });
+      await loadDmMessages(dmConversationId);
+    } catch (err) { console.error('sendDm:', err); setDmInput(text); }
+  };
+
+  const startDm = async (member: GroupMember) => {
+    setSelectedDmMember(member);
+    setDmMessages([]);
+    setDmConversationId(null);
+    const convId = await findOrCreateDm(member.id);
+    setDmConversationId(convId);
+    if (convId) await loadDmMessages(convId);
+  };
+
+  /* ── Prayer / Testimony actions ─────────────────────────── */
   const submitPrayer = async () => {
     if (!newPrayer.trim() || !profileId) return;
     setPostingPrayer(true);
     try {
       const supabase = createClient();
       if (!supabase) return;
-      await supabase.from('trace_posts').insert({
-        user_id: profileId, content: newPrayer.trim(), verse_ref: 'prayer-request',
-      });
+      await supabase.from('trace_posts').insert({ user_id: profileId, content: newPrayer.trim(), verse_ref: 'prayer-request' });
       setNewPrayer('');
       await loadPrayers();
     } catch (err) { console.error('Submit prayer failed:', err); }
     finally { setPostingPrayer(false); }
   };
 
-  /* ── Pray for someone ───────────────────────────────────── */
   const prayFor = async (postId: string) => {
     if (!profileId) { onOpenAuth?.(); return; }
     const supabase = createClient();
     if (!supabase) return;
     const prayer = prayers.find(p => p.id === postId);
     if (!prayer) return;
-
     if (prayer.hasPrayed) {
       await supabase.from('trace_post_prayers').delete().eq('post_id', postId).eq('user_id', profileId);
     } else {
@@ -282,16 +689,13 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     await loadPrayers();
   };
 
-  /* ── Submit testimony ───────────────────────────────────── */
   const submitTestimony = async () => {
     if (!newTestimony.trim() || !profileId) return;
     setPostingTestimony(true);
     try {
       const supabase = createClient();
       if (!supabase) return;
-      await supabase.from('trace_posts').insert({
-        user_id: profileId, content: newTestimony.trim(), verse_ref: 'testimony',
-      });
+      await supabase.from('trace_posts').insert({ user_id: profileId, content: newTestimony.trim(), verse_ref: 'testimony' });
       setNewTestimony('');
       await loadTestimonies();
     } catch (err) { console.error('Submit testimony failed:', err); }
@@ -366,7 +770,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             Share what&apos;s on your heart. Pray for one another. Bear each other&apos;s burdens.
           </p>
 
-          {/* Submit prayer */}
           {authUser && profileId && (
             <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
               <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
@@ -390,14 +793,12 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             </div>
           )}
 
-          {/* Loading */}
           {prayerLoading && (
             <div className="flex justify-center py-8">
               <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
             </div>
           )}
 
-          {/* Empty */}
           {!prayerLoading && prayers.length === 0 && (
             <div className="text-center py-8">
               <p className="text-2xl mb-2">🕊</p>
@@ -405,7 +806,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             </div>
           )}
 
-          {/* Prayer cards */}
           {prayers.map(prayer => (
             <div key={prayer.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
               <div className="flex items-start gap-3 mb-3">
@@ -460,7 +860,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                 <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Create a Group</h3>
               </div>
 
-              {/* Icon picker */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: `${accentColor}66` }}>Group Icon</p>
                 <div className="flex flex-wrap gap-2">
@@ -477,7 +876,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                 </div>
               </div>
 
-              {/* Name */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: `${accentColor}66` }}>Group Name</p>
                 <input autoCorrect="on" autoCapitalize="words" spellCheck
@@ -487,7 +885,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                   style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
               </div>
 
-              {/* Description */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: `${accentColor}66` }}>Description</p>
                 <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck
@@ -498,7 +895,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                 <p className="text-[9px] mt-1 text-right" style={{ color: 'rgba(232,240,236,0.2)' }}>{createDesc.length}/140</p>
               </div>
 
-              {/* Privacy */}
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: `${accentColor}66` }}>Who Can Join?</p>
                 <div className="space-y-2">
@@ -526,20 +922,8 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
               </div>
 
               <button
-                disabled={!createName.trim() || createLoading}
-                onClick={async () => {
-                  if (!createName.trim()) return;
-                  setCreateLoading(true);
-                  await new Promise(r => setTimeout(r, 600));
-                  const newGroup: KingdomGroup = {
-                    id: `g-${Date.now()}`, name: createName.trim(), description: createDesc.trim(),
-                    memberCount: 1, icon: createIcon, isMember: true, isLeader: true, privacy: createPrivacy,
-                  };
-                  setMyGroups(prev => [newGroup, ...prev]);
-                  setCreateName(''); setCreateDesc(''); setCreateIcon('✝️'); setCreatePrivacy('request');
-                  setGroupView('mine');
-                  setCreateLoading(false);
-                }}
+                disabled={!createName.trim() || createLoading || !profileId}
+                onClick={createGroupHandler}
                 className="w-full py-3.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all active:scale-[0.98] disabled:opacity-30"
                 style={{ background: createName.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.06)', color: '#fff', boxShadow: createName.trim() ? `0 4px 20px ${accentColor}33` : 'none' }}>
                 {createLoading ? 'Creating…' : `${createIcon} Create Group`}
@@ -592,14 +976,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                       </div>
                     ) : (
                       <button
-                        onClick={() => {
-                          if (group.privacy === 'open') {
-                            setMyGroups(prev => [{ ...group, isMember: true, isLeader: false }, ...prev]);
-                            setDiscoverGroups(prev => prev.filter(g => g.id !== group.id));
-                          } else {
-                            setDiscoverGroups(prev => prev.map(g => g.id === group.id ? { ...g, pendingJoin: true } : g));
-                          }
-                        }}
+                        onClick={() => joinGroup(group)}
                         className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
                         style={{
                           background: group.privacy === 'open' ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : `${accentColor}15`,
@@ -627,7 +1004,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             <>
               <SectionHeader text="Kingdom Groups" accentColor={accentColor} icon="👑" />
               <div className="flex gap-2">
-                <button onClick={() => setGroupView('discover')}
+                <button onClick={() => { setGroupView('discover'); loadDiscoverGroups(); }}
                   className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
                   style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 2px 12px ${accentColor}33` }}>
                   🔍 Find a Group
@@ -639,7 +1016,11 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                 </button>
               </div>
 
-              {myGroups.length === 0 ? (
+              {groupsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
+                </div>
+              ) : myGroups.length === 0 ? (
                 <div className="rounded-xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10` }}>
                   <p className="text-2xl mb-2">⛪</p>
                   <p className="text-sm font-bold mb-1" style={{ color: 'rgba(232,240,236,0.5)' }}>You&apos;re not in any groups yet</p>
@@ -648,7 +1029,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
               ) : (
                 myGroups.map(group => (
                   <button key={group.id}
-                    onClick={() => { setSelectedGroup(group); setGroupTab('chat'); setGroupMessages([]); }}
+                    onClick={() => { setSelectedGroup(group); setGroupTab('chat'); setGroupMessages([]); setChatMode('group'); setSelectedDmMember(null); }}
                     className="w-full rounded-xl p-4 text-left transition-all active:scale-[0.98]"
                     style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
                     <div className="flex items-center gap-3">
@@ -724,7 +1105,11 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
               { id: 'prayer' as const, icon: '🙏', label: 'Prayer', badge: 0 },
               { id: 'members' as const, icon: '👥', label: 'Members', badge: selectedGroup.isLeader ? joinRequests.length : 0 },
             ]).map(gt => (
-              <button key={gt.id} onClick={() => setGroupTab(gt.id)}
+              <button key={gt.id} onClick={() => {
+                setGroupTab(gt.id);
+                if (gt.id === 'members') { loadGroupMembers(selectedGroup.id); if (selectedGroup.isLeader) loadJoinRequests(selectedGroup.id); }
+                if (gt.id === 'chat' && chatMode === 'dm') loadGroupMembers(selectedGroup.id);
+              }}
                 className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold transition-all relative"
                 style={groupTab === gt.id
                   ? { background: `${accentColor}18`, border: `1.5px solid ${accentColor}33`, color: accentColor }
@@ -754,7 +1139,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                     : { background: 'transparent', color: 'rgba(232,240,236,0.35)', border: '1px solid transparent' }}>
                   <span>👥</span> Group Chat
                 </button>
-                <button onClick={() => setChatMode('dm')}
+                <button onClick={() => { setChatMode('dm'); if (!groupMembers.length) loadGroupMembers(selectedGroup.id); }}
                   className="flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all"
                   style={chatMode === 'dm'
                     ? { background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}30` }
@@ -767,7 +1152,11 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
               {chatMode === 'group' && (
                 <>
                   <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10`, minHeight: 200 }}>
-                    {groupMessages.length === 0 ? (
+                    {groupMsgsLoading ? (
+                      <div className="flex justify-center py-10">
+                        <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
+                      </div>
+                    ) : groupMessages.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
                         <span className="text-3xl mb-3">💬</span>
                         <p className="text-xs font-bold mb-1" style={{ color: 'rgba(232,240,236,0.4)' }}>No messages yet</p>
@@ -793,13 +1182,13 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                   </div>
                   {authUser ? (
                     <div className="flex gap-2 items-center">
-                      <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text" value={groupMsgInput} onChange={e => setGroupMsgInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && groupMsgInput.trim()) { setGroupMessages(prev => [...prev, { id: Date.now().toString(), authorName: userIdentity?.name || 'You', authorColor: userIdentity?.color || accentColor, content: groupMsgInput.trim(), createdAt: new Date().toISOString(), isMine: true }]); setGroupMsgInput(''); } }}
+                      <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text"
+                        value={groupMsgInput} onChange={e => setGroupMsgInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && groupMsgInput.trim()) sendGroupMessage(); }}
                         placeholder={`Message ${selectedGroup.name}...`}
                         className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
                         style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}15`, color: '#f0f8f4' }} />
-                      <button disabled={!groupMsgInput.trim()}
-                        onClick={() => { if (!groupMsgInput.trim()) return; setGroupMessages(prev => [...prev, { id: Date.now().toString(), authorName: userIdentity?.name || 'You', authorColor: userIdentity?.color || accentColor, content: groupMsgInput.trim(), createdAt: new Date().toISOString(), isMine: true }]); setGroupMsgInput(''); }}
+                      <button disabled={!groupMsgInput.trim()} onClick={sendGroupMessage}
                         className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ background: groupMsgInput.trim() ? accentColor : 'rgba(255,255,255,0.04)', color: groupMsgInput.trim() ? '#000' : 'rgba(255,255,255,0.2)', border: `1px solid ${groupMsgInput.trim() ? accentColor : 'rgba(255,255,255,0.06)'}` }}>
                         ↑
@@ -815,31 +1204,32 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
               {chatMode === 'dm' && !selectedDmMember && (
                 <div className="flex flex-col gap-2">
                   <p className="text-[10px] font-bold uppercase tracking-wider px-1" style={{ color: `${accentColor}60` }}>Send a private message to a member</p>
-                  {[
-                    { name: 'Marcus W.', color: '#6366f1' },
-                    { name: 'James T.', color: '#22c55e' },
-                    { name: 'David R.', color: '#f59e0b' },
-                    { name: 'Samuel K.', color: '#ec4899' },
-                  ].map(m => (
-                    <button key={m.name}
-                      onClick={() => { setSelectedDmMember(m); setDmMessages([]); setDmInput(''); }}
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all active:scale-[0.98]"
-                      style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}08` }}>
-                      <Avatar name={m.name} color={m.color} size={34} />
-                      <div className="flex-1 text-left">
-                        <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}</p>
-                        <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Tap to message privately</p>
-                      </div>
-                      <span style={{ color: 'rgba(232,240,236,0.2)', fontSize: 14 }}>🔒</span>
-                    </button>
-                  ))}
+                  {groupMembers.filter(m => !m.isMe).length === 0 ? (
+                    <div className="text-center py-6">
+                      <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.3)' }}>No other members to message yet.</p>
+                    </div>
+                  ) : (
+                    groupMembers.filter(m => !m.isMe).map(m => (
+                      <button key={m.id}
+                        onClick={() => startDm(m)}
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all active:scale-[0.98]"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}08` }}>
+                        <Avatar name={m.name} color={m.color} size={34} />
+                        <div className="flex-1 text-left">
+                          <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}</p>
+                          <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Tap to message privately</p>
+                        </div>
+                        <span style={{ color: 'rgba(232,240,236,0.2)', fontSize: 14 }}>🔒</span>
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
 
               {chatMode === 'dm' && selectedDmMember && (
                 <>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => setSelectedDmMember(null)}
+                    <button onClick={() => { setSelectedDmMember(null); setDmMessages([]); setDmConversationId(null); }}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold"
                       style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>
                       ←
@@ -851,7 +1241,11 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                     </div>
                   </div>
                   <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10`, minHeight: 180 }}>
-                    {dmMessages.length === 0 ? (
+                    {dmLoading ? (
+                      <div className="flex justify-center py-10">
+                        <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
+                      </div>
+                    ) : dmMessages.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 text-center px-6">
                         <span className="text-2xl mb-2">🔒</span>
                         <p className="text-xs font-bold mb-1" style={{ color: 'rgba(232,240,236,0.35)' }}>Private conversation</p>
@@ -874,13 +1268,14 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                     )}
                   </div>
                   <div className="flex gap-2 items-center">
-                    <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text" value={dmInput} onChange={e => setDmInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && dmInput.trim()) { setDmMessages(prev => [...prev, { id: Date.now().toString(), authorName: userIdentity?.name || 'You', authorColor: userIdentity?.color || accentColor, content: dmInput.trim(), createdAt: new Date().toISOString(), isMine: true }]); setDmInput(''); } }}
+                    <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text"
+                      value={dmInput} onChange={e => setDmInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && dmInput.trim()) sendDm(); }}
                       placeholder={`Message ${selectedDmMember.name}...`}
                       className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
                       style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}15`, color: '#f0f8f4' }} />
-                    <button disabled={!dmInput.trim()}
-                      onClick={() => { if (!dmInput.trim()) return; setDmMessages(prev => [...prev, { id: Date.now().toString(), authorName: userIdentity?.name || 'You', authorColor: userIdentity?.color || accentColor, content: dmInput.trim(), createdAt: new Date().toISOString(), isMine: true }]); setDmInput(''); }}
+                    <button disabled={!dmInput.trim() || !dmConversationId}
+                      onClick={sendDm}
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: dmInput.trim() ? accentColor : 'rgba(255,255,255,0.04)', color: dmInput.trim() ? '#000' : 'rgba(255,255,255,0.2)', border: `1px solid ${dmInput.trim() ? accentColor : 'rgba(255,255,255,0.06)'}` }}>
                       ↑
@@ -922,16 +1317,13 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                         </div>
                         <div className="flex gap-1.5 shrink-0">
                           <button
-                            onClick={() => {
-                              setMyGroups(prev => prev.map(g => g.id === selectedGroup.id ? { ...g, memberCount: g.memberCount + 1 } : g));
-                              setJoinRequests(prev => prev.filter(r => r.id !== req.id));
-                            }}
+                            onClick={() => approveRequest(req)}
                             className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95"
                             style={{ background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}35` }}>
                             ✓ Approve
                           </button>
                           <button
-                            onClick={() => setJoinRequests(prev => prev.filter(r => r.id !== req.id))}
+                            onClick={() => denyRequest(req)}
                             className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95"
                             style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)' }}>
                             ✕ Deny
@@ -945,41 +1337,39 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
               {/* Member list */}
               <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: `${accentColor}55` }}>Members</p>
-              {[
-                { name: userIdentity?.name || 'You', color: userIdentity?.color || accentColor, role: selectedGroup.isLeader ? 'Leader' : 'Member', isMe: true },
-                { name: 'Marcus W.', color: '#6366f1', role: 'Member', isMe: false },
-                { name: 'James T.', color: '#22c55e', role: 'Member', isMe: false },
-                { name: 'David R.', color: '#f59e0b', role: 'Member', isMe: false },
-              ].map(m => (
-                <div key={m.name} className="flex items-center gap-3 rounded-xl px-4 py-3"
-                  style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}08` }}>
-                  <Avatar name={m.name} color={m.color} size={32} />
-                  <div className="flex-1">
-                    <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}{m.isMe ? ' (You)' : ''}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] px-2 py-1 rounded-full font-bold"
-                      style={{ background: m.role === 'Leader' ? `${accentColor}22` : 'rgba(255,255,255,0.04)', color: m.role === 'Leader' ? accentColor : 'rgba(232,240,236,0.3)' }}>
-                      {m.role}
-                    </span>
-                    {selectedGroup.isLeader && !m.isMe && (
-                      <button className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
-                        style={{ background: 'rgba(239,68,68,0.07)', color: 'rgba(239,68,68,0.5)', border: '1px solid rgba(239,68,68,0.12)', fontSize: 10 }}>
-                        ✕
-                      </button>
-                    )}
-                  </div>
+              {groupMembers.length === 0 ? (
+                <div className="flex justify-center py-4">
+                  <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
                 </div>
-              ))}
+              ) : (
+                groupMembers.map(m => (
+                  <div key={m.id} className="flex items-center gap-3 rounded-xl px-4 py-3"
+                    style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}08` }}>
+                    <Avatar name={m.name} color={m.color} size={32} />
+                    <div className="flex-1">
+                      <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}{m.isMe ? ' (You)' : ''}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] px-2 py-1 rounded-full font-bold"
+                        style={{ background: m.role === 'leader' ? `${accentColor}22` : 'rgba(255,255,255,0.04)', color: m.role === 'leader' ? accentColor : 'rgba(232,240,236,0.3)' }}>
+                        {m.role === 'leader' ? 'Leader' : 'Member'}
+                      </span>
+                      {selectedGroup.isLeader && !m.isMe && (
+                        <button onClick={() => removeMember(m.id)}
+                          className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
+                          style={{ background: 'rgba(239,68,68,0.07)', color: 'rgba(239,68,68,0.5)', border: '1px solid rgba(239,68,68,0.12)', fontSize: 10 }}>
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
 
               {/* Leave group (non-leader) */}
               {!selectedGroup.isLeader && (
                 <button
-                  onClick={() => {
-                    setMyGroups(prev => prev.filter(g => g.id !== selectedGroup.id));
-                    setDiscoverGroups(prev => [{ ...selectedGroup, isMember: false, isLeader: false }, ...prev]);
-                    setSelectedGroup(null);
-                  }}
+                  onClick={leaveGroup}
                   className="w-full py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
                   style={{ background: 'rgba(239,68,68,0.07)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)' }}>
                   Leave Group
@@ -1000,7 +1390,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             Share what God is doing in your life. Your testimony could be the encouragement someone needs today.
           </p>
 
-          {/* Submit testimony */}
           {authUser && profileId && (
             <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
               <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
@@ -1023,14 +1412,12 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             </div>
           )}
 
-          {/* Loading */}
           {testimonyLoading && (
             <div className="flex justify-center py-8">
               <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
             </div>
           )}
 
-          {/* Empty */}
           {!testimonyLoading && testimonies.length === 0 && (
             <div className="text-center py-8">
               <p className="text-2xl mb-2">✦</p>
@@ -1038,7 +1425,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             </div>
           )}
 
-          {/* Testimony cards */}
           {testimonies.map(t => (
             <div key={t.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
               <div className="flex items-start gap-3 mb-3">
@@ -1055,7 +1441,6 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
           ))}
         </div>
       )}
-
 
       {/* Footer verse */}
       <div className="text-center py-4">
