@@ -83,7 +83,7 @@ export default function VoicePrayer({ accentColor, onComplete, onClose }: Props)
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🎙</span>
+            <img src="/microphone final.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />
             <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Pray Aloud</h3>
           </div>
           <button onClick={onClose} className="text-xs px-2 py-1 rounded-lg" style={{ color: 'rgba(232,240,236,0.3)' }}>✕</button>
@@ -116,7 +116,7 @@ export default function VoicePrayer({ accentColor, onComplete, onClose }: Props)
                   <button onClick={startRecording}
                     className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 transition-transform hover:scale-105"
                     style={{ background: 'linear-gradient(135deg, #818cf8, #6366f1)', boxShadow: '0 0 24px rgba(99,102,241,0.3)' }}>
-                    <span className="text-2xl">🎙</span>
+                    <img src="/microphone final.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
                   </button>
                   <p className="text-xs" style={{ color: 'rgba(232,240,236,0.35)' }}>Tap to start recording</p>
                 </>

@@ -2680,7 +2680,7 @@ export default function ReadTab({
       <div>
         <button onClick={() => setShowNotes(n => !n)} className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold"
           style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18`, color: `${accentColor}88` }}>
-          <span>✍ Study Notes — {selectedBook.name} {selectedChapter}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><img src="/quill 2.png" alt="" style={{ width: 30, height: 30, objectFit: 'contain',  }} /> Study Notes — {selectedBook.name} {selectedChapter}</span>
           <span className="text-xs">{showNotes ? '▲' : '▼'}</span>
         </button>
         {showNotes && (
@@ -3358,7 +3358,7 @@ export default function ReadTab({
                         ? { background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}44` }
                         : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }}
                     >
-                      <span>✍</span>
+                      <img src="/quill 2.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain',  }} />
                       <span>{hasNote ? 'Note ✓' : 'Note'}</span>
                     </button>
                   </>

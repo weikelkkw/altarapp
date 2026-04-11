@@ -335,13 +335,13 @@ Be warm, pastoral, and encouraging. Capture the heart of what God was saying thr
             <div className="space-y-2.5">
               <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: `${accentColor}55` }}>How It Works</p>
               {[
-                { icon: '🎙', text: 'Speak naturally — your words are transcribed automatically' },
+                { icon: 'mic', text: 'Speak naturally — your words are transcribed automatically' },
                 { icon: '📌', text: 'Add manual notes at any point during the study' },
                 { icon: '⏸', text: 'Pause and resume whenever needed' },
                 { icon: '✦', text: 'End the session — AI writes a full recap for your group' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid rgba(255,255,255,0.05)` }}>
-                  <span className="text-base flex-shrink-0">{item.icon}</span>
+                  {item.icon === 'mic' ? <img src="/microphone final.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }} /> : <span className="text-base flex-shrink-0">{item.icon}</span>}
                   <p className="text-xs" style={{ color: 'rgba(232,240,236,0.55)' }}>{item.text}</p>
                 </div>
               ))}
@@ -360,7 +360,7 @@ Be warm, pastoral, and encouraging. Capture the heart of what God was saying thr
               onClick={startStudy}
               className="w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-30"
               style={{ background: speakerName.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.06)', color: '#fff', boxShadow: speakerName.trim() ? `0 4px 24px ${accentColor}44` : 'none' }}>
-              🎙 Start Recording
+              <img src="/microphone final.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', display: 'inline', marginRight: 8, verticalAlign: 'middle' }} /> Start Recording
             </button>
           </div>
         </>

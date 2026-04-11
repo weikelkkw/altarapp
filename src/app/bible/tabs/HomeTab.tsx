@@ -709,32 +709,45 @@ export default function HomeTab({
       <GlowDivider accentColor={accentColor} dot />
 
       {/* ── Prayer Journal (Stepped Flow) ──────────────────────────────── */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}18`, boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}>
-        <div className="px-5 pt-5 pb-4">
+      <div className="rounded-2xl overflow-hidden" style={{ position: 'relative', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}18`, boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}>
+        <img src="/prayer journal.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.25, pointerEvents: 'none', zIndex: 0 }} />
+        <div className="px-5 pt-5 pb-4" style={{ position: 'relative', zIndex: 1 }}>
 
           {/* ── Header ── */}
-          <div className="flex items-center justify-between mb-4">
-            <SectionLabel text="Prayer Journal" accentColor={accentColor} icon="🙏" />
-            <div className="flex items-center gap-2">
-              {activePrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#22c55e18', color: '#22c55e' }}>{activePrayers.length}</span>}
-              {answeredPrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#a855f718', color: '#a855f7' }}>{answeredPrayers.length} ✓</span>}
+          <div className="relative flex items-center justify-between mb-4" style={{ minHeight: 72 }}>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+                <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Prayer Journal</h2>
+              </div>
+              <div className="flex items-center gap-2 pl-3">
+                {activePrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#22c55e18', color: '#22c55e' }}>{activePrayers.length} active</span>}
+                {answeredPrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#a855f718', color: '#a855f7' }}>{answeredPrayers.length} answered ✓</span>}
+              </div>
             </div>
+            <img src="/Praying hands.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.95, flexShrink: 0 }} />
           </div>
 
           {/* ── Step 1: "Do you need to pray?" button ── */}
           {!showPrayerForm && !showVoicePrayer ? (
             <div className="grid grid-cols-2 gap-2 mb-4">
               <button onClick={() => setShowPrayerForm(true)}
-                className="py-4 rounded-xl text-center transition-all"
-                style={{ background: `linear-gradient(135deg, ${accentColor}14, ${accentColor}08)`, border: `1px dashed ${accentColor}33` }}>
-                <p className="text-sm font-bold" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>✍ Write</p>
-                <p className="text-[9px] mt-0.5" style={{ color: `${accentColor}44` }}>Type your prayer</p>
+                className="rounded-xl transition-all overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, rgba(202,138,4,0.55), rgba(120,70,0,0.45))', border: '1px solid rgba(234,179,8,0.4)', boxShadow: '0 2px 12px rgba(202,138,4,0.2), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
+                <img src="/quill 2.png" alt="" style={{ position: 'absolute', right: -8, top: '50%', transform: 'translateY(-50%)', width: 80, height: 80, objectFit: 'contain', opacity: 0.95 }} />
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'left' }}>
+                  <p className="text-sm font-bold" style={{ color: '#fde68a', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Write</p>
+                  <p className="text-[9px]" style={{ color: 'rgba(253,230,138,0.6)' }}>Type your prayer</p>
+                </div>
               </button>
               <button onClick={() => setShowVoicePrayer(true)}
-                className="py-4 rounded-xl text-center transition-all"
-                style={{ background: 'linear-gradient(135deg, rgba(129,140,248,0.12), rgba(129,140,248,0.04))', border: '1px dashed rgba(129,140,248,0.3)' }}>
-                <p className="text-sm font-bold" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif' }}>🎙 Pray Aloud</p>
-                <p className="text-[9px] mt-0.5" style={{ color: 'rgba(129,140,248,0.4)' }}>Speak your prayer</p>
+                className="rounded-xl transition-all overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, rgba(120,70,30,0.6), rgba(80,40,10,0.5))', border: '1px solid rgba(180,110,40,0.4)', boxShadow: '0 2px 12px rgba(120,70,30,0.25), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
+                <img src="/microphone final.png" alt="" style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 80, height: 80, objectFit: 'contain', opacity: 0.95 }} />
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'left' }}>
+                  <p className="text-sm font-bold" style={{ color: '#fcd9a0', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Pray Aloud</p>
+                  <p className="text-[9px]" style={{ color: 'rgba(252,217,160,0.55)' }}>Speak your prayer</p>
+                </div>
               </button>
             </div>
           ) : showVoicePrayer ? (
@@ -859,7 +872,7 @@ export default function HomeTab({
                 const catColor = categoryColors[p.category || 'Other'] || '#94a3b8';
 
                 return (
-                  <div key={p.id} className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div key={p.id} className="rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.42)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 0 0 1px rgba(0,0,0,0.9), 0 4px 20px rgba(0,0,0,0.6)' }}>
                     <div className="flex">
                       {/* Left color bar */}
                       <div className="w-1 shrink-0" style={{ background: statusColor }} />
@@ -1148,7 +1161,7 @@ export default function HomeTab({
                   { val: streak, label: 'Day Streak', desc: `${streak === 1 ? 'Keep going!' : streak < 7 ? 'Building momentum' : 'On fire!'}`, icon: '🔥', color: '#fbbf24' },
                   { val: highlightCount, label: 'Saved Verses', desc: `${highlightCount === 0 ? 'Tap verses to save' : highlightCount < 10 ? 'Growing collection' : 'Rich in the Word'}`, icon: '💎', color: '#a855f7' },
                   { val: chaptersStudied, label: 'Chapters Read', desc: `${TOTAL_CHAPTERS - chaptersStudied} remaining`, icon: '📖', color: '#22c55e' },
-                  { val: chaptersWithNotes, label: 'Study Notes', desc: `${chaptersWithNotes === 0 ? 'Start writing' : chaptersWithNotes < 10 ? 'Keep studying' : 'Deep roots'}`, icon: '✍', color: '#60a5fa' },
+                  { val: chaptersWithNotes, label: 'Study Notes', desc: `${chaptersWithNotes === 0 ? 'Start writing' : chaptersWithNotes < 10 ? 'Keep studying' : 'Deep roots'}`, icon: '📜', color: '#60a5fa' },
                 ].map(s => (
                   <div key={s.label} className="rounded-2xl p-3.5 relative overflow-hidden"
                     style={{ background: `linear-gradient(135deg, ${s.color}0c, ${s.color}04)`, border: `1px solid ${s.color}1a` }}>
