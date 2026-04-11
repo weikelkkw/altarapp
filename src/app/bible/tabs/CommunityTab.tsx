@@ -528,7 +528,14 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     const supabase = createClient();
     if (!supabase) return;
     try {
-      await supabase.from('trace_group_members').update({ status: 'approved' }).eq('group_id', selectedGroup.id).eq('user_id', req.userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch('/api/group/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ groupId: selectedGroup.id, userId: req.userId }),
+      });
+      if (!res.ok) { console.error('Approve failed:', await res.text()); return; }
       setJoinRequests(prev => prev.filter(r => r.id !== req.id));
       setMyGroups(prev => prev.map(g => g.id === selectedGroup.id ? { ...g, memberCount: g.memberCount + 1 } : g));
       loadGroupMembers(selectedGroup.id);
@@ -540,7 +547,14 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     const supabase = createClient();
     if (!supabase) return;
     try {
-      await supabase.from('trace_group_members').delete().eq('group_id', selectedGroup.id).eq('user_id', req.userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch('/api/group/approve', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ groupId: selectedGroup.id, userId: req.userId }),
+      });
+      if (!res.ok) { console.error('Deny failed:', await res.text()); return; }
       setJoinRequests(prev => prev.filter(r => r.id !== req.id));
     } catch (err) { console.error('Deny request:', err); }
   };

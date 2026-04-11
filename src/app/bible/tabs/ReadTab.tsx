@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, Fragment } from 'react';
 import {
   ApiBible, Passage, PassageSection, BookDef, ParsedVerse, T, BOOKS, POPULAR_ABBRS, SUPPORTED_LANGUAGES, cleanMarkdown, completeDailyCheck,
 } from '../types';
@@ -1519,6 +1519,8 @@ export default function ReadTab({
   const [pressingVerse, setPressingVerse] = useState<number | null>(null); // for visual feedback
   // Double-tap detection
   const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
+  // Inline color picker after double-tap highlight
+  const [colorPickerVerse, setColorPickerVerse] = useState<string | null>(null);
 
   const stopTTS = useCallback(() => {
     if (ttsAbortRef.current) {
@@ -2013,15 +2015,18 @@ export default function ReadTab({
     const isTTSActive = currentTTSVerse === v.verse;
 
     const handleVerseClick = () => {
-      // Double-tap = instant highlight toggle
+      // Double-tap = instant highlight + show color picker
       const now = Date.now();
       const last = lastTapRef.current;
       if (last && last.verse === v.verse && now - last.time < 350) {
         lastTapRef.current = null;
+        const willBeHighlighted = !highlighted.has(vKey);
         toggleHighlight(vKey);
+        setColorPickerVerse(willBeHighlighted ? vKey : null);
         return;
       }
       lastTapRef.current = { verse: v.verse, time: now };
+      setColorPickerVerse(null); // dismiss color picker on single tap
 
       if (speaking) {
         playTTS(v.verse);
@@ -2051,43 +2056,91 @@ export default function ReadTab({
       }
     };
 
+    const HIGHLIGHT_COLORS = [
+      { color: '#f59e0b', label: 'Speaks to me' },
+      { color: '#22c55e', label: 'Peace / comfort' },
+      { color: '#818cf8', label: 'Revelation' },
+      { color: '#f87171', label: 'Warning / urgency' },
+      { color: '#e2e8f0', label: 'Promise / hope' },
+    ];
+
     return (
-      <span key={v.verse}
-        data-verse={v.verse}
-        onClick={handleVerseClick}
-        onMouseDown={() => { /* handled by onClick */ }}
-        onMouseUp={() => { /* handled by onClick */ }}
-        onMouseLeave={() => { /* handled by onClick */ }}
-        onTouchStart={(e) => { e.preventDefault(); startLongPress(v); }}
-        onTouchEnd={(e) => { e.preventDefault(); if (longPressTimer.current !== null) { cancelLongPress(); handleVerseClick(); } else { setPressingVerse(null); } }}
-        onTouchMove={(e) => { cancelLongPress(); }}
-        className="rounded transition-all inline select-none"
-        style={{
-          cursor: 'pointer',
-          padding: '2px 4px',
-          borderRadius: '4px',
-          transition: 'background 0.15s, transform 0.15s, opacity 0.15s',
-          opacity: isPressing ? 0.65 : multiSelectMode && !isMultiSelected ? 0.45 : 1,
-          transform: isPressing ? 'scale(0.97)' : 'scale(1)',
-          ...(isMultiSelected
-            ? { background: `${accentColor}55`, boxShadow: `0 0 0 2px ${accentColor}`, outline: `2px solid ${accentColor}` }
-            : isTTSActive
-              ? { background: `${accentColor}33`, boxShadow: `0 0 0 2px ${accentColor}88`, borderRadius: '6px' }
-              : isActive
-                ? { background: `${accentColor}44`, boxShadow: `0 0 0 2px ${accentColor}66` }
-                : isPressing
-                  ? { background: `${accentColor}28` }
-                  : highlighted.has(vKey)
-                    ? { background: highlightColors[vKey] ? `${highlightColors[vKey]}33` : 'rgba(212,168,83,0.22)', boxShadow: highlightColors[vKey] ? `inset 0 0 0 1px ${highlightColors[vKey]}55` : 'none' }
-                    : {}),
-        }}>
-        <span className="select-none" style={{
-          color: hue, fontSize: '0.58em', fontFamily: 'Montserrat, system-ui, sans-serif',
-          fontWeight: 800, verticalAlign: 'super', marginRight: '0.25em', opacity: 0.75,
-          letterSpacing: '-0.01em',
-        }}>{v.verse}</span>
-        {v.text}{' '}
-      </span>
+      <Fragment key={v.verse}>
+        <span
+          data-verse={v.verse}
+          onClick={handleVerseClick}
+          onMouseDown={() => { /* handled by onClick */ }}
+          onMouseUp={() => { /* handled by onClick */ }}
+          onMouseLeave={() => { /* handled by onClick */ }}
+          onTouchStart={(e) => { e.preventDefault(); startLongPress(v); }}
+          onTouchEnd={(e) => { e.preventDefault(); if (longPressTimer.current !== null) { cancelLongPress(); handleVerseClick(); } else { setPressingVerse(null); } }}
+          onTouchMove={(e) => { cancelLongPress(); }}
+          className="rounded transition-all inline select-none"
+          style={{
+            cursor: 'pointer',
+            padding: '2px 4px',
+            borderRadius: '4px',
+            transition: 'background 0.15s, transform 0.15s, opacity 0.15s',
+            opacity: isPressing ? 0.65 : multiSelectMode && !isMultiSelected ? 0.45 : 1,
+            transform: isPressing ? 'scale(0.97)' : 'scale(1)',
+            ...(isMultiSelected
+              ? { background: `${accentColor}55`, boxShadow: `0 0 0 2px ${accentColor}`, outline: `2px solid ${accentColor}` }
+              : isTTSActive
+                ? { background: `${accentColor}33`, boxShadow: `0 0 0 2px ${accentColor}88`, borderRadius: '6px' }
+                : isActive
+                  ? { background: `${accentColor}44`, boxShadow: `0 0 0 2px ${accentColor}66` }
+                  : isPressing
+                    ? { background: `${accentColor}28` }
+                    : highlighted.has(vKey)
+                      ? { background: highlightColors[vKey] ? `${highlightColors[vKey]}33` : 'rgba(212,168,83,0.22)', boxShadow: highlightColors[vKey] ? `inset 0 0 0 1px ${highlightColors[vKey]}55` : 'none' }
+                      : {}),
+          }}>
+          <span className="select-none" style={{
+            color: hue, fontSize: '0.58em', fontFamily: 'Montserrat, system-ui, sans-serif',
+            fontWeight: 800, verticalAlign: 'super', marginRight: '0.25em', opacity: 0.75,
+            letterSpacing: '-0.01em',
+          }}>{v.verse}</span>
+          {v.text}{' '}
+        </span>
+        {colorPickerVerse === vKey && setHighlightColor && (
+          <span style={{ display: 'block', margin: '6px 0 8px', lineHeight: 1 }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
+              borderRadius: 20, padding: '6px 12px',
+              border: `1px solid ${accentColor}22`,
+            }}>
+              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, whiteSpace: 'nowrap', fontFamily: 'Montserrat, system-ui, sans-serif' }}>How does this hit?</span>
+              {HIGHLIGHT_COLORS.map(({ color, label }) => {
+                const isSelected = highlightColors[vKey] === color;
+                return (
+                  <button
+                    key={color}
+                    title={label}
+                    onClick={(e) => { e.stopPropagation(); setHighlightColor!(vKey, color); setColorPickerVerse(null); }}
+                    style={{
+                      width: 22, height: 22, borderRadius: '50%', background: color,
+                      border: isSelected ? '2px solid #fff' : '2px solid transparent',
+                      boxShadow: isSelected ? `0 0 0 2px ${color}, 0 0 8px ${color}88` : '0 1px 4px rgba(0,0,0,0.5)',
+                      transform: isSelected ? 'scale(1.25)' : 'scale(1)',
+                      transition: 'all 0.15s', cursor: 'pointer', flexShrink: 0,
+                    }}
+                  />
+                );
+              })}
+              <button
+                onClick={(e) => { e.stopPropagation(); setColorPickerVerse(null); }}
+                style={{
+                  width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,0.12)',
+                  border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
+                  fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                ✕
+              </button>
+            </span>
+          </span>
+        )}
+      </Fragment>
     );
   };
 
@@ -2597,27 +2650,22 @@ export default function ReadTab({
                 </p>
               </div>
 
-              {/* Action buttons — filtered by experience */}
+              {/* Action buttons — single tap: deep study, cross-ref, ask AI */}
               <div className="px-5 py-3 flex gap-2 flex-wrap" style={{ borderBottom: `1px solid ${accentColor}12` }}>
                 {([
-                  { id: 'highlight' as const, label: 'Highlight', icon: '✦', min: 'beginner' as const },
-                  { id: 'explain' as const, label: 'Explain', icon: '📖', min: 'intermediate' as const },
+                  { id: 'explain' as const, label: 'Deep Study', icon: '📖', min: 'beginner' as const },
                   { id: 'crossref' as const, label: 'Cross-Ref', icon: '🔗', min: 'intermediate' as const },
-                  { id: 'ask' as const, label: 'Ask', icon: '💬', min: 'expert' as const },
+                  { id: 'ask' as const, label: 'Ask AI', icon: '💬', min: 'expert' as const },
                 ]).filter(b => {
                   const order = { beginner: 0, intermediate: 1, expert: 2 };
                   return order[experienceLevel] >= order[b.min];
                 }).map(btn => {
-                  const vKey = `${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`;
-                  const isHighlighted = highlighted.has(vKey);
                   const isActive = aiMode === btn.id;
 
                   return (
                     <button key={btn.id}
                       onClick={() => {
-                        if (btn.id === 'highlight') {
-                          toggleHighlight(vKey);
-                        } else if (btn.id === 'explain') {
+                        if (btn.id === 'explain') {
                           doExplain();
                         } else if (btn.id === 'crossref') {
                           doCrossRef();
@@ -2628,46 +2676,13 @@ export default function ReadTab({
                       className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all"
                       style={isActive
                         ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 0 12px ${accentColor}44` }
-                        : btn.id === 'highlight' && isHighlighted
-                          ? { background: 'rgba(212,168,83,0.2)', color: gold, border: `1px solid ${goldBorder}` }
-                          : { background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', color: tx2, border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.08)'}` }}>
+                        : { background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', color: tx2, border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.08)'}` }}>
                       <span>{btn.icon}</span>
                       <span>{btn.label}</span>
                     </button>
                   );
                 })}
               </div>
-
-              {/* Color picker — shown when verse is highlighted */}
-              {highlighted.has(`${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`) && setHighlightColor && (
-                <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${accentColor}12` }}>
-                  <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: `${accentColor}88` }}>Color</span>
-                  {[
-                    { color: '#f59e0b', label: 'Speaks to me' },
-                    { color: '#22c55e', label: 'Peace / comfort' },
-                    { color: '#818cf8', label: 'Revelation' },
-                    { color: '#f87171', label: 'Warning / urgency' },
-                    { color: '#e2e8f0', label: 'Promise / hope' },
-                  ].map(({ color, label }) => {
-                    const vKey = `${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`;
-                    const isSelected = highlightColors[vKey] === color;
-                    return (
-                      <button
-                        key={color}
-                        title={label}
-                        onClick={() => setHighlightColor(vKey, color)}
-                        style={{
-                          width: 26, height: 26, borderRadius: '50%', background: color, flexShrink: 0,
-                          border: isSelected ? `3px solid #fff` : '2px solid transparent',
-                          boxShadow: isSelected ? `0 0 0 2px ${color}, 0 0 10px ${color}88` : `0 2px 6px rgba(0,0,0,0.4)`,
-                          transition: 'all 0.15s',
-                          transform: isSelected ? 'scale(1.2)' : 'scale(1)',
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              )}
 
               {/* AI response area */}
               <div className="px-5 py-5">

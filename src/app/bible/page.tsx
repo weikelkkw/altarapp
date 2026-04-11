@@ -60,9 +60,29 @@ export default function AltarApp() {
     try { localStorage.setItem('altar-active-tab', t); } catch {}
   }, []);
 
-  // Navigation
-  const [selectedBook, setSelectedBook] = useState(BOOKS[39]); // Matthew
-  const [selectedChapter, setSelectedChapter] = useState(1);
+  // Navigation — persisted across sessions
+  const [selectedBook, setSelectedBook] = useState<BookDef>(() => {
+    try {
+      const saved = localStorage.getItem('trace-last-book');
+      if (saved) return BOOKS.find(b => b.osis === saved) || BOOKS[39];
+    } catch {}
+    return BOOKS[39]; // Matthew
+  });
+  const [selectedChapter, setSelectedChapter] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('trace-last-chapter');
+      if (saved) return parseInt(saved, 10) || 1;
+    } catch {}
+    return 1;
+  });
+
+  // Auto-save reading position
+  useEffect(() => {
+    try {
+      localStorage.setItem('trace-last-book', selectedBook.osis);
+      localStorage.setItem('trace-last-chapter', String(selectedChapter));
+    } catch {}
+  }, [selectedBook, selectedChapter]);
   const [jumpToVerse, setJumpToVerse] = useState<number | undefined>(undefined);
 
   // Translations
@@ -765,7 +785,12 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               bibles={bibles}
               biblesLoading={biblesLoading}
               selectedBible={selectedBible}
-              setSelectedBible={setSelectedBible}
+              setSelectedBible={(bible) => {
+                setSelectedBible(bible);
+                if (bible) {
+                  try { localStorage.setItem('trace-default-bible', bible.abbreviationLocal); } catch {}
+                }
+              }}
               passage={passage}
               loading={loading}
               error={error}
