@@ -1135,7 +1135,31 @@ export default function HomeTab({
         const weakest   = catScores.reduce((a, b) => b.gpaPoints < a.gpaPoints ? b : a);
 
         const catColors: Record<string, string> = { Foundation: '#60a5fa', Consistency: '#fb923c', Study: '#a855f7', Scripture: '#22c55e', Prayer: '#f472b6', Application: '#06b6d4' };
-        const catIcons: Record<string, string> = { Foundation: '✝', Consistency: '🔥', Study: '📖', Scripture: 'star', Prayer: '🙏', Application: '☀️' };
+        const catIcons: Record<string, { img?: string; emoji: string }> = {
+          Foundation:  { emoji: '✝' },
+          Consistency: { emoji: '🔥' },
+          Study:       { img: '/read book.png', emoji: '📖' },
+          Scripture:   { img: '/star.png', emoji: '✦' },
+          Prayer:      { img: '/Praying hands.png', emoji: '🙏' },
+          Application: { emoji: '☀️' },
+        };
+        function renderCatIcon(icon: { img?: string; emoji: string }, size = 18) {
+          return icon.img ? <img src={icon.img} alt="" style={{ width: size, height: size, objectFit: 'contain' }} /> : <span style={{ fontSize: size * 0.85 }}>{icon.emoji}</span>;
+        }
+        function gradeColor(grade: string) {
+          return grade === 'A+' || grade === 'A' ? '#22c55e' : grade === 'B' ? '#60a5fa' : grade === 'C' ? '#fbbf24' : grade === 'D' ? '#fb923c' : '#ef4444';
+        }
+        const overallGrade = gpa >= 4.0 ? 'A+' : gpa >= 3.5 ? 'A' : gpa >= 3.0 ? 'B' : gpa >= 2.0 ? 'C' : gpa >= 1.0 ? 'D' : 'F';
+        const overallGradeColor = gradeColor(overallGrade);
+        function badgeImg(badge: string): string | null {
+          if (['📖','📚','📗','📘','📜'].includes(badge)) return '/read book.png';
+          if (badge === '🙏') return '/Praying hands.png';
+          return null;
+        }
+        function renderBadge(badge: string, size = 22) {
+          const src = badgeImg(badge);
+          return src ? <img src={src} alt="" style={{ width: size, height: size, objectFit: 'contain' }} /> : <span style={{ fontSize: size }}>{badge}</span>;
+        }
 
         const journeyImgs = ['/bilbe journey pic 1.png', '/bible journey pic 2.png', '/bible journy pic 3.png'];
         return (
@@ -1187,15 +1211,15 @@ export default function HomeTab({
                 {[
                   { val: streak, label: 'Day Streak', desc: `${streak === 1 ? 'Keep going!' : streak < 7 ? 'Building momentum' : 'On fire!'}`, icon: '🔥', color: '#fbbf24' },
                   { val: highlightCount, label: 'Saved Verses', desc: `${highlightCount === 0 ? 'Tap verses to save' : highlightCount < 10 ? 'Growing collection' : 'Rich in the Word'}`, icon: 'star', color: '#a855f7' },
-                  { val: chaptersStudied, label: 'Chapters Read', desc: `${TOTAL_CHAPTERS - chaptersStudied} remaining`, icon: '📖', color: '#22c55e' },
-                  { val: chaptersWithNotes, label: 'Study Notes', desc: `${chaptersWithNotes === 0 ? 'Start writing' : chaptersWithNotes < 10 ? 'Keep studying' : 'Deep roots'}`, icon: '📜', color: '#60a5fa' },
+                  { val: chaptersStudied, label: 'Chapters Read', desc: `${TOTAL_CHAPTERS - chaptersStudied} remaining`, icon: 'read-book', color: '#22c55e' },
+                  { val: chaptersWithNotes, label: 'Study Notes', desc: `${chaptersWithNotes === 0 ? 'Start writing' : chaptersWithNotes < 10 ? 'Keep studying' : 'Deep roots'}`, icon: 'read-book', color: '#60a5fa' },
                 ].map(s => (
                   <div key={s.label} className="rounded-2xl p-3.5 relative overflow-hidden"
                     style={{ background: `linear-gradient(135deg, rgba(0,0,0,0.88), rgba(0,0,0,0.78))`, border: `1px solid ${s.color}44`, boxShadow: `0 2px 12px rgba(0,0,0,0.5)` }}>
-                    <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{s.icon}</span>}</div>
+                    <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : s.icon === 'read-book' ? <img src="/read book.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{s.icon}</span>}</div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-1">
-                        {s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-lg">{s.icon}</span>}
+                        {s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : s.icon === 'read-book' ? <img src="/read book.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-lg">{s.icon}</span>}
                         <p className="text-2xl font-black" style={{ color: '#fff' }}>{s.val}</p>
                       </div>
                       <p className="text-[10px] font-bold" style={{ color: s.color }}>{s.label}</p>
@@ -1262,15 +1286,59 @@ export default function HomeTab({
 
               {/* Spiritual Health */}
               <div className="mb-4">
+                {/* Header */}
                 <div className="flex items-center gap-2.5 mb-3">
                   <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
                   <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Spiritual Health</h2>
-                  <div className="ml-auto flex items-center gap-2">
-                    <span suppressHydrationWarning className="text-base font-black" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 12px ${accentColor}88` }}>{gpa.toFixed(1)}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `${accentColor}22`, color: accentColor }}>GPA · {gpaLabel}</span>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <span suppressHydrationWarning className="text-lg font-black" style={{ color: overallGradeColor, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 16px ${overallGradeColor}88` }}>{overallGrade}</span>
+                    <span suppressHydrationWarning className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${overallGradeColor}18`, color: `${overallGradeColor}99` }}>GPA {gpa.toFixed(1)}</span>
                   </div>
                 </div>
-                {(() => {
+
+                {/* 3-col grade cards */}
+                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                  {catScores.map(c => {
+                    const color = catColors[c.cat] || accentColor;
+                    const icon = catIcons[c.cat] || { emoji: '•' };
+                    const gc = gradeColor(c.grade);
+                    const isExpanded = expandedHealthCat === c.cat;
+                    return (
+                      <button key={c.cat}
+                        onClick={() => setExpandedHealthCat(isExpanded ? null : c.cat)}
+                        className="rounded-xl relative overflow-hidden transition-all active:scale-95 text-center"
+                        style={{
+                          background: 'linear-gradient(160deg, rgba(3,3,8,0.98), rgba(7,5,14,0.96))',
+                          border: `1px solid ${isExpanded ? color + '65' : color + '28'}`,
+                          boxShadow: isExpanded
+                            ? `0 0 18px ${gc}28, 0 0 0 1px rgba(0,0,0,0.95), inset 0 1px 0 ${color}12`
+                            : `0 2px 14px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.95)`,
+                          padding: '10px 6px 10px 6px',
+                        }}>
+                        {/* Icon + category */}
+                        <div className="flex items-center justify-center gap-1 mb-1.5">
+                          {renderCatIcon(icon, 14)}
+                          <p suppressHydrationWarning className="text-[8px] font-black uppercase tracking-wider" style={{ color: 'rgba(232,240,236,0.45)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
+                        </div>
+                        {/* BIG GRADE */}
+                        <p suppressHydrationWarning className="font-black leading-none mb-2" style={{
+                          fontSize: c.grade === 'A+' ? 28 : 32,
+                          color: gc,
+                          fontFamily: 'Montserrat, system-ui, sans-serif',
+                          textShadow: `0 0 24px ${gc}77, 0 0 48px ${gc}22`,
+                        }}>{c.grade}</p>
+                        {/* Progress bar */}
+                        <div className="rounded-full overflow-hidden mx-1 mb-1.5" style={{ height: 3, background: `${color}18` }}>
+                          <div suppressHydrationWarning className="h-full rounded-full" style={{ width: `${Math.max((c.days / 30) * 100, 4)}%`, background: `linear-gradient(90deg, ${color}55, ${color})` }} />
+                        </div>
+                        <p suppressHydrationWarning className="text-[8px]" style={{ color: 'rgba(232,240,236,0.22)' }}>{c.days}/30d</p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Expanded detail panel */}
+                {expandedHealthCat && (() => {
                   const catDetails: Record<string, { desc: string; tip: string }> = {
                     Foundation:  { desc: 'Tracks daily devotional completions over the last 30 days.', tip: 'Open a devotional each day and read it through fully.' },
                     Consistency: { desc: 'Tracks any day you open and engage with the app.', tip: 'Even 5 minutes a day counts — just show up daily.' },
@@ -1279,87 +1347,52 @@ export default function HomeTab({
                     Prayer:      { desc: 'Tracks days you engage with the prayer section.', tip: 'Add a prayer request or check in with your prayer list daily.' },
                     Application: { desc: 'Tracks days you mark the Apply check — putting the Word into practice.', tip: 'After reading, ask: "How does this apply to my life today?" and mark it done.' },
                   };
+                  const c = catScores.find(x => x.cat === expandedHealthCat);
+                  if (!c) return null;
+                  const color = catColors[c.cat] || accentColor;
+                  const icon = catIcons[c.cat] || { emoji: '•' };
+                  const detail = catDetails[c.cat];
+                  const gc = gradeColor(c.grade);
+                  const isF = c.grade === 'F';
+                  const nextGrade = c.grade === 'F' ? 'D' : c.grade === 'D' ? 'C' : c.grade === 'C' ? 'B' : c.grade === 'B' ? 'A' : c.grade === 'A' ? 'A+' : null;
+                  const daysNeeded = nextGrade === 'D' ? 6 : nextGrade === 'C' ? 12 : nextGrade === 'B' ? 18 : nextGrade === 'A' ? 22 : nextGrade === 'A+' ? 27 : null;
+                  const daysLeft = daysNeeded ? Math.max(0, daysNeeded - c.days) : 0;
                   return (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-3 gap-2">
-                        {catScores.map(c => {
-                          const color = catColors[c.cat] || accentColor;
-                          const icon = catIcons[c.cat] || '•';
-                          const isF = c.grade === 'F';
-                          const isExpanded = expandedHealthCat === c.cat;
-                          const pct = Math.round((c.days / 30) * 100);
-                          return (
-                            <button key={c.cat}
-                              onClick={() => setExpandedHealthCat(isExpanded ? null : c.cat)}
-                              className="rounded-xl p-3.5 relative overflow-hidden transition-all active:scale-95 text-left w-full"
-                              style={{
-                                background: `linear-gradient(135deg, rgba(0,0,0,0.88), rgba(0,0,0,0.78))`,
-                                border: `1px solid ${isExpanded ? color + '60' : color + '44'}`,
-                                boxShadow: `0 2px 12px rgba(0,0,0,0.5)`,
-                                opacity: isF ? 0.45 : 1,
-                              }}>
-                              <div className="absolute -top-1 -right-1 text-3xl pointer-events-none select-none" style={{ opacity: 0.06 }}>{icon === 'star' ? <img src="/star.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : icon}</div>
-                              <div className="flex items-center gap-2 mb-2">
-                                {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> : <span className="text-xl">{icon}</span>}
-                                <p suppressHydrationWarning className="text-[11px] font-bold leading-tight" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
-                              </div>
-                              <p suppressHydrationWarning className="text-[9px] mb-2" style={{ color: 'rgba(232,240,236,0.4)' }}>{c.days} of 30 days active</p>
-                              <div className="rounded-full overflow-hidden h-1.5 mb-1" style={{ background: `${color}15` }}>
-                                <div suppressHydrationWarning className="h-full rounded-full transition-all" style={{ width: `${Math.max(pct, 3)}%`, background: `linear-gradient(90deg, ${color}88, ${color})` }} />
-                              </div>
-                              <p suppressHydrationWarning className="text-[9px] font-bold" style={{ color }}>Grade: {c.grade}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Expanded detail panel */}
-                      {expandedHealthCat && (() => {
-                        const c = catScores.find(x => x.cat === expandedHealthCat);
-                        if (!c) return null;
-                        const color = catColors[c.cat] || accentColor;
-                        const icon = catIcons[c.cat] || '•';
-                        const detail = catDetails[c.cat];
-                        const isF = c.grade === 'F';
-                        const nextGrade = c.grade === 'F' ? 'D' : c.grade === 'D' ? 'C' : c.grade === 'C' ? 'B' : c.grade === 'B' ? 'A' : c.grade === 'A' ? 'A+' : null;
-                        const daysNeeded = nextGrade === 'D' ? 6 : nextGrade === 'C' ? 12 : nextGrade === 'B' ? 18 : nextGrade === 'A' ? 22 : nextGrade === 'A+' ? 27 : null;
-                        const daysLeft = daysNeeded ? Math.max(0, daysNeeded - c.days) : 0;
-                        return (
-                          <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(0,0,0,0.88)', border: `2px solid ${color}`, boxShadow: `0 0 20px ${color}44` }}>
-                            <div className="flex items-center gap-3">
-                              {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : <span className="text-2xl">{icon}</span>}
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-black uppercase tracking-wider" style={{ color, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
-                                  <span className="font-black text-sm" style={{ color, textShadow: `0 0 8px ${color}` }}>{c.grade}</span>
-                                </div>
-                                <p suppressHydrationWarning className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>{c.days} active days out of the last 30</p>
-                              </div>
-                              <button onClick={() => setExpandedHealthCat(null)} className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>✕</button>
-                            </div>
-
-                            {/* Progress bar */}
-                            <div className="rounded-full overflow-hidden" style={{ height: 6, background: 'rgba(255,255,255,0.07)' }}>
-                              <div suppressHydrationWarning className="h-full rounded-full transition-all duration-700"
-                                style={{ width: `${Math.round((c.days / 30) * 100)}%`, background: isF ? 'rgba(255,255,255,0.15)' : color, boxShadow: isF ? 'none' : `0 0 8px ${color}` }} />
-                            </div>
-
-                            <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{detail.desc}</p>
-
-                            {/* How to improve */}
-                            <div className="rounded-lg p-3" style={{ background: `${color}12`, border: `1px solid ${color}` }}>
-                              <p className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color }}>How to improve</p>
-                              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>{detail.tip}</p>
-                            </div>
-
-                            {nextGrade && (
-                              <p suppressHydrationWarning className="text-[10px] text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                                {daysLeft === 0 ? `You've reached ${c.grade}!` : `${daysLeft} more active day${daysLeft === 1 ? '' : 's'} to reach ${nextGrade}`}
-                              </p>
-                            )}
+                    <div className="rounded-xl overflow-hidden" style={{ background: 'linear-gradient(160deg, rgba(3,3,8,0.99), rgba(7,5,14,0.97))', border: `1px solid ${color}44`, boxShadow: `0 0 24px ${gc}22, 0 0 0 1px rgba(0,0,0,0.95)` }}>
+                      {/* Top accent */}
+                      <div style={{ height: 2, background: `linear-gradient(90deg, transparent, ${gc}88, transparent)` }} />
+                      <div className="p-4 space-y-3">
+                        {/* Header row */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col items-center justify-center rounded-xl" style={{ width: 52, height: 52, background: `${gc}10`, border: `1px solid ${gc}30`, flexShrink: 0 }}>
+                            <span suppressHydrationWarning className="font-black leading-none" style={{ fontSize: c.grade === 'A+' ? 18 : 22, color: gc, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 12px ${gc}88` }}>{c.grade}</span>
                           </div>
-                        );
-                      })()}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              {renderCatIcon(icon, 16)}
+                              <p className="text-sm font-black uppercase tracking-wider" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
+                            </div>
+                            <p suppressHydrationWarning className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{c.days} active days out of the last 30</p>
+                          </div>
+                          <button onClick={() => setExpandedHealthCat(null)} style={{ color: 'rgba(255,255,255,0.2)', fontSize: 16, padding: 4 }}>✕</button>
+                        </div>
+                        {/* Progress bar */}
+                        <div className="rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(255,255,255,0.06)' }}>
+                          <div suppressHydrationWarning className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${Math.round((c.days / 30) * 100)}%`, background: isF ? 'rgba(255,255,255,0.12)' : `linear-gradient(90deg, ${color}66, ${color})`, boxShadow: isF ? 'none' : `0 0 8px ${color}88` }} />
+                        </div>
+                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>{detail.desc}</p>
+                        {/* How to improve */}
+                        <div className="rounded-xl p-3" style={{ background: `${color}0d`, border: `1px solid ${color}33` }}>
+                          <p className="text-[9px] font-black uppercase tracking-widest mb-1.5" style={{ color }}>How to improve</p>
+                          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>{detail.tip}</p>
+                        </div>
+                        {nextGrade && (
+                          <p suppressHydrationWarning className="text-[10px] text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                            {daysLeft === 0 ? `You&apos;ve reached ${c.grade}!` : `${daysLeft} more active day${daysLeft === 1 ? '' : 's'} to reach ${nextGrade}`}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
@@ -1382,10 +1415,10 @@ export default function HomeTab({
                         <div key={m.id} className="rounded-xl p-3.5 relative overflow-hidden"
                           style={{ background: `linear-gradient(135deg, rgba(0,0,0,0.88), rgba(0,0,0,0.78))`, border: `1px solid ${color}44`, boxShadow: `0 2px 12px rgba(0,0,0,0.5)` }}>
                           {/* Ghost badge watermark */}
-                          <div className="absolute -top-1 -right-1 text-3xl pointer-events-none select-none" style={{ opacity: 0.06 }}>{m.badge}</div>
+                          <div className="absolute -top-1 -right-1 pointer-events-none select-none" style={{ opacity: 0.07 }}>{renderBadge(m.badge, 36)}</div>
                           {/* Badge + label */}
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">{m.badge}</span>
+                            {renderBadge(m.badge, 22)}
                             <p className="text-[11px] font-bold leading-tight" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{m.label}</p>
                           </div>
                           {/* Description */}
@@ -1412,7 +1445,7 @@ export default function HomeTab({
                     {unlocked.map(m => (
                       <div key={m.id} className="flex flex-col items-center gap-1 min-w-[52px] py-2 px-1 rounded-xl shrink-0"
                         style={{ background: `rgba(0,0,0,0.82)`, border: `1px solid ${accentColor}33` }}>
-                        <span className="text-lg">{m.badge}</span>
+                        {renderBadge(m.badge, 22)}
                         <span className="text-[7px] font-bold text-center leading-tight" style={{ color: 'rgba(232,240,236,0.5)' }}>{m.label}</span>
                       </div>
                     ))}
