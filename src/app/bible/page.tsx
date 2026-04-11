@@ -32,7 +32,7 @@ const TAB_CONFIG: { id: Tab; label: string; icon: string; img?: string }[] = [
   { id: 'read',      label: 'Read',   icon: '📖', img: '/read book.png' },
   { id: 'search',    label: 'Search', icon: '🔍', img: '/magifying glass.png' },
   { id: 'study',     label: 'Study',  icon: '✦', img: '/star.png'  },
-  { id: 'community', label: 'Church', icon: '⛪', img: '/png church.png' },
+  { id: 'community', label: 'Church', icon: '⛪', img: '/church 2.png' },
 ];
 
 function getOrCreateIdentity(): UserIdentity {
@@ -859,7 +859,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       transform: active ? 'scale(1.15)' : 'scale(1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {t.img ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain' }} /> : t.icon}
+                      {t.img ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain', mixBlendMode: 'screen' }} /> : t.icon}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',
