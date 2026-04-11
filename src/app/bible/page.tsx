@@ -842,6 +842,15 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
         </div>
       </div>
 
+      {/* SVG filter: strips white/bright pixels to transparent for church icon */}
+      <svg style={{ width: 0, height: 0, position: 'absolute', overflow: 'hidden' }} aria-hidden="true">
+        <defs>
+          <filter id="removeWhiteBg" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -1.2 -1.2 -1.2 3.5 0" />
+          </filter>
+        </defs>
+      </svg>
+
       {/* ── BOTTOM NAV ─────────────────────────────────────────────────────── */}
       <nav className="fixed bottom-0 inset-x-0 z-50" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(8,15,12,0.97) 20%)' }} />
@@ -857,10 +866,15 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     <span className="text-lg transition-transform" style={{
                       transform: active ? 'scale(1.15)' : 'scale(1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      mixBlendMode: t.img ? 'screen' : 'normal',
+                      mixBlendMode: (t.img && t.id !== 'community') ? 'screen' : 'normal',
                     }}>
                       {t.img
-                        ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain', filter: active ? 'none' : 'grayscale(1) opacity(0.4)' }} />
+                        ? <img src={t.img} alt="" style={{
+                            width: 52, height: 52, objectFit: 'contain',
+                            filter: t.id === 'community'
+                              ? active ? 'url(#removeWhiteBg)' : 'url(#removeWhiteBg) grayscale(1) opacity(0.4)'
+                              : active ? 'none' : 'grayscale(1) opacity(0.4)',
+                          }} />
                         : <span style={{ filter: active ? 'none' : 'grayscale(1) opacity(0.4)' }}>{t.icon}</span>
                       }
                     </span>
