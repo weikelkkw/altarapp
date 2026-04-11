@@ -1576,80 +1576,89 @@ export default function HomeTab({
         };
 
         return (
-          <div className="rounded-2xl overflow-hidden relative" style={{ background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}03)`, border: `1px solid ${accentColor}15` }}>
-            <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 60% 50% at 80% 20%, ${accentColor}06, transparent 60%)` }} />
+          <div className="rounded-2xl overflow-hidden relative" style={{
+            background: 'linear-gradient(160deg, rgba(10,10,18,0.97) 0%, rgba(18,14,28,0.95) 100%)',
+            border: `1px solid ${accentColor}28`,
+            boxShadow: `0 4px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.8), inset 0 1px 0 ${accentColor}14`,
+          }}>
+            {/* Top accent bar */}
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, transparent 0%, ${accentColor}88 30%, ${accentColor} 60%, ${accentColor}44 85%, transparent 100%)` }} />
+            {/* Ambient glow */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 70% 60% at 85% 10%, ${accentColor}08, transparent 65%)` }} />
+            {/* Large decorative quote mark */}
+            <div className="absolute pointer-events-none select-none" style={{ top: 20, left: 14, fontSize: 80, lineHeight: 1, color: `${accentColor}09`, fontFamily: 'Georgia, serif', fontWeight: 900 }}>&ldquo;</div>
 
-            <div className="px-5 py-4 relative z-10">
-              {/* Header */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-13 rounded-xl flex flex-col items-center justify-center shrink-0"
-                  style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18` }}>
-                  <p className="text-[8px] font-bold uppercase" style={{ color: `${accentColor}66` }}>{today.toLocaleString('default', { month: 'short' })}</p>
-                  <p className="text-base font-black leading-none" style={{ color: accentColor }}>{dayNum}</p>
+            <div className="px-5 pt-5 pb-5 relative z-10">
+              {/* Header row */}
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.18em] mb-1" style={{ color: `${accentColor}55`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Day in History</p>
+                  <h2 className="text-sm font-black uppercase tracking-[0.1em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Did You Know?</h2>
                 </div>
-                <div className="flex-1">
-                  <SectionLabel text="Did You Know?" accentColor={accentColor} icon="📅" />
+                {/* Date badge */}
+                <div className="rounded-xl px-3 py-2 text-center shrink-0" style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}28`, minWidth: 48 }}>
+                  <p className="text-[8px] font-bold uppercase tracking-widest leading-none mb-0.5" style={{ color: `${accentColor}66` }}>{today.toLocaleString('default', { month: 'short' })}</p>
+                  <p className="text-xl font-black leading-none" style={{ color: accentColor }}>{dayNum}</p>
                 </div>
               </div>
 
               {/* Fact */}
               {factLoading && !historicalFact ? (
-                <div className="flex items-center gap-3 py-4">
-                  <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                  <span className="text-xs" style={{ color: `${accentColor}44` }}>Discovering what happened today…</span>
+                <div className="flex items-center gap-3 py-6">
+                  <div className="w-5 h-5 rounded-full border-2 animate-spin shrink-0" style={{ borderColor: `${accentColor}22`, borderTopColor: accentColor }} />
+                  <span className="text-xs italic" style={{ color: `${accentColor}44`, fontFamily: 'Georgia, serif' }}>Discovering what happened today…</span>
                 </div>
               ) : historicalFact ? (
                 <>
-                  <div className="rounded-xl p-3.5" style={{ background: `${accentColor}06`, borderLeft: `3px solid ${accentColor}33` }}>
-                    <p className="text-[13px] leading-relaxed" style={{ color: 'rgba(232,240,236,0.7)', fontFamily: 'Georgia, serif' }}>
+                  {/* Pull-quote style fact */}
+                  <div className="relative pl-4 mb-4" style={{ borderLeft: `2px solid ${accentColor}44` }}>
+                    <p className="text-[14px] leading-[1.7]" style={{ color: 'rgba(232,240,236,0.82)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
                       {cleanMarkdown(historicalFact)}
                     </p>
                   </div>
 
-                  {/* Interactive buttons */}
-                  <div className="flex items-center gap-2 mt-3">
+                  {/* Buttons */}
+                  <div className="flex items-center gap-2">
                     <button onClick={loadDeeper}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all"
-                      style={{ background: `${accentColor}0d`, color: `${accentColor}aa`, border: `1px solid ${accentColor}18` }}>
-                      {historyExpanded ? '▲ Less' : '✦ Learn More'}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
+                      style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}12)`, color: accentColor, border: `1px solid ${accentColor}33`, boxShadow: `0 2px 12px ${accentColor}14` }}>
+                      {historyExpanded ? '▲ Close' : '✦ Go Deeper'}
                     </button>
-                    <button onClick={() => {
-                      navigator.clipboard?.writeText(`Did you know? (${monthName} ${dayNum})\n\n${historicalFact}`);
-                    }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all"
-                      style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.4)' }}>
-                      📋 Share
+                    <button onClick={() => navigator.clipboard?.writeText(`Did you know? (${monthName} ${dayNum})\n\n${historicalFact}`)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all"
+                      style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      Copy
                     </button>
                   </div>
 
-                  {/* Expanded details — structured cards */}
+                  {/* Expanded deep-dive */}
                   {historyExpanded && (
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-4 space-y-2">
                       {deeperLoading && !deeperFact ? (
                         <div className="flex items-center gap-2 py-3">
-                          <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                          <span className="text-xs" style={{ color: `${accentColor}44` }}>Digging deeper…</span>
+                          <div className="w-4 h-4 rounded-full border-2 animate-spin shrink-0" style={{ borderColor: `${accentColor}22`, borderTopColor: accentColor }} />
+                          <span className="text-xs italic" style={{ color: `${accentColor}44`, fontFamily: 'Georgia, serif' }}>Digging deeper…</span>
                         </div>
                       ) : (
                         (() => {
                           const cleaned = cleanMarkdown(deeperFact);
                           const points = [
-                            { icon: '💡', label: 'Why It Matters', text: cleaned.match(/WHY IT MATTERS:\s*(.+?)(?=SCRIPTURE:|SURPRISING:|$)/i)?.[1]?.trim() },
-                            { icon: '📖', label: 'Scripture', text: cleaned.match(/SCRIPTURE:\s*(.+?)(?=WHY IT MATTERS:|SURPRISING:|$)/i)?.[1]?.trim() },
-                            { icon: '🤯', label: 'Surprising', text: cleaned.match(/SURPRISING:\s*(.+?)(?=WHY IT MATTERS:|SCRIPTURE:|$)/i)?.[1]?.trim() },
+                            { img: null, emoji: '💡', label: 'Why It Matters', text: cleaned.match(/WHY IT MATTERS:\s*(.+?)(?=SCRIPTURE:|SURPRISING:|$)/i)?.[1]?.trim() },
+                            { img: '/read book.png', emoji: '📖', label: 'Scripture Connection', text: cleaned.match(/SCRIPTURE:\s*(.+?)(?=WHY IT MATTERS:|SURPRISING:|$)/i)?.[1]?.trim() },
+                            { img: null, emoji: '🤯', label: 'Surprising Fact', text: cleaned.match(/SURPRISING:\s*(.+?)(?=WHY IT MATTERS:|SCRIPTURE:|$)/i)?.[1]?.trim() },
                           ].filter(p => p.text);
 
                           if (points.length === 0) {
-                            return <p className="text-xs leading-relaxed rounded-xl p-3" style={{ color: 'rgba(232,240,236,0.6)', fontFamily: 'Georgia, serif', background: `${accentColor}04` }}>{cleaned}</p>;
+                            return <p className="text-xs leading-relaxed italic rounded-xl p-4" style={{ color: 'rgba(232,240,236,0.6)', fontFamily: 'Georgia, serif', background: `${accentColor}05` }}>{cleaned}</p>;
                           }
 
                           return points.map((p, i) => (
-                            <div key={i} className="flex items-start gap-2.5 rounded-xl p-3" style={{ background: `${accentColor}06` }}>
-                              <span className="text-sm shrink-0 mt-0.5">{p.icon}</span>
-                              <div>
-                                <p className="text-[9px] font-black uppercase tracking-wider mb-0.5" style={{ color: `${accentColor}88` }}>{p.label}</p>
-                                <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.65)', fontFamily: 'Georgia, serif' }}>{p.text}</p>
+                            <div key={i} className="rounded-xl p-3.5 relative overflow-hidden" style={{ background: `rgba(255,255,255,0.03)`, border: `1px solid ${accentColor}14` }}>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                {p.img ? <img src={p.img} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} /> : <span className="text-sm">{p.emoji}</span>}
+                                <p className="text-[9px] font-black uppercase tracking-[0.14em]" style={{ color: `${accentColor}77`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{p.label}</p>
                               </div>
+                              <p className="text-[12px] leading-relaxed" style={{ color: 'rgba(232,240,236,0.65)', fontFamily: 'Georgia, serif' }}>{p.text}</p>
                             </div>
                           ));
                         })()
@@ -1658,7 +1667,7 @@ export default function HomeTab({
                   )}
                 </>
               ) : (
-                <p className="text-xs py-4 text-center" style={{ color: 'rgba(232,240,236,0.2)' }}>Could not load today&apos;s fact.</p>
+                <p className="text-xs py-6 text-center italic" style={{ color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif' }}>Could not load today&apos;s fact.</p>
               )}
             </div>
           </div>
