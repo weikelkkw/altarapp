@@ -1478,6 +1478,30 @@ export default function ReadTab({
   const [deepStudyOpen, setDeepStudyOpen] = useState(false);
   const [showHighlights, setShowHighlights] = useState(false);
   const [highlightFilterColor, setHighlightFilterColor] = useState<string | null>(null);
+
+  // Customizable color config — persisted per user
+  const DEFAULT_COLOR_CONFIG = [
+    { color: '#f59e0b', label: 'Speaks to me' },
+    { color: '#22c55e', label: 'Peace / comfort' },
+    { color: '#818cf8', label: 'Revelation' },
+    { color: '#f87171', label: 'Warning / urgency' },
+    { color: '#e2e8f0', label: 'Promise / hope' },
+  ];
+  const [colorConfig, setColorConfig] = useState<{ color: string; label: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('trace-color-config');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return DEFAULT_COLOR_CONFIG;
+  });
+  const [editingColorIdx, setEditingColorIdx] = useState<number | null>(null);
+  const colorInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const updateColorConfig = (idx: number, patch: Partial<{ color: string; label: string }>) => {
+    const updated = colorConfig.map((c, i) => i === idx ? { ...c, ...patch } : c);
+    setColorConfig(updated);
+    try { localStorage.setItem('trace-color-config', JSON.stringify(updated)); } catch {}
+  };
   const [bookSearch, setBookSearch] = useState('');
   const [showBookList, setShowBookList] = useState(false);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
@@ -2059,14 +2083,6 @@ export default function ReadTab({
       }
     };
 
-    const HIGHLIGHT_COLORS = [
-      { color: '#f59e0b', label: 'Speaks to me' },
-      { color: '#22c55e', label: 'Peace / comfort' },
-      { color: '#818cf8', label: 'Revelation' },
-      { color: '#f87171', label: 'Warning / urgency' },
-      { color: '#e2e8f0', label: 'Promise / hope' },
-    ];
-
     return (
       <Fragment key={v.verse}>
         <span
@@ -2105,44 +2121,6 @@ export default function ReadTab({
           }}>{v.verse}</span>
           {v.text}{' '}
         </span>
-        {colorPickerVerse === vKey && setHighlightColor && (
-          <span style={{ display: 'block', margin: '6px 0 8px', lineHeight: 1 }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
-              borderRadius: 20, padding: '6px 12px',
-              border: `1px solid ${accentColor}22`,
-            }}>
-              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 900, whiteSpace: 'nowrap', fontFamily: 'Montserrat, system-ui, sans-serif' }}>How does this hit?</span>
-              {HIGHLIGHT_COLORS.map(({ color, label }) => {
-                const isSelected = highlightColors[vKey] === color;
-                return (
-                  <button
-                    key={color}
-                    title={label}
-                    onClick={(e) => { e.stopPropagation(); setHighlightColor!(vKey, color); setColorPickerVerse(null); }}
-                    style={{
-                      width: 22, height: 22, borderRadius: '50%', background: color,
-                      border: isSelected ? '2px solid #fff' : '2px solid transparent',
-                      boxShadow: isSelected ? `0 0 0 2px ${color}, 0 0 8px ${color}88` : '0 1px 4px rgba(0,0,0,0.5)',
-                      transform: isSelected ? 'scale(1.25)' : 'scale(1)',
-                      transition: 'all 0.15s', cursor: 'pointer', flexShrink: 0,
-                    }}
-                  />
-                );
-              })}
-              <button
-                onClick={(e) => { e.stopPropagation(); setColorPickerVerse(null); }}
-                style={{
-                  width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,0.12)',
-                  border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
-                  fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                ✕
-              </button>
-            </span>
-          </span>
-        )}
       </Fragment>
     );
   };
@@ -3406,13 +3384,7 @@ export default function ReadTab({
 
       {/* ── My Highlights Panel ──────────────────────────────────────────── */}
       {showHighlights && (() => {
-        const HIGHLIGHT_COLORS = [
-          { color: '#f59e0b', label: 'Speaks to me' },
-          { color: '#22c55e', label: 'Peace / comfort' },
-          { color: '#818cf8', label: 'Revelation' },
-          { color: '#f87171', label: 'Warning / urgency' },
-          { color: '#e2e8f0', label: 'Promise / hope' },
-        ];
+        const HIGHLIGHT_COLORS = colorConfig;
 
         // Parse vKey → { book, chapter, verse }
         const parseVKey = (vKey: string) => {
@@ -3547,6 +3519,119 @@ export default function ReadTab({
           </div>
         );
       })()}
+
+      {/* ── Color Picker Bottom Sheet ─────────────────────────────────────── */}
+      {colorPickerVerse && setHighlightColor && (
+        <div className="fixed inset-0 z-[65] flex flex-col justify-end" onClick={() => { setColorPickerVerse(null); setEditingColorIdx(null); }}>
+          <div
+            className="rounded-t-3xl"
+            style={{ background: 'rgba(8,12,10,0.98)', backdropFilter: 'blur(24px)', border: `1px solid ${accentColor}22`, borderBottom: 'none' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="max-w-lg mx-auto px-5 pt-5" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))' }}>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: `${accentColor}55` }}>Double-tap saved</p>
+                  <h3 className="text-base font-black" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>How does this verse hit you?</h3>
+                </div>
+                <button onClick={() => { setColorPickerVerse(null); setEditingColorIdx(null); }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs"
+                  style={{ background: `${accentColor}12`, color: `${accentColor}66` }}>✕</button>
+              </div>
+
+              {/* Color tiles */}
+              <div className="grid grid-cols-5 gap-3 mb-4">
+                {colorConfig.map(({ color, label }, idx) => {
+                  const isSelected = highlightColors[colorPickerVerse] === color;
+                  const isEditing = editingColorIdx === idx;
+                  return (
+                    <div key={idx} className="flex flex-col items-center gap-1.5">
+                      {/* Color circle */}
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            if (isEditing) return;
+                            setHighlightColor!(colorPickerVerse, color);
+                            setEditingColorIdx(null);
+                            setTimeout(() => setColorPickerVerse(null), 150);
+                          }}
+                          style={{
+                            width: 52, height: 52, borderRadius: '50%', background: color,
+                            border: isSelected ? '3px solid #fff' : '3px solid transparent',
+                            boxShadow: isSelected
+                              ? `0 0 0 3px ${color}, 0 0 20px ${color}88`
+                              : `0 4px 12px rgba(0,0,0,0.5)`,
+                            transform: isSelected ? 'scale(1.12)' : 'scale(1)',
+                            transition: 'all 0.2s', cursor: 'pointer',
+                          }}
+                        />
+                        {/* Edit pencil */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingColorIdx(isEditing ? null : idx); }}
+                          style={{
+                            position: 'absolute', bottom: -2, right: -2,
+                            width: 18, height: 18, borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.8)', border: `1px solid ${accentColor}33`,
+                            color: `${accentColor}88`, fontSize: 9, display: 'flex',
+                            alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                          }}>
+                          ✎
+                        </button>
+                        {/* Hidden color input */}
+                        <input
+                          ref={el => { colorInputRefs.current[idx] = el; }}
+                          type="color"
+                          value={color}
+                          onChange={e => updateColorConfig(idx, { color: e.target.value })}
+                          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                        />
+                      </div>
+                      {/* Label — editable when in edit mode */}
+                      {isEditing ? (
+                        <div className="w-full flex flex-col gap-1 mt-1">
+                          <button
+                            onClick={() => colorInputRefs.current[idx]?.click()}
+                            className="text-[9px] font-bold rounded-lg py-1 px-1 text-center"
+                            style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}>
+                            Change color
+                          </button>
+                          <input
+                            type="text"
+                            value={label}
+                            onChange={e => updateColorConfig(idx, { label: e.target.value })}
+                            maxLength={18}
+                            className="text-[9px] rounded-lg px-1.5 py-1 text-center outline-none w-full"
+                            style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${accentColor}22`, color: 'rgba(232,240,236,0.7)' }}
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-[9px] font-bold text-center leading-tight" style={{ color: isSelected ? color : `${accentColor}66`, maxWidth: 56 }}>
+                          {label}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Reset to defaults */}
+              {editingColorIdx !== null && (
+                <button
+                  onClick={() => {
+                    setColorConfig(DEFAULT_COLOR_CONFIG);
+                    try { localStorage.setItem('trace-color-config', JSON.stringify(DEFAULT_COLOR_CONFIG)); } catch {}
+                    setEditingColorIdx(null);
+                  }}
+                  className="w-full text-center py-2 text-[10px] font-bold rounded-xl"
+                  style={{ color: `${accentColor}44`, background: `${accentColor}08`, border: `1px solid ${accentColor}12` }}>
+                  Reset to defaults
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeVerse && !loading && !showQuiz && (
         <div
