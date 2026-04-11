@@ -576,7 +576,7 @@ export default function HomeTab({
             <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${accentColor}15` }}>
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                <img src="/read book.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                <img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} />
                 <h2 className="text-base font-black uppercase tracking-wider" style={{ color: '#ffffff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</h2>
               </div>
               {devotionalLoading && !devotional ? (

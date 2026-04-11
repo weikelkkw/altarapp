@@ -300,7 +300,7 @@ Be warm, pastoral, and encouraging. Capture the heart of what God was saying thr
           <div className="flex-1 overflow-y-auto px-5 py-6 space-y-5">
             {/* Intro */}
             <div className="rounded-2xl p-5 text-center" style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}18` }}>
-              <div className="mb-3"><img src="/read book.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', margin: '0 auto' }} /></div>
+              <div className="mb-3"><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', margin: '0 auto' }} /></div>
               <h3 className="text-base font-black mb-2" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Record Your Study</h3>
               <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.5)', fontFamily: 'Georgia, serif' }}>
                 Speak freely — your words are transcribed in real time. When you&apos;re done, AI generates a full recap: key themes, scriptures, insights, and prayer points to share with your group.
