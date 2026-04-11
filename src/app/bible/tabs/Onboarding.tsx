@@ -352,7 +352,7 @@ export default function Onboarding({ onComplete }: Props) {
                 style={{
                   width: '100%', padding: '16px 20px', borderRadius: 16, fontSize: 18, fontWeight: 700,
                   background: 'rgba(255,255,255,0.04)', border: `1px solid ${accent}22`,
-                  color: '#fff', outline: 'none', textAlign: 'center',
+                  color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', textAlign: 'center',
                   boxShadow: `inset 0 0 20px ${accent}06`,
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = `${accent}55`; e.currentTarget.style.boxShadow = `inset 0 0 20px ${accent}0d, 0 0 20px ${accent}15`; }}

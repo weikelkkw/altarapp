@@ -326,7 +326,7 @@ function AuthPageInner() {
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Your Name</label>
                   <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
                     placeholder="What shall we call you?" autoComplete="name"
-                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                     onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}
                     onBlur={e => { e.currentTarget.style.borderColor = `${gold}20`; e.currentTarget.style.boxShadow = 'none'; }}
                   />
@@ -337,7 +337,7 @@ function AuthPageInner() {
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Email</label>
                 <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com" autoComplete="email"
-                  style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                  style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}
                   onBlur={e => { e.currentTarget.style.borderColor = `${gold}20`; e.currentTarget.style.boxShadow = 'none'; }}
                 />
@@ -348,7 +348,7 @@ function AuthPageInner() {
                 <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="password" value={password} onChange={e => setPassword(e.target.value)}
                   placeholder={mode === 'signup' ? 'Min 8 chars, uppercase, number, symbol' : '••••••••'}
                   autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                  style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                  style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}
                   onBlur={e => { e.currentTarget.style.borderColor = `${gold}20`; e.currentTarget.style.boxShadow = 'none'; }}
                 />
@@ -359,7 +359,7 @@ function AuthPageInner() {
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Confirm Password</label>
                   <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter your password" autoComplete="new-password"
-                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${confirmPassword && confirmPassword === password ? '#22c55e44' : gold + '20'}`, color: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${confirmPassword && confirmPassword === password ? '#22c55e44' : gold + '20'}`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                     onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}
                     onBlur={e => { e.currentTarget.style.borderColor = confirmPassword && confirmPassword === password ? '#22c55e44' : `${gold}20`; e.currentTarget.style.boxShadow = 'none'; }}
                   />
