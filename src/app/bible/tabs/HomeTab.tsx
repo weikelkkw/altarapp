@@ -691,6 +691,8 @@ export default function HomeTab({
         <div className="absolute inset-y-0 left-0 pointer-events-none" style={{ width: '50%', background: 'linear-gradient(90deg, rgba(251,146,36,0.18), transparent)', zIndex: 2 }} />
         {/* Right cool tint (bedtime) */}
         <div className="absolute inset-y-0 right-0 pointer-events-none" style={{ width: '50%', background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.22))', zIndex: 2 }} />
+        {/* Big center fade */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 40% 100% at 50% 50%, rgba(0,0,0,0.82), transparent 100%)', zIndex: 3 }} />
 
         {/* Two tap zones side by side */}
         <div className="relative flex" style={{ zIndex: 10 }}>
