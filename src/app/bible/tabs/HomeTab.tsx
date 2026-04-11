@@ -177,7 +177,7 @@ export default function HomeTab({
     { id: 'prayer', label: 'Pray', icon: '🙏', img: '/Praying hands.png' },
     { id: 'scripture', label: 'Read Scripture', icon: '✦', img: '/star.png' },
     { id: 'apply', label: 'Apply what you learned', icon: '🧭', img: '/compass.png' },
-    { id: 'share', label: 'Encourage someone', icon: '✝', img: '/cross.png' },
+    { id: 'share', label: 'Encourage someone', icon: '✝', img: '/cross-removebg-preview.png' },
   ];
   const checksCompleted = dailyItems.filter(i => dailyChecks[i.id]).length;
   const [toastMsg, setToastMsg] = useState('');

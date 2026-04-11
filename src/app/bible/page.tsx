@@ -84,6 +84,7 @@ export default function AltarApp() {
 
   // Highlights & notes
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
+  const [highlightColors, setHighlightColors] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('base');
 
@@ -502,8 +503,10 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
   useEffect(() => {
     try {
       const h = localStorage.getItem('trace-highlights');
+      const hc = localStorage.getItem('trace-highlight-colors');
       const n = localStorage.getItem('trace-notes');
       if (h) setHighlighted(new Set(JSON.parse(h)));
+      if (hc) setHighlightColors(JSON.parse(hc));
       if (n) setNotes(JSON.parse(n));
     } catch {}
   }, []);
@@ -513,6 +516,18 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
     updated.has(vKey) ? updated.delete(vKey) : updated.add(vKey);
     setHighlighted(updated);
     localStorage.setItem('trace-highlights', JSON.stringify([...updated]));
+  };
+
+  const setHighlightColor = (vKey: string, color: string) => {
+    const updated = { ...highlightColors, [vKey]: color };
+    setHighlightColors(updated);
+    localStorage.setItem('trace-highlight-colors', JSON.stringify(updated));
+    // Ensure the verse is highlighted
+    if (!highlighted.has(vKey)) {
+      const h = new Set(highlighted); h.add(vKey);
+      setHighlighted(h);
+      localStorage.setItem('trace-highlights', JSON.stringify([...h]));
+    }
   };
 
   const saveNote = (key: string, text: string) => {
@@ -761,7 +776,9 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               comparePassages={comparePassages}
               compareLoading={compareLoading}
               highlighted={highlighted}
+              highlightColors={highlightColors}
               toggleHighlight={toggleHighlight}
+              setHighlightColor={setHighlightColor}
               notes={notes}
               saveNote={saveNote}
               fontSize={fontSize}

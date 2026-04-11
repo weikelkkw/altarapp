@@ -1447,7 +1447,9 @@ interface Props {
   comparePassages: Record<string, Passage>;
   compareLoading: boolean;
   highlighted: Set<string>;
+  highlightColors?: Record<string, string>;
   toggleHighlight: (vKey: string) => void;
+  setHighlightColor?: (vKey: string, color: string) => void;
   notes: Record<string, string>;
   saveNote: (key: string, text: string) => void;
   fontSize: 'sm' | 'base' | 'lg' | 'xl';
@@ -1468,7 +1470,7 @@ export default function ReadTab({
   bibles, biblesLoading, selectedBible, setSelectedBible,
   passage, loading, error,
   compareMode, setCompareMode, compareSet, setCompareSet, comparePassages, compareLoading,
-  highlighted, toggleHighlight, notes, saveNote,
+  highlighted, highlightColors = {}, toggleHighlight, setHighlightColor, notes, saveNote,
   fontSize, accentColor, themeGroup = 'dark', ttsEnabled, ttsVoice, ttsRate, ttsMode,
   experienceLevel = 'beginner', jumpToVerse, onJumpHandled, onShareNote,
 }: Props) {
@@ -1488,7 +1490,9 @@ export default function ReadTab({
   // TTS state
   const [speaking, setSpeaking] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
+  const [currentTTSVerse, setCurrentTTSVerse] = useState<number | null>(null);
   const ttsAbortRef = useRef<AbortController | null>(null);
+  const ttsScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // AudioContext approach: resume() during the user gesture keeps the context
   // trusted indefinitely — unlike HTMLAudioElement whose gesture token expires
   // before ElevenLabs (2-5 s) returns.
@@ -1513,13 +1517,17 @@ export default function ReadTab({
   // Long-press state
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pressingVerse, setPressingVerse] = useState<number | null>(null); // for visual feedback
+  // Double-tap detection
+  const lastTapRef = useRef<{ verse: number; time: number } | null>(null);
 
   const stopTTS = useCallback(() => {
     if (ttsAbortRef.current) {
       ttsAbortRef.current.abort();
       ttsAbortRef.current = null;
     }
+    if (ttsScrollRef.current) { clearInterval(ttsScrollRef.current); ttsScrollRef.current = null; }
     setTtsLoading(false);
+    setCurrentTTSVerse(null);
     // Stop AudioContext source (primary path)
     if (audioSourceRef.current) {
       try { audioSourceRef.current.stop(); } catch {}
@@ -1550,11 +1558,36 @@ export default function ReadTab({
     const verses: { verse: number; text: string }[] = [];
     let totalChars = 0;
     for (const v of allVerses) {
-      if (totalChars + v.text.length > 2000) break;
+      if (totalChars + v.text.length > 8000) break;
       verses.push({ verse: v.verse, text: v.text });
       totalChars += v.text.length;
     }
     if (verses.length === 0) return;
+
+    // Build cumulative char breakpoints for scroll tracking (0..1)
+    const verseBreakpoints: { verse: number; start: number; end: number }[] = [];
+    let cumChars = 0;
+    for (const v of verses) {
+      const start = cumChars / totalChars;
+      cumChars += v.text.length;
+      verseBreakpoints.push({ verse: v.verse, start, end: cumChars / totalChars });
+    }
+
+    const startScrollTracking = (getDuration: () => number, getCurrentTime: () => number) => {
+      if (ttsScrollRef.current) clearInterval(ttsScrollRef.current);
+      ttsScrollRef.current = setInterval(() => {
+        const duration = getDuration();
+        if (!duration || duration === Infinity) return;
+        const progress = getCurrentTime() / duration;
+        const active = verseBreakpoints.find(b => progress >= b.start && progress < b.end)
+          ?? verseBreakpoints[verseBreakpoints.length - 1];
+        if (active) {
+          setCurrentTTSVerse(active.verse);
+          const el = document.querySelector(`[data-verse="${active.verse}"]`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 800);
+    };
 
     const narratorVoiceId = ttsVoice ? ttsVoice.replace('eleven:', '') : '88cgASIFJ5iO94COdgBO';
 
@@ -1585,21 +1618,37 @@ export default function ReadTab({
           source.buffer = audioBuffer;
           source.playbackRate.value = ttsRate || 1;
           source.connect(ctx.destination);
-          source.onended = () => { setSpeaking(false); audioSourceRef.current = null; };
+          const startTime = ctx.currentTime;
+          source.onended = () => {
+            setSpeaking(false); setCurrentTTSVerse(null);
+            if (ttsScrollRef.current) { clearInterval(ttsScrollRef.current); ttsScrollRef.current = null; }
+            audioSourceRef.current = null;
+          };
           audioSourceRef.current = source;
           setSpeaking(true);
           source.start(0);
+          startScrollTracking(
+            () => source.buffer?.duration ?? 0,
+            () => Math.max(0, ctx.currentTime - startTime),
+          );
         } else {
           // ── HTMLAudioElement fallback (desktop / non-WebKit) ───────────────
           const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
           const url = URL.createObjectURL(blob);
           const audio = new Audio(url);
           audio.playbackRate = ttsRate || 1;
-          audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); audioRef.current = null; };
+          audio.onended = () => {
+            setSpeaking(false); setCurrentTTSVerse(null);
+            if (ttsScrollRef.current) { clearInterval(ttsScrollRef.current); ttsScrollRef.current = null; }
+            URL.revokeObjectURL(url); audioRef.current = null;
+          };
           audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); audioRef.current = null; };
           audioRef.current = audio;
           setSpeaking(true);
           audio.play().catch(() => { setSpeaking(false); audioRef.current = null; });
+          audio.onloadedmetadata = () => {
+            startScrollTracking(() => audio.duration, () => audio.currentTime);
+          };
         }
       })
       .catch(err => {
@@ -1961,8 +2010,19 @@ export default function ReadTab({
     const isActive = activeVerse?.verse === v.verse;
     const isPressing = pressingVerse === v.verse;
     const isMultiSelected = selectedVerses.has(v.verse);
+    const isTTSActive = currentTTSVerse === v.verse;
 
     const handleVerseClick = () => {
+      // Double-tap = instant highlight toggle
+      const now = Date.now();
+      const last = lastTapRef.current;
+      if (last && last.verse === v.verse && now - last.time < 350) {
+        lastTapRef.current = null;
+        toggleHighlight(vKey);
+        return;
+      }
+      lastTapRef.current = { verse: v.verse, time: now };
+
       if (speaking) {
         playTTS(v.verse);
       } else if (multiSelectMode) {
@@ -2011,13 +2071,15 @@ export default function ReadTab({
           transform: isPressing ? 'scale(0.97)' : 'scale(1)',
           ...(isMultiSelected
             ? { background: `${accentColor}55`, boxShadow: `0 0 0 2px ${accentColor}`, outline: `2px solid ${accentColor}` }
-            : isActive
-              ? { background: `${accentColor}44`, boxShadow: `0 0 0 2px ${accentColor}66` }
-              : isPressing
-                ? { background: `${accentColor}28` }
-                : highlighted.has(vKey)
-                  ? { background: 'rgba(212,168,83,0.22)' }
-                  : {}),
+            : isTTSActive
+              ? { background: `${accentColor}33`, boxShadow: `0 0 0 2px ${accentColor}88`, borderRadius: '6px' }
+              : isActive
+                ? { background: `${accentColor}44`, boxShadow: `0 0 0 2px ${accentColor}66` }
+                : isPressing
+                  ? { background: `${accentColor}28` }
+                  : highlighted.has(vKey)
+                    ? { background: highlightColors[vKey] ? `${highlightColors[vKey]}33` : 'rgba(212,168,83,0.22)', boxShadow: highlightColors[vKey] ? `inset 0 0 0 1px ${highlightColors[vKey]}55` : 'none' }
+                    : {}),
         }}>
         <span className="select-none" style={{
           color: hue, fontSize: '0.58em', fontFamily: 'Montserrat, system-ui, sans-serif',
@@ -2575,6 +2637,37 @@ export default function ReadTab({
                   );
                 })}
               </div>
+
+              {/* Color picker — shown when verse is highlighted */}
+              {highlighted.has(`${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`) && setHighlightColor && (
+                <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+                  <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: `${accentColor}88` }}>Color</span>
+                  {[
+                    { color: '#f59e0b', label: 'Speaks to me' },
+                    { color: '#22c55e', label: 'Peace / comfort' },
+                    { color: '#818cf8', label: 'Revelation' },
+                    { color: '#f87171', label: 'Warning / urgency' },
+                    { color: '#e2e8f0', label: 'Promise / hope' },
+                  ].map(({ color, label }) => {
+                    const vKey = `${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`;
+                    const isSelected = highlightColors[vKey] === color;
+                    return (
+                      <button
+                        key={color}
+                        title={label}
+                        onClick={() => setHighlightColor(vKey, color)}
+                        style={{
+                          width: 26, height: 26, borderRadius: '50%', background: color, flexShrink: 0,
+                          border: isSelected ? `3px solid #fff` : '2px solid transparent',
+                          boxShadow: isSelected ? `0 0 0 2px ${color}, 0 0 10px ${color}88` : `0 2px 6px rgba(0,0,0,0.4)`,
+                          transition: 'all 0.15s',
+                          transform: isSelected ? 'scale(1.2)' : 'scale(1)',
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
 
               {/* AI response area */}
               <div className="px-5 py-5">
