@@ -109,7 +109,7 @@ export default function AltarApp() {
     try { return JSON.parse(localStorage.getItem('trace-highlight-texts') || '{}'); } catch { return {}; }
   });
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('base');
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('sm');
 
   // Theme system — organized by background type
   type ThemeId = string;
