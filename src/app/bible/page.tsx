@@ -51,7 +51,14 @@ function getOrCreateIdentity(): UserIdentity {
 }
 
 export default function AltarApp() {
-  const [tab, setTab] = useState<Tab>('home');
+  const [tab, setTab] = useState<Tab>(() => {
+    try { return (localStorage.getItem('altar-active-tab') as Tab) || 'home'; } catch { return 'home'; }
+  });
+
+  const handleSetTab = useCallback((t: Tab) => {
+    setTab(t);
+    try { localStorage.setItem('altar-active-tab', t); } catch {}
+  }, []);
 
   // Navigation
   const [selectedBook, setSelectedBook] = useState(BOOKS[39]); // Matthew
@@ -720,14 +727,14 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 highlighted={highlighted}
                 accentColor={theme.accent}
                 ttsVoice={ttsVoice}
-                onContinueReading={() => setTab('read')}
+                onContinueReading={() => handleSetTab('read')}
                 onOpenMorningEncounter={() => { setFireMode('morning'); setFireOpen(true); }}
                 onOpenBedtimeEncounter={() => { setFireMode('bedtime'); setFireOpen(true); }}
                 onOpenTrophyRoom={() => setTrophyOpen(true)}
                 onStudyVerse={(bookName, chapter) => {
                   const book = BOOKS.find(b => b.name === bookName);
                   if (book) { setSelectedBook(book); setSelectedChapter(chapter); }
-                  setTab('study');
+                  handleSetTab('study');
                 }}
               />
 
@@ -782,7 +789,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     }
                   } catch {}
                 }
-                setTab('community');
+                handleSetTab('community');
               }}
             />
           )}
@@ -798,7 +805,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 setSelectedBook(book);
                 setSelectedChapter(chapter);
                 setJumpToVerse(verse);
-                setTab('read');
+                handleSetTab('read');
               }}
             />
           )}
@@ -815,7 +822,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               onNavigateToRead={(book, chapter) => {
                 setSelectedBook(book);
                 setSelectedChapter(chapter);
-                setTab('read');
+                handleSetTab('read');
               }}
             />
           )}
@@ -844,7 +851,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               {TAB_CONFIG.map(t => {
                 const active = tab === t.id;
                 return (
-                  <button key={t.id} onClick={() => setTab(t.id)}
+                  <button key={t.id} onClick={() => handleSetTab(t.id)}
                     className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[56px]"
                     style={active ? { background: `${theme.accent}18` } : {}}>
                     <span className="text-lg transition-transform" style={{
@@ -995,7 +1002,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 authUser={user}
                 highlighted={highlighted}
                 notes={notes}
-                onNavigate={(t) => { setNotifOpen(false); setTab(t as Tab); }}
+                onNavigate={(t) => { setNotifOpen(false); handleSetTab(t as Tab); }}
                 onUnreadChange={setNotifUnread}
               />
             </div>
