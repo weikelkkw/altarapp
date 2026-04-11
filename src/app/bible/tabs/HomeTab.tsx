@@ -1448,44 +1448,23 @@ export default function HomeTab({
 
       <GlowDivider accentColor={accentColor} dot />
 
-      {/* ── Continue Reading + Saved Verses (side by side) ──────────── */}
-      <div className="grid grid-cols-2 gap-2">
-        <button onClick={onContinueReading}
-          className="text-left rounded-xl p-3.5 transition-all"
-          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}18` }}>
-          <h3 className="text-[9px] font-black uppercase tracking-[0.12em] mb-1.5" style={{ color: `${accentColor}88`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Continue Reading</h3>
-          <p className="text-sm font-bold" style={{ color: '#f0f8f4' }}>{selectedBook.name}</p>
-          <p className="text-[10px]" style={{ color: `${accentColor}55` }}>Chapter {selectedChapter}</p>
-          <div className="mt-2 rounded-full overflow-hidden h-1" style={{ background: `${accentColor}15` }}>
-            <div className="h-full rounded-full" style={{ width: `${(selectedChapter / selectedBook.chapters) * 100}%`, background: accentColor }} />
-          </div>
-          <p className="text-[8px] mt-1" style={{ color: `${accentColor}33` }}>{selectedChapter}/{selectedBook.chapters}</p>
-        </button>
-
-        <button onClick={() => setShowAllHighlights(v => !v)}
-          className="text-left rounded-xl p-3.5 transition-all"
-          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
-          <h3 className="text-[9px] font-black uppercase tracking-[0.12em] mb-1.5" style={{ color: `${accentColor}88`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
-            Saved Verses {showAllHighlights ? '▲' : '▼'}
-          </h3>
-          {highlightedVerses.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {highlightedVerses.slice(0, 4).map(key => (
-                <span key={key} className="px-1.5 py-0.5 rounded text-[9px] font-semibold"
-                  style={{ background: `${accentColor}12`, color: '#f0f8f4' }}>
-                  {parseVerseKey(key)}
-                </span>
-              ))}
-              {highlighted.size > 4 && (
-                <span className="text-[9px]" style={{ color: `${accentColor}44` }}>+{highlighted.size - 4}</span>
-              )}
+      {/* ── Continue Reading ─────────────────────────────────────────── */}
+      <button onClick={onContinueReading} className="w-full text-left rounded-xl p-4 transition-all active:scale-[0.99] relative overflow-hidden"
+        style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}22`, boxShadow: `0 2px 16px rgba(0,0,0,0.4)` }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at right, ${accentColor}06, transparent 65%)` }} />
+        <div className="relative flex items-center gap-4">
+          <div className="flex-1">
+            <h3 className="text-[9px] font-black uppercase tracking-[0.15em] mb-1" style={{ color: `${accentColor}77`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Continue Reading</h3>
+            <p className="text-base font-black" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{selectedBook.name}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: `${accentColor}66` }}>Chapter {selectedChapter} · {selectedBook.chapters - selectedChapter} chapters left</p>
+            <div className="mt-2.5 rounded-full overflow-hidden h-1.5" style={{ background: `${accentColor}15` }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.max((selectedChapter / selectedBook.chapters) * 100, 3)}%`, background: `linear-gradient(90deg, ${accentColor}88, ${accentColor})` }} />
             </div>
-          ) : (
-            <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.2)' }}>Tap verses while reading to save them</p>
-          )}
-          <p className="text-[8px] mt-2" style={{ color: `${accentColor}33` }}>{highlightCount} total</p>
-        </button>
-      </div>
+            <p className="text-[9px] mt-1" style={{ color: `${accentColor}33` }}>{selectedChapter} of {selectedBook.chapters} chapters</p>
+          </div>
+          <img src="/read book.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', opacity: 0.85, flexShrink: 0 }} />
+        </div>
+      </button>
 
       {/* ── Expanded Highlights View ──────────────────────────────────── */}
       {showAllHighlights && highlighted.size > 0 && (
@@ -1537,43 +1516,39 @@ export default function HomeTab({
         </div>
       )}
 
-      {/* ── Faith Journey Countdown + Weekly Recap ─────────────────────── */}
-      <div className="grid grid-cols-2 gap-2">
-        {/* Journey countdown */}
-        <div className="rounded-2xl p-4 text-center relative overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${accentColor}0c, ${accentColor}04)`, border: `1px solid ${accentColor}18` }}>
-          <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle at center, ${accentColor}06, transparent 70%)` }} />
-          <div className="relative z-10">
-            <p className="text-3xl font-black" style={{ color: '#fff' }}>{journeyDays}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wider mt-0.5" style={{ color: accentColor }}>
-              {journeyDays === 1 ? 'Day' : 'Days'}
-            </p>
-            <p className="text-[8px] mt-1" style={{ color: 'rgba(232,240,236,0.3)' }}>on your faith journey</p>
+      {/* ── This Week ──────────────────────────────────────────────────── */}
+      <div className="rounded-2xl p-4 relative overflow-hidden"
+        style={{ background: `linear-gradient(135deg, rgba(0,0,0,0.72), rgba(0,0,0,0.60))`, border: `1px solid ${accentColor}20`, boxShadow: '0 2px 16px rgba(0,0,0,0.4)' }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at top left, ${accentColor}07, transparent 60%)` }} />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}88`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Week</p>
+            <p suppressHydrationWarning className="text-[9px]" style={{ color: 'rgba(232,240,236,0.25)' }}>{journeyDays} day{journeyDays === 1 ? '' : 's'} on your journey</p>
           </div>
-        </div>
-
-        {/* Weekly recap — shows on Sundays or always as a mini summary */}
-        <div className="rounded-2xl p-4 relative overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${accentColor}08, ${accentColor}03)`, border: `1px solid ${accentColor}15` }}>
-          <div className="relative z-10">
-            <p className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color: `${accentColor}88` }}>This Week</p>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)', display: 'flex', alignItems: 'center', gap: 3 }}><img src="/read book.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Chapters</span>
-                <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{chaptersStudied}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)' }}>🙏 Prayers</span>
-                <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{totalPrayers}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)' }}>🔥 Streak</span>
-                <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{streak}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)', display: 'flex', alignItems: 'center', gap: 3 }}><img src="/star.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Saved</span>
-                <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{highlightCount}</span>
-              </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/read book.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Chapters Read</span>
+              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{chaptersStudied}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/Praying hands.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Prayers</span>
+              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{totalPrayers}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}>🔥 Streak</span>
+              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{streak} day{streak === 1 ? '' : 's'}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/star.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Saved Verses</span>
+              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{highlightCount}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}>☀️ Encounters</span>
+              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{fireSessions}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}>📜 Notes</span>
+              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{chaptersWithNotesGlobal}</span>
             </div>
           </div>
         </div>
