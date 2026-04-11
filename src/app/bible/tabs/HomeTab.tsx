@@ -697,9 +697,7 @@ export default function HomeTab({
         {/* Two tap zones side by side */}
         <div className="relative flex" style={{ zIndex: 10 }}>
           <button onClick={onOpenMorningEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all active:scale-95">
-            <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(251,191,36,0.4)', boxShadow: '0 0 16px rgba(251,146,36,0.3)' }}>
-              <img src="/sunrise and evening photo.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 75%' }} />
-            </div>
+            <img src="/sun.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))', transition: 'transform 0.2s' }} />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Morning</p>
               <p className="text-[8px] mt-0.5" style={{ color: 'rgba(251,191,36,0.6)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Start grounded</p>
@@ -708,9 +706,7 @@ export default function HomeTab({
           {/* Center divider */}
           <div className="w-px self-stretch my-4" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent)' }} />
           <button onClick={onOpenBedtimeEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all active:scale-95">
-            <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(129,140,248,0.4)', boxShadow: '0 0 16px rgba(99,102,241,0.3)' }}>
-              <img src="/sunrise and evening photo.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter: 'hue-rotate(180deg) brightness(0.75) saturate(1.5)' }} />
-            </div>
+            <img src="/moon.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(129,140,248,0.6))', transition: 'transform 0.2s' }} />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bedtime</p>
               <p className="text-[8px] mt-0.5" style={{ color: 'rgba(129,140,248,0.6)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Rest in His Word</p>
