@@ -533,7 +533,7 @@ export default function HomeTab({
           {/* Your Word Today label */}
           <div className="flex items-center gap-2 mt-5 mb-3" style={{ borderTop: `1px solid ${accentColor}15`, paddingTop: 16 }}>
             <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColor, opacity: 0.7 }} />
-            <h3 className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}99`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</h3>
           </div>
 
           {/* Daily verse */}
@@ -655,7 +655,7 @@ export default function HomeTab({
                 {item.label}
               </span>
               {(item as any).img
-                ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', opacity: dailyChecks[item.id] ? 0.25 : 0.92, flexShrink: 0 }} />
+                ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', mixBlendMode: 'screen', opacity: dailyChecks[item.id] ? 0.25 : 0.92, flexShrink: 0 }} />
                 : <span className="text-xl shrink-0">{item.icon}</span>
               }
             </button>
@@ -1467,7 +1467,7 @@ export default function HomeTab({
               {/* Earned badges — scrollable row */}
               {unlocked.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: `${accentColor}44` }}>Earned · {unlocked.length}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest mb-2" style={{ color: `${accentColor}cc` }}>Earned · {unlocked.length}</p>
                   <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                     {unlocked.map(m => (
                       <div key={m.id} className="flex flex-col items-center gap-1 min-w-[52px] py-2 px-1 rounded-xl shrink-0"
@@ -1514,7 +1514,7 @@ export default function HomeTab({
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at right, ${accentColor}06, transparent 65%)` }} />
         <div className="relative flex items-center gap-4">
           <div className="flex-1">
-            <h3 className="text-[9px] font-black uppercase tracking-[0.15em] mb-1" style={{ color: `${accentColor}77`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Continue Reading</h3>
+            <h3 className="text-[9px] font-black uppercase tracking-[0.15em] mb-1" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Continue Reading</h3>
             <p className="text-base font-black" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{selectedBook.name}</p>
             <p className="text-[11px] mt-0.5" style={{ color: `${accentColor}66` }}>Chapter {selectedChapter} · {selectedBook.chapters - selectedChapter} chapters left</p>
             <div className="mt-2.5 rounded-full overflow-hidden h-1.5" style={{ background: `${accentColor}15` }}>
@@ -1582,34 +1582,26 @@ export default function HomeTab({
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at top left, ${accentColor}07, transparent 60%)` }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}88`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Week</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Week</p>
             <p suppressHydrationWarning className="text-[9px]" style={{ color: 'rgba(232,240,236,0.25)' }}>{journeyDays} day{journeyDays === 1 ? '' : 's'} on your journey</p>
           </div>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/read book.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Chapters Read</span>
-              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{chaptersStudied}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/Praying hands.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Prayers</span>
-              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{totalPrayers}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}>🔥 Streak</span>
-              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{streak} day{streak === 1 ? '' : 's'}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/star.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Saved Verses</span>
-              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{highlightCount}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/sun.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', mixBlendMode: 'screen' }} /> Encounters</span>
-              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{fireSessions}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}>📜 Notes</span>
-              <span className="text-[11px] font-black" style={{ color: '#fff' }}>{chaptersWithNotesGlobal}</span>
-            </div>
+            {([
+              { icon: <img src="/read book.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />, label: 'Chapters Read', value: chaptersStudied },
+              { icon: <img src="/Praying hands.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />, label: 'Prayers', value: totalPrayers },
+              { icon: <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>, label: 'Streak', value: `${streak}d` },
+              { icon: <img src="/star.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />, label: 'Saved Verses', value: highlightCount },
+              { icon: <img src="/sun.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', mixBlendMode: 'screen' as const }} />, label: 'Encounters', value: fireSessions },
+              { icon: <span style={{ fontSize: 16, lineHeight: 1 }}>📜</span>, label: 'Notes', value: chaptersWithNotesGlobal },
+            ]).map(row => (
+              <div key={row.label} className="flex items-center justify-between">
+                <span className="text-[10px] flex items-center" style={{ color: 'rgba(232,240,236,0.45)', gap: 6 }}>
+                  <span style={{ width: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{row.icon}</span>
+                  {row.label}
+                </span>
+                <span className="text-[11px] font-black" style={{ color: '#fff' }}>{row.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
