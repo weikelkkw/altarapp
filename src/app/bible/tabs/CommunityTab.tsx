@@ -74,6 +74,7 @@ interface Props {
   onOpenGospel: () => void;
   authUser?: any;
   onOpenAuth?: () => void;
+  onDmUnread?: (count: number) => void;
 }
 
 /* ─── Avatar ────────────────────────────────────────────────── */
@@ -105,7 +106,7 @@ function SectionHeader({ text, accentColor, icon }: { text: string; accentColor:
 
 /* ─── Component ─────────────────────────────────────────────── */
 
-export default function CommunityTab({ userIdentity, accentColor, authUser, onOpenAuth }: Props) {
+export default function CommunityTab({ userIdentity, accentColor, authUser, onOpenAuth, onDmUnread }: Props) {
   const [tab, setTab] = useState<'prayer' | 'groups' | 'testimonies'>('groups');
   const [profileId, setProfileId] = useState<string | null>(null);
 
@@ -152,6 +153,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
   const [announcements, setAnnouncements] = useState<string[]>([]);
 
   const groupChatChannelRef = useRef<any>(null);
+  const dmChannelRef = useRef<any>(null);
 
   /* ── Resolve profile ID ─────────────────────────────────── */
   useEffect(() => {
@@ -660,10 +662,25 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     if (!supabase) return;
     const text = dmInput.trim();
     setDmInput('');
+    // Optimistic update — shows message immediately
+    const tempId = `temp-${Date.now()}`;
+    setDmMessages(prev => [...prev, {
+      id: tempId,
+      authorName: 'You',
+      authorColor: '#6366f1',
+      content: text,
+      createdAt: new Date().toISOString(),
+      isMine: true,
+    }]);
     try {
       await supabase.from('trace_messages').insert({ conversation_id: dmConversationId, sender_id: profileId, content: text });
+      // Sync to replace temp message with real one
       await loadDmMessages(dmConversationId);
-    } catch (err) { console.error('sendDm:', err); setDmInput(text); }
+    } catch (err) {
+      console.error('sendDm:', err);
+      setDmInput(text);
+      setDmMessages(prev => prev.filter(m => m.id !== tempId));
+    }
   };
 
   const startDm = async (member: GroupMember) => {
@@ -674,6 +691,45 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     setDmConversationId(convId);
     if (convId) await loadDmMessages(convId);
   };
+
+  // Real-time subscription for DMs — fires whenever dmConversationId changes
+  useEffect(() => {
+    if (dmChannelRef.current) {
+      dmChannelRef.current.unsubscribe();
+      dmChannelRef.current = null;
+    }
+    if (!dmConversationId) return;
+
+    const supabase = createClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel(`dm-${dmConversationId}`)
+      .on('postgres_changes' as any, {
+        event: 'INSERT', schema: 'public',
+        table: 'trace_messages',
+        filter: `conversation_id=eq.${dmConversationId}`,
+      }, (payload: any) => {
+        const incoming = payload.new;
+        // Skip if it's our own message (already shown optimistically)
+        if (incoming?.sender_id === profileId) return;
+        // Append new message from the other person
+        loadDmMessages(dmConversationId);
+        // If user isn't actively viewing this DM, fire unread notification
+        if (chatMode !== 'dm') {
+          onDmUnread?.(1);
+        }
+      })
+      .subscribe();
+
+    dmChannelRef.current = channel;
+    return () => {
+      if (dmChannelRef.current) {
+        dmChannelRef.current.unsubscribe();
+        dmChannelRef.current = null;
+      }
+    };
+  }, [dmConversationId, profileId, chatMode]);
 
   /* ── Prayer / Testimony actions ─────────────────────────── */
   const submitPrayer = async () => {

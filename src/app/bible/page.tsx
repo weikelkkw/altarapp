@@ -891,6 +891,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               onOpenGospel={() => setGospelOpen(true)}
               authUser={user}
               onOpenAuth={() => setAuthOpen(true)}
+              onDmUnread={(n) => setNotifUnread(prev => prev + n)}
             />
           )}
 
