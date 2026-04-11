@@ -74,9 +74,19 @@ export default function FindFriends({ accentColor, currentUserId, authToken }: P
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [loadingSearch, setLoadingSearch] = useState(false);
+  const [resolvedToken, setResolvedToken] = useState(authToken);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const supabase = createClient();
+
+  // Resolve actual session token (authToken prop may be just a user ID)
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token;
+      if (token) setResolvedToken(token);
+    });
+  }, []);
 
   /* ── Load friend requests ── */
   const loadFriendRequests = useCallback(async () => {
@@ -185,7 +195,7 @@ export default function FindFriends({ accentColor, currentUserId, authToken }: P
     debounceRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/friends?q=${encodeURIComponent(query.trim())}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
+          headers: { Authorization: `Bearer ${resolvedToken}` },
         });
         if (!res.ok) { setSearchResults([]); return; }
         const json = await res.json();
@@ -199,7 +209,7 @@ export default function FindFriends({ accentColor, currentUserId, authToken }: P
     }, 300);
 
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, authToken, currentUserId]);
+  }, [query, resolvedToken, currentUserId]);
 
   /* ── Send friend request ── */
   async function sendRequest(toUserId: string) {

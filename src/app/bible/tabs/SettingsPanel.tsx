@@ -82,6 +82,7 @@ export default function SettingsPanel({
   const [draftBible, setDraftBible] = useState(defaultBible || 'KJV');
   const [hasChanges, setHasChanges] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<'profile' | 'appearance' | 'voice' | 'account'>('profile');
 
   // Reset drafts when panel opens
   useEffect(() => {
@@ -234,21 +235,21 @@ export default function SettingsPanel({
   const handleProfilePicture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { alert('Image must be under 2MB'); return; }
+    if (file.size > 15 * 1024 * 1024) { alert('Image must be under 15MB'); return; }
     const reader = new FileReader();
     reader.onload = () => {
       // Resize to 200x200 for storage
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = 200;
-        canvas.height = 200;
+        canvas.width = 400;
+        canvas.height = 400;
         const ctx = canvas.getContext('2d')!;
         const size = Math.min(img.width, img.height);
         const sx = (img.width - size) / 2;
         const sy = (img.height - size) / 2;
-        ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
-        saveIdentity({ profilePicture: canvas.toDataURL('image/jpeg', 0.8) });
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, 400, 400);
+        saveIdentity({ profilePicture: canvas.toDataURL('image/jpeg', 0.85) });
       };
       img.src = reader.result as string;
     };
@@ -257,721 +258,568 @@ export default function SettingsPanel({
 
   if (!open) return null;
 
-  // Use draft for all display in settings — committed on Save
   const id = draftIdentity;
 
-  const sectionTitle = (text: string) => (
-    <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-3" style={{ color: `${accentColor}55` }}>{text}</p>
+  /* ── Reusable UI primitives ──────────────────────────────── */
+
+  const Row = ({ icon, label, sub, right }: { icon: string; label: string; sub?: string; right: React.ReactNode }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div style={{ width: 36, height: 36, borderRadius: 10, background: `${accentColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#e8f0ec', fontFamily: 'Montserrat, system-ui' }}>{label}</div>
+        {sub && <div style={{ fontSize: 11, color: 'rgba(232,240,236,0.35)', marginTop: 2 }}>{sub}</div>}
+      </div>
+      <div style={{ flexShrink: 0 }}>{right}</div>
+    </div>
   );
 
-  const card = (children: React.ReactNode) => (
-    <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
+  const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
+    <button
+      onClick={() => onChange(!value)}
+      style={{
+        width: 48, height: 28, borderRadius: 14, position: 'relative',
+        background: value ? accentColor : 'rgba(255,255,255,0.08)',
+        border: 'none', cursor: 'pointer', transition: 'background 0.2s',
+        flexShrink: 0,
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: 4, width: 20, height: 20, borderRadius: '50%',
+        background: '#fff', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        left: value ? 24 : 4,
+      }} />
+    </button>
+  );
+
+  const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
+    <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 18, padding: '0 16px', overflow: 'hidden', ...style }}>
       {children}
     </div>
   );
 
-  return (
-    <div className="fixed inset-0 z-[100] flex">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+  const SectionLabel = ({ text }: { text: string }) => (
+    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: `${accentColor}70`, fontFamily: 'Montserrat, system-ui', marginBottom: 10, marginTop: 24 }}>{text}</div>
+  );
 
-      <div className="relative ml-auto w-full max-w-md h-full overflow-y-auto"
-        style={{ background: 'linear-gradient(180deg, #0a1410, #080f0c)', borderLeft: `1px solid ${accentColor}22` }}>
+  const FieldInput = ({ label, value, onChange, placeholder, type = 'text' }: { label: string; value?: string; onChange: (v: string) => void; placeholder?: string; type?: string }) => (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,240,236,0.4)', marginBottom: 6, letterSpacing: '0.06em' }}>{label}</div>
+      <input
+        autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
+        type={type}
+        defaultValue={value || ''}
+        onBlur={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '11px 14px', fontSize: 14, color: '#e8f0ec', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }}
+      />
+    </div>
+  );
+
+  const tabs = [
+    { id: 'profile' as const, icon: '👤', label: 'Profile' },
+    { id: 'appearance' as const, icon: '🎨', label: 'Look' },
+    { id: 'voice' as const, icon: '🎙', label: 'Voice' },
+    { id: 'account' as const, icon: '⚙️', label: 'Account' },
+  ];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'stretch' }}>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }} />
+
+      {/* Panel */}
+      <div style={{
+        position: 'relative', marginLeft: 'auto', width: '100%', maxWidth: 420,
+        height: '100%', display: 'flex', flexDirection: 'column',
+        backgroundColor: '#040706',
+        borderLeft: `1px solid ${accentColor}18`,
+        overflowY: 'auto',
+      }}>
 
         {/* Header */}
-        <div className="sticky top-0 z-10 px-6 py-5 flex items-center justify-between"
-          style={{ background: 'rgba(10,20,16,0.95)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${accentColor}18` }}>
-          <div>
-            <h2 className="text-lg font-bold" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Settings</h2>
-            <p className="text-xs mt-0.5" style={{ color: `${accentColor}55` }}>Customize your experience</p>
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 10, padding: '20px 20px 0',
+          background: 'linear-gradient(180deg, #040706 80%, transparent)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div>
+              <div style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 800, fontSize: 22, color: '#e8f0ec', letterSpacing: '-0.02em' }}>Settings</div>
+              <div style={{ fontSize: 12, color: `${accentColor}55`, marginTop: 2 }}>Your Altar, your way</div>
+            </div>
+            <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(232,240,236,0.5)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center"
-            style={{ background: `${accentColor}14`, color: `${accentColor}88` }}>✕</button>
+
+          {/* Tab bar */}
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, padding: 4, marginBottom: 4 }}>
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setSettingsTab(t.id)} style={{
+                flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, transition: 'all 0.15s',
+                background: settingsTab === t.id ? `${accentColor}22` : 'transparent',
+              }}>
+                <span style={{ fontSize: 15 }}>{t.icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: settingsTab === t.id ? accentColor : 'rgba(232,240,236,0.3)', fontFamily: 'Montserrat, system-ui', textTransform: 'uppercase' as const }}>{t.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="px-6 py-6 space-y-6">
+        {/* Content */}
+        <div style={{ padding: '8px 20px 120px', flex: 1 }}>
 
-          {/* ── Profile ──────────────────────────────────────────── */}
-          {sectionTitle('Profile')}
-          {card(
-            <div className="space-y-4">
-              {/* Avatar / Profile picture */}
-              <div className="flex items-start gap-4">
-                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+          {/* PROFILE TAB */}
+          {settingsTab === 'profile' && (
+            <div>
+              <SectionLabel text="Your Avatar" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
                   {id.profilePicture ? (
-                    <img src={id.profilePicture} alt="Profile"
-                      className="w-16 h-16 rounded-2xl object-cover" style={{ border: `2px solid ${accentColor}44` }} />
+                    <img src={id.profilePicture} alt="Profile" style={{ width: 72, height: 72, borderRadius: 18, objectFit: 'cover', border: `2px solid ${accentColor}55` }} />
                   ) : (
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white"
-                      style={{ background: id.color, boxShadow: `0 4px 12px ${id.color}44` }}>
-                      {id.name[0]?.toUpperCase() || '?'}
+                    <div style={{ width: 72, height: 72, borderRadius: 18, background: `linear-gradient(135deg, ${id.color}, ${id.color}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 800, color: '#fff', boxShadow: `0 0 0 3px ${id.color}30, 0 8px 24px ${id.color}25` }}>
+                      {(id.name[0] || '?').toUpperCase()}
                     </div>
                   )}
-                  <div className="absolute inset-0 rounded-2xl flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-white text-xs font-bold">Edit</span>
-                  </div>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfilePicture} />
+                  <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfilePicture} />
                 </div>
-                <div className="flex-1">
+                <div style={{ flex: 1 }}>
                   {nameEditing ? (
-                    <div className="flex gap-2">
-                      <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} value={editName} onChange={e => setEditName(e.target.value)}
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                      <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
+                        value={editName} onChange={e => setEditName(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') { saveIdentity({ name: editName.trim() || id.name }); setNameEditing(false); } }}
-                        autoFocus className="flex-1 rounded-lg px-3 py-1.5 text-sm outline-none"
-                        style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
+                        autoFocus
+                        style={{ flex: 1, background: 'rgba(255,255,255,0.06)', border: `1px solid ${accentColor}33`, borderRadius: 10, padding: '10px 12px', fontSize: 14, color: '#e8f0ec', outline: 'none', fontFamily: 'Montserrat, system-ui' }}
+                      />
                       <button onClick={() => { saveIdentity({ name: editName.trim() || id.name }); setNameEditing(false); }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold" style={{ background: accentColor, color: '#0a1410' }}>Save</button>
+                        style={{ background: accentColor, color: '#040706', border: 'none', borderRadius: 10, padding: '10px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Done</button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold" style={{ color: '#f0f8f4' }}>{id.name}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: '#e8f0ec', fontFamily: 'Montserrat, system-ui' }}>{id.name}</span>
                       <button onClick={() => { setEditName(id.name); setNameEditing(true); }}
-                        className="text-xs px-2 py-0.5 rounded" style={{ color: `${accentColor}88`, background: `${accentColor}14` }}>Edit</button>
+                        style={{ fontSize: 11, background: `${accentColor}18`, color: accentColor, border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>Edit</button>
                     </div>
                   )}
-                  <p className="text-[10px] mt-1" style={{ color: 'rgba(232,240,236,0.3)' }}>Tap photo to upload profile picture</p>
-                </div>
-              </div>
-
-              {/* Remove profile picture */}
-              {id.profilePicture && (
-                <button onClick={() => saveIdentity({ profilePicture: undefined })}
-                  className="text-xs px-3 py-1 rounded-lg" style={{ color: '#f87171', background: 'rgba(248,113,113,0.1)' }}>
-                  Remove profile picture
-                </button>
-              )}
-
-              {/* Upload prompt when no picture */}
-              {!id.profilePicture && (
-                <button onClick={() => fileInputRef.current?.click()}
-                  className="w-full rounded-xl py-3 flex items-center justify-center gap-2 transition-all"
-                  style={{ background: 'rgba(100,160,220,0.07)', border: '1.5px dashed rgba(100,160,220,0.3)' }}>
-                  <span className="text-lg">📸</span>
-                  <div className="text-left">
-                    <p className="text-xs font-bold" style={{ color: 'rgba(100,160,220,0.9)' }}>Upload a profile photo</p>
-                    <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Show your face to the community</p>
-                  </div>
-                </button>
-              )}
-
-              {/* Favorite verse */}
-              <div>
-                <p className="text-xs font-semibold mb-2" style={{ color: 'rgba(232,240,236,0.5)' }}>Favorite Verse</p>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} value={editVerse} onChange={e => setEditVerse(e.target.value)}
-                  onBlur={() => saveIdentity({ favoriteVerse: editVerse })}
-                  placeholder="e.g. John 3:16"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-              </div>
-
-              {/* Public profile toggle */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: '#f0f8f4' }}>Public Profile</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.3)' }}>Others can see your bio and activity</p>
-                </div>
-                <button onClick={() => saveIdentity({ isPublic: !id.isPublic })}
-                  className="w-12 h-7 rounded-full transition-all relative"
-                  style={{ background: id.isPublic !== false ? accentColor : 'rgba(255,255,255,0.1)' }}>
-                  <div className="absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-md"
-                    style={{ left: id.isPublic !== false ? '26px' : '2px' }} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── About Me ──────────────────────────────────────────── */}
-          {sectionTitle('About Me')}
-          {card(
-            <div className="space-y-5">
-
-              {/* Bio */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="text-xs font-bold" style={{ color: 'rgba(232,240,236,0.7)' }}>Short Bio</p>
-                    <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>Visible on your public profile</p>
-                  </div>
-                  {!bioEditing && (
-                    <button onClick={() => setBioEditing(true)}
-                      className="text-xs px-2.5 py-1 rounded-lg font-semibold" style={{ color: accentColor, background: `${accentColor}14` }}>
-                      {id.bio ? 'Edit' : '+ Add'}
-                    </button>
-                  )}
-                </div>
-                {bioEditing ? (
-                  <div className="space-y-2">
-                    <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true} value={editBio} onChange={e => setEditBio(e.target.value)} maxLength={200}
-                      placeholder="Tell others about your faith journey…"
-                      autoFocus
-                      className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none min-h-20"
-                      style={{ background: `${accentColor}0a`, border: `1.5px solid ${accentColor}33`, color: '#f0f8f4', lineHeight: '1.6' }} />
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>{editBio.length}/200</span>
-                      <div className="flex gap-2">
-                        <button onClick={() => setBioEditing(false)} className="text-xs px-3 py-1.5 rounded-lg"
-                          style={{ color: 'rgba(232,240,236,0.4)' }}>Cancel</button>
-                        <button onClick={() => { saveIdentity({ bio: editBio }); setBioEditing(false); }}
-                          className="text-xs px-4 py-1.5 rounded-lg font-bold" style={{ background: accentColor, color: '#0a1410' }}>Save</button>
-                      </div>
-                    </div>
-                  </div>
-                ) : id.bio ? (
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(232,240,236,0.55)', fontFamily: 'Georgia, serif' }}>{id.bio}</p>
-                ) : (
-                  <p className="text-xs italic" style={{ color: 'rgba(232,240,236,0.2)' }}>No bio yet — tap + Add to share your story</p>
-                )}
-              </div>
-
-              <div className="h-px" style={{ background: `${accentColor}12` }} />
-
-              {/* Testimony */}
-              <div>
-                <div className="mb-2">
-                  <p className="text-xs font-bold" style={{ color: 'rgba(232,240,236,0.7)' }}>My Testimony</p>
-                  <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>Your story of faith — encourages everyone who reads it</p>
-                </div>
-                <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                  defaultValue={id.testimony || ''}
-                  onBlur={e => saveIdentity({ testimony: e.target.value })}
-                  placeholder="How did you come to faith? What has God done in your life? Even a few sentences can change someone's day…"
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none resize-none min-h-28"
-                  style={{ background: `${accentColor}0a`, border: `1.5px solid ${accentColor}22`, color: '#f0f8f4', fontFamily: 'Georgia, serif', lineHeight: '1.7' }} />
-              </div>
-
-              {/* Date of Birth */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Date of Birth</p>
-                  <input type="date"
-                    defaultValue={id.dateOfBirth || ''}
-                    onChange={e => saveIdentity({ dateOfBirth: e.target.value })}
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Location</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                    defaultValue={id.location || ''}
-                    onBlur={e => saveIdentity({ location: e.target.value })}
-                    placeholder="City, State"
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-              </div>
-
-              {/* Church */}
-              <div>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Church Home</p>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                  defaultValue={id.church || ''}
-                  onBlur={e => saveIdentity({ church: e.target.value })}
-                  placeholder="e.g. Grace Community Church, Austin"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-              </div>
-
-              {/* Faith milestones */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Date Saved</p>
-                  <input type="date"
-                    defaultValue={id.savedDate || ''}
-                    onChange={e => saveIdentity({ savedDate: e.target.value })}
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Date Baptized</p>
-                  <input type="date"
-                    defaultValue={id.baptismDate || ''}
-                    onChange={e => saveIdentity({ baptismDate: e.target.value })}
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* ── Spiritual Life ────────────────────────────────────── */}
-          {sectionTitle('Spiritual Life')}
-          {card(
-            <div className="space-y-4">
-              {/* Life verse */}
-              <div>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Life Verse</p>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                  defaultValue={id.lifeVerse || ''}
-                  onBlur={e => saveIdentity({ lifeVerse: e.target.value })}
-                  placeholder="The one verse that defines your walk"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-              </div>
-
-              {/* Spiritual gifts */}
-              <div>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Spiritual Gifts</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {['Teaching', 'Prophecy', 'Service', 'Leadership', 'Mercy', 'Giving', 'Encouragement', 'Wisdom', 'Faith', 'Healing', 'Discernment', 'Hospitality', 'Evangelism', 'Pastoring'].map(gift => {
-                    const selected = (id.spiritualGifts || []).includes(gift);
-                    return (
-                      <button key={gift} onClick={() => {
-                        const current = id.spiritualGifts || [];
-                        const updated = selected ? current.filter(g => g !== gift) : [...current, gift];
-                        saveIdentity({ spiritualGifts: updated });
-                      }}
-                        className="px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all"
-                        style={selected
-                          ? { background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}44` }
-                          : { background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.35)', border: '1px solid transparent' }}>
-                        {gift}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Ministry role */}
-              <div>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Ministry / Role</p>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                  defaultValue={id.ministryRole || ''}
-                  onBlur={e => saveIdentity({ ministryRole: e.target.value })}
-                  placeholder="e.g. Youth Leader, Worship Team, Small Group Host"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-              </div>
-
-              {/* Mentor / Discipling */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>My Mentor</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                    defaultValue={id.mentor || ''}
-                    onBlur={e => saveIdentity({ mentor: e.target.value })}
-                    placeholder="Who leads you"
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>I&apos;m Discipling</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                    defaultValue={id.discipling || ''}
-                    onBlur={e => saveIdentity({ discipling: e.target.value })}
-                    placeholder="Who you lead"
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-              </div>
-
-              {/* Favorites */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Favorite Book</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                    defaultValue={id.favoriteBook || ''}
-                    onBlur={e => saveIdentity({ favoriteBook: e.target.value })}
-                    placeholder="e.g. Romans"
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Favorite Preacher</p>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                    defaultValue={id.favoritePreacher || ''}
-                    onBlur={e => saveIdentity({ favoritePreacher: e.target.value })}
-                    placeholder="e.g. Paul Washer"
-                    className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-                </div>
-              </div>
-
-              {/* Favorite hymn */}
-              <div>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Favorite Worship Song / Hymn</p>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                  defaultValue={id.favoriteHymn || ''}
-                  onBlur={e => saveIdentity({ favoriteHymn: e.target.value })}
-                  placeholder="e.g. Amazing Grace, Way Maker"
-                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-                  style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-              </div>
-
-              {/* Reading goal */}
-              <div>
-                <p className="text-xs font-semibold mb-1.5" style={{ color: 'rgba(232,240,236,0.5)' }}>Weekly Reading Goal</p>
-                <div className="flex items-center gap-3">
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="range" min="1" max="30" step="1"
-                    defaultValue={id.readingGoal || 7}
-                    onChange={e => saveIdentity({ readingGoal: parseInt(e.target.value) })}
-                    className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
-                    style={{ background: `linear-gradient(to right, ${accentColor}, ${accentColor}44)` }} />
-                  <span className="text-sm font-bold w-16 text-right" style={{ color: accentColor }}>
-                    {id.readingGoal || 7} ch/wk
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Experience Level ─────────────────────────────────── */}
-          {sectionTitle('Experience Level')}
-          {card(
-            <div className="space-y-3">
-              <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.4)' }}>
-                Controls which features are visible. You can change this anytime.
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { id: 'beginner' as const, label: 'Beginner', desc: 'Simple & guided', icon: '🌱' },
-                  { id: 'intermediate' as const, label: 'Growing', desc: 'More tools', icon: '🌿' },
-                  { id: 'expert' as const, label: 'Deep', desc: 'Everything', icon: '🌳' },
-                ]).map(level => {
-                  const current = id.experienceLevel || 'beginner';
-                  const isActive = current === level.id;
-                  return (
-                    <button key={level.id} onClick={() => saveIdentity({ experienceLevel: level.id })}
-                      className="flex flex-col items-center gap-1 py-3 rounded-xl transition-all"
-                      style={isActive
-                        ? { background: `${accentColor}22`, border: `2px solid ${accentColor}55` }
-                        : { background: 'rgba(255,255,255,0.03)', border: '2px solid transparent' }}>
-                      <span className="text-xl">{level.icon}</span>
-                      <span className="text-[10px] font-bold" style={{ color: isActive ? accentColor : 'rgba(232,240,236,0.5)' }}>{level.label}</span>
-                      <span className="text-[8px]" style={{ color: 'rgba(232,240,236,0.25)' }}>{level.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── Appearance ────────────────────────────────────────── */}
-          {sectionTitle('Appearance')}
-          {card(
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-semibold mb-3" style={{ color: 'rgba(232,240,236,0.5)' }}>Theme</p>
-                {(themeGroups || [{ id: 'all', label: 'All', icon: '🎨' }]).map(group => {
-                  const groupThemes = Object.entries(themes).filter(([, t]) => (t as any).group === group.id || !themeGroups);
-                  if (groupThemes.length === 0) return <div key={group.id} />;
-                  return (
-                    <div key={group.id} className="mb-3">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className="text-xs">{group.icon}</span>
-                        <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'rgba(232,240,236,0.35)' }}>{group.label}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {groupThemes.map(([id, t]) => {
-                          const isBlackBg = (t as any).group === 'black';
-                          const isWhiteBg = (t as any).group === 'white';
-                          return (
-                            <button key={id} onClick={() => { setDraftThemeId(id); markChanged(); }}
-                              className="flex flex-col items-center gap-0.5 w-12 py-2 rounded-lg transition-all"
-                              style={draftThemeId === id
-                                ? { background: `${t.accent}22`, border: `2px solid ${t.accent}55` }
-                                : { background: 'rgba(255,255,255,0.03)', border: '2px solid transparent' }}>
-                              <div className="w-4 h-4 rounded-full overflow-hidden" style={{
-                                border: isBlackBg ? '1px solid #444' : isWhiteBg ? `1px solid ${t.accent}` : 'none',
-                                boxShadow: draftThemeId === id ? `0 0 6px ${t.accent}44` : 'none',
-                                background: isBlackBg
-                                  ? `linear-gradient(90deg, #000 50%, ${t.accent} 50%)`
-                                  : isWhiteBg
-                                    ? `linear-gradient(90deg, #fff 50%, ${t.accent} 50%)`
-                                    : t.accent,
-                              }} />
-                              <span className="text-[7px] font-bold" style={{ color: draftThemeId === id ? t.accent : 'rgba(232,240,236,0.25)' }}>{t.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold mb-2" style={{ color: 'rgba(232,240,236,0.5)' }}>Reading Font Size</p>
-                <div className="flex gap-2">
-                  {(['sm', 'base', 'lg', 'xl'] as const).map((s, i) => (
-                    <button key={s} onClick={() => { setDraftFontSize(s); markChanged(); }}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-                      style={draftFontSize === s
-                        ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 2px 8px ${accentColor}44` }
-                        : { background: `${accentColor}0d`, color: `${accentColor}55` }}>
-                      {['Small', 'Medium', 'Large', 'XL'][i]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Default Bible version */}
-              {onSetDefaultBible && (
-                <div>
-                  <p className="text-xs font-semibold mb-2" style={{ color: 'rgba(232,240,236,0.5)' }}>Default Bible Version</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['NIV', 'KJV', 'NKJV', 'NLT', 'ASV', 'WEB', 'LSV'].map(abbr => (
-                      <button key={abbr} onClick={() => { setDraftBible(abbr); markChanged(); }}
-                        className="px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all"
-                        style={draftBible === abbr
-                          ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 2px 8px ${accentColor}44` }
-                          : { background: `${accentColor}0d`, color: `${accentColor}55`, border: `1px solid ${accentColor}18` }}>
-                        {abbr}
-                      </button>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
+                    {(AVATAR_COLORS || []).slice(0, 8).map((c: string) => (
+                      <button key={c} onClick={() => { saveIdentity({ color: c }); markChanged(); }}
+                        style={{ width: 22, height: 22, borderRadius: '50%', background: c, border: id.color === c ? '2px solid #fff' : '2px solid transparent', cursor: 'pointer', boxShadow: id.color === c ? `0 0 0 2px ${c}` : 'none', transition: 'all 0.15s' }} />
                     ))}
                   </div>
-                  <p className="text-[8px] mt-1.5" style={{ color: 'rgba(232,240,236,0.2)' }}>This will be your default when you open the Read tab</p>
                 </div>
+              </div>
+
+              {id.profilePicture && (
+                <button onClick={() => saveIdentity({ profilePicture: undefined })}
+                  style={{ fontSize: 12, color: '#f87171', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', marginBottom: 16 }}>
+                  Remove photo
+                </button>
               )}
 
-              {/* Scripture background toggle */}
-              {setScriptureBackground && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: '#f0f8f4' }}>Scripture Background</p>
-                    <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.3)' }}>Flowing verse glow behind the app</p>
+              {!id.profilePicture && (
+                <button onClick={() => fileInputRef.current?.click()}
+                  style={{ width: '100%', borderRadius: 14, padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: 'rgba(100,160,220,0.04)', border: '1.5px dashed rgba(100,160,220,0.2)', cursor: 'pointer', marginBottom: 16 }}>
+                  <span style={{ fontSize: 20 }}>📸</span>
+                  <div style={{ textAlign: 'left' as const }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'rgba(100,160,220,0.8)' }}>Upload profile photo</div>
+                    <div style={{ fontSize: 11, color: 'rgba(232,240,236,0.25)', marginTop: 2 }}>Up to 15MB — Photos app size is fine</div>
                   </div>
-                  <button
-                    onClick={() => setScriptureBackground(!(scriptureBackground ?? true))}
-                    className="w-12 h-7 rounded-full transition-all relative"
-                    style={{ background: (scriptureBackground ?? true) ? accentColor : 'rgba(255,255,255,0.1)' }}
-                  >
-                    <div className="absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-md"
-                      style={{ left: (scriptureBackground ?? true) ? '26px' : '2px' }} />
-                  </button>
-                </div>
+                </button>
               )}
+
+              {/* Experience Level */}
+              <SectionLabel text="Experience Level" />
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                {([
+                  { id: 'beginner' as const, label: 'Beginner', icon: '🌱', desc: 'Simple & guided' },
+                  { id: 'intermediate' as const, label: 'Growing', icon: '🌿', desc: 'More tools' },
+                  { id: 'expert' as const, label: 'Deep', icon: '🌳', desc: 'Everything' },
+                ]).map(level => {
+                  const isActive = (id.experienceLevel || 'beginner') === level.id;
+                  return (
+                    <button key={level.id} onClick={() => saveIdentity({ experienceLevel: level.id })} style={{
+                      flex: 1, padding: '12px 8px', borderRadius: 14, border: isActive ? `2px solid ${accentColor}55` : '2px solid transparent', background: isActive ? `${accentColor}18` : 'rgba(255,255,255,0.03)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    }}>
+                      <span style={{ fontSize: 20 }}>{level.icon}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: isActive ? accentColor : 'rgba(232,240,236,0.45)', fontFamily: 'Montserrat, system-ui' }}>{level.label}</span>
+                      <span style={{ fontSize: 9, color: 'rgba(232,240,236,0.2)' }}>{level.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* About Me */}
+              <SectionLabel text="About Me" />
+              <Card style={{ padding: '16px' }}>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(232,240,236,0.7)' }}>Short Bio</div>
+                    {!bioEditing && (
+                      <button onClick={() => setBioEditing(true)} style={{ fontSize: 11, color: accentColor, background: `${accentColor}14`, border: 'none', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>{id.bio ? 'Edit' : '+ Add'}</button>
+                    )}
+                  </div>
+                  {bioEditing ? (
+                    <div>
+                      <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true} value={editBio} onChange={e => setEditBio(e.target.value)} maxLength={200} autoFocus
+                        placeholder="Tell others about your faith journey…"
+                        style={{ width: '100%', background: `${accentColor}0a`, border: `1.5px solid ${accentColor}30`, borderRadius: 12, padding: '12px', fontSize: 13, color: '#e8f0ec', outline: 'none', resize: 'none' as const, minHeight: 80, fontFamily: 'Georgia, serif', lineHeight: '1.6', boxSizing: 'border-box' as const }} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                        <span style={{ fontSize: 10, color: 'rgba(232,240,236,0.25)' }}>{editBio.length}/200</span>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button onClick={() => setBioEditing(false)} style={{ fontSize: 12, color: 'rgba(232,240,236,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px' }}>Cancel</button>
+                          <button onClick={() => { saveIdentity({ bio: editBio }); setBioEditing(false); }}
+                            style={{ fontSize: 12, fontWeight: 700, color: '#040706', background: accentColor, border: 'none', borderRadius: 8, padding: '6px 16px', cursor: 'pointer' }}>Save</button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : id.bio ? (
+                    <div style={{ fontSize: 13, color: 'rgba(232,240,236,0.5)', fontFamily: 'Georgia, serif', lineHeight: '1.6' }}>{id.bio}</div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: 'rgba(232,240,236,0.2)', fontStyle: 'italic' }}>No bio yet</div>
+                  )}
+                </div>
+
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.04)', margin: '0 -16px 16px' }} />
+
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(232,240,236,0.7)', marginBottom: 6 }}>My Testimony</div>
+                  <div style={{ fontSize: 11, color: 'rgba(232,240,236,0.25)', marginBottom: 8 }}>Your story of faith — encourages everyone who reads it</div>
+                  <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
+                    defaultValue={id.testimony || ''}
+                    onBlur={e => saveIdentity({ testimony: e.target.value })}
+                    placeholder="How did you come to faith? What has God done in your life?…"
+                    style={{ width: '100%', background: `${accentColor}08`, border: `1.5px solid ${accentColor}20`, borderRadius: 12, padding: '12px', fontSize: 13, color: '#e8f0ec', outline: 'none', resize: 'none' as const, minHeight: 90, fontFamily: 'Georgia, serif', lineHeight: '1.7', boxSizing: 'border-box' as const }} />
+                </div>
+
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(232,240,236,0.7)', marginBottom: 6 }}>Favorite Verse</div>
+                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
+                    defaultValue={id.favoriteVerse || ''}
+                    onBlur={e => saveIdentity({ favoriteVerse: e.target.value })}
+                    placeholder="e.g. John 3:16, Romans 8:28"
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '11px 14px', fontSize: 13, color: '#e8f0ec', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' as const }} />
+                </div>
+              </Card>
+
+              {/* Personal Details */}
+              <SectionLabel text="Personal Details" />
+              <Card style={{ padding: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <FieldInput label="Date of Birth" value={id.dateOfBirth} onChange={v => saveIdentity({ dateOfBirth: v })} type="date" />
+                  <FieldInput label="Location" value={id.location} onChange={v => saveIdentity({ location: v })} placeholder="City, State" />
+                </div>
+                <FieldInput label="Church Home" value={id.church} onChange={v => saveIdentity({ church: v })} placeholder="Grace Community Church…" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <FieldInput label="Date Saved" value={id.savedDate} onChange={v => saveIdentity({ savedDate: v })} type="date" />
+                  <FieldInput label="Date Baptized" value={id.baptismDate} onChange={v => saveIdentity({ baptismDate: v })} type="date" />
+                </div>
+              </Card>
+
+              {/* Spiritual Life */}
+              <SectionLabel text="Spiritual Life" />
+              <Card style={{ padding: '16px' }}>
+                <FieldInput label="Life Verse" value={id.lifeVerse} onChange={v => saveIdentity({ lifeVerse: v })} placeholder="The verse that defines your walk" />
+                <FieldInput label="Ministry / Role" value={id.ministryRole} onChange={v => saveIdentity({ ministryRole: v })} placeholder="Youth Leader, Worship Team…" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <FieldInput label="My Mentor" value={id.mentor} onChange={v => saveIdentity({ mentor: v })} placeholder="Who leads you" />
+                  <FieldInput label="I'm Discipling" value={id.discipling} onChange={v => saveIdentity({ discipling: v })} placeholder="Who you lead" />
+                  <FieldInput label="Favorite Book" value={id.favoriteBook} onChange={v => saveIdentity({ favoriteBook: v })} placeholder="Romans" />
+                  <FieldInput label="Favorite Preacher" value={id.favoritePreacher} onChange={v => saveIdentity({ favoritePreacher: v })} placeholder="Name" />
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,240,236,0.4)', marginBottom: 10, letterSpacing: '0.06em' }}>SPIRITUAL GIFTS</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
+                    {['Teaching', 'Prophecy', 'Service', 'Leadership', 'Mercy', 'Giving', 'Encouragement', 'Wisdom', 'Faith', 'Healing', 'Discernment', 'Hospitality', 'Evangelism', 'Pastoring'].map(gift => {
+                      const selected = (id.spiritualGifts || []).includes(gift);
+                      return (
+                        <button key={gift} onClick={() => {
+                          const current = id.spiritualGifts || [];
+                          saveIdentity({ spiritualGifts: selected ? current.filter((g: string) => g !== gift) : [...current, gift] });
+                        }} style={{
+                          padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                          background: selected ? `${accentColor}22` : 'rgba(255,255,255,0.04)',
+                          color: selected ? accentColor : 'rgba(232,240,236,0.35)',
+                          border: selected ? `1px solid ${accentColor}44` : '1px solid transparent',
+                        }}>{gift}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Card>
             </div>
           )}
 
-          {/* ── Read Aloud ────────────────────────────────────────── */}
-          {sectionTitle('Read Aloud')}
-          {card(
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: '#f0f8f4' }}>Text-to-Speech</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.3)' }}>AI-powered voices by ElevenLabs</p>
-                </div>
-                <button onClick={() => { setDraftTtsEnabled(!draftTtsEnabled); markChanged(); }}
-                  className="w-12 h-7 rounded-full transition-all relative"
-                  style={{ background: draftTtsEnabled ? accentColor : 'rgba(255,255,255,0.1)' }}>
-                  <div className="absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-md"
-                    style={{ left: draftTtsEnabled ? '26px' : '2px' }} />
-                </button>
+          {/* APPEARANCE TAB */}
+          {settingsTab === 'appearance' && (
+            <div>
+              <SectionLabel text="Theme Color" />
+              {(themeGroups || [{ id: 'all', label: 'All', icon: '🎨' }]).map(group => {
+                const groupThemes = Object.entries(themes).filter(([, t]) => (t as any).group === group.id || !themeGroups);
+                if (groupThemes.length === 0) return null;
+                return (
+                  <div key={group.id} style={{ marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                      <span style={{ fontSize: 13 }}>{group.icon}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(232,240,236,0.3)' }}>{group.label}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
+                      {groupThemes.map(([tid, t]) => {
+                        const isActive = draftThemeId === tid;
+                        return (
+                          <button key={tid} onClick={() => { setDraftThemeId(tid); markChanged(); }}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, padding: '10px 6px', borderRadius: 14, border: isActive ? `2px solid ${t.accent}66` : '2px solid transparent', background: isActive ? `${t.accent}18` : 'rgba(255,255,255,0.03)', cursor: 'pointer', minWidth: 52, transition: 'all 0.15s' }}>
+                            <div style={{ width: 22, height: 22, borderRadius: '50%', background: t.accent, boxShadow: isActive ? `0 0 10px ${t.accent}55` : 'none' }} />
+                            <span style={{ fontSize: 9, fontWeight: 700, color: isActive ? t.accent : 'rgba(232,240,236,0.3)', fontFamily: 'Montserrat, system-ui', whiteSpace: 'nowrap' as const }}>{t.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <SectionLabel text="Reading Font Size" />
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                {(['sm', 'base', 'lg', 'xl'] as const).map((s, i) => (
+                  <button key={s} onClick={() => { setDraftFontSize(s); markChanged(); }}
+                    style={{ flex: 1, padding: '14px 4px', borderRadius: 14, border: draftFontSize === s ? `2px solid ${accentColor}55` : '2px solid transparent', background: draftFontSize === s ? `${accentColor}18` : 'rgba(255,255,255,0.03)', cursor: 'pointer' }}>
+                    <div style={{ fontSize: 10 + i * 2, fontWeight: 700, color: draftFontSize === s ? accentColor : 'rgba(232,240,236,0.4)', fontFamily: 'Georgia, serif', textAlign: 'center' as const }}>Aa</div>
+                    <div style={{ fontSize: 9, color: 'rgba(232,240,236,0.25)', textAlign: 'center' as const, marginTop: 4, fontFamily: 'Montserrat, system-ui', fontWeight: 600 }}>{['Sm', 'Med', 'Lg', 'XL'][i]}</div>
+                  </button>
+                ))}
               </div>
 
-              {draftTtsEnabled && (
+              {setScriptureBackground !== undefined && (
                 <>
-                  {/* Listening mode toggle */}
-                  {setTtsMode && (
-                    <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}22` }}>
-                      <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: `${accentColor}88` }}>Listening Mode</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {([
-                          { id: 'narrator', label: 'My Narrator', desc: 'Your chosen voice reads everything' },
-                          { id: 'crafted', label: 'Crafted Experience', desc: 'Era-curated voices shift across the Bible' },
-                        ] as const).map(m => (
-                          <button key={m.id} onClick={() => setTtsMode(m.id)}
-                            className="rounded-lg p-2.5 text-left transition-all"
-                            style={(ttsMode || 'narrator') === m.id
-                              ? { background: `${accentColor}22`, border: `1.5px solid ${accentColor}66` }
-                              : { background: 'rgba(255,255,255,0.03)', border: '1.5px solid transparent' }}>
-                            <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: (ttsMode || 'narrator') === m.id ? accentColor : '#f0f8f4' }}>{m.label}</p>
-                            <p className="text-[9px] mt-0.5 leading-snug" style={{ color: 'rgba(232,240,236,0.35)' }}>{m.desc}</p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Male voices */}
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: `${accentColor}55` }}>Male Voices</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {([
-                        { id: 'eleven:88cgASIFJ5iO94COdgBO', name: 'Bryan',   style: 'American · Steady',     emoji: '🌊' },
-                        { id: 'eleven:10xsyNwkKUXCUZPaoXgm', name: 'Marcus',  style: 'Soul · Rich',           emoji: '🎙' },
-                        { id: 'eleven:6r6oh5UtSHSD2htZsxdz', name: 'Oliver',  style: 'British · Refined',    emoji: '📜' },
-                        { id: 'eleven:957hysTL5aGCO5cymg1G', name: 'Declan',  style: 'Irish · Lyrical',      emoji: '🕊' },
-                        { id: 'eleven:UoBLa8QEkrOO2RHnuag7', name: 'Caleb',   style: 'Jamaican · Warm',      emoji: '🌴' },
-                        { id: 'eleven:uOVt3U9VZ1ymfF4QwI65', name: 'Ezra',    style: 'Ethiopian · Ancient',  emoji: '✦' },
-                      ]).map(v => (
-                        <div key={v.id} className="rounded-xl p-2.5 transition-all"
-                          style={draftTtsVoice === v.id
-                            ? { background: `${accentColor}22`, border: `2px solid ${accentColor}55` }
-                            : { background: 'rgba(255,255,255,0.03)', border: '2px solid transparent' }}>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{v.emoji}</span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold" style={{ color: draftTtsVoice === v.id ? accentColor : '#f0f8f4' }}>{v.name}</p>
-                              <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>{v.style}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-1.5 mt-2">
-                            <button onClick={() => previewVoice(v.id.replace('eleven:', ''))}
-                              className="flex-1 py-1 rounded-lg text-[9px] font-bold transition-all"
-                              style={previewingVoiceId === v.id.replace('eleven:', '')
-                                ? { background: `${accentColor}33`, color: accentColor }
-                                : { background: `${accentColor}0d`, color: `${accentColor}88` }}>
-                              {previewLoadingId === v.id.replace('eleven:', '') ? '...' : previewingVoiceId === v.id.replace('eleven:', '') ? '■ Stop' : '▶ Preview'}
-                            </button>
-                            <button onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
-                              className="flex-1 py-1 rounded-lg text-[9px] font-bold"
-                              style={draftTtsVoice === v.id
-                                ? { background: accentColor, color: '#0a1410' }
-                                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)' }}>
-                              {draftTtsVoice === v.id ? '✓ Selected' : 'Select'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Female voices */}
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: `${accentColor}55` }}>Female Voices</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {([
-                        { id: 'eleven:uTnyvloPM4RqXGSsx4Du', name: 'Ashley',    style: 'American · Bright',     emoji: '🌸' },
-                        { id: 'eleven:XXoNoVctCSPJPEz3bIKW', name: 'Grace',     style: 'Soul · Warm',          emoji: '🌙' },
-                        { id: 'eleven:b55ueajWHRh5UzJ6mLZ8', name: 'Charlotte', style: 'British · Calm',       emoji: '🕯' },
-                        { id: 'eleven:US3Nq8hRtUadsih8oFTK', name: 'Zoe',       style: 'Australian · Clear',   emoji: '🌿' },
-                        { id: 'eleven:z7U1SjrEq4fDDDriOQEN', name: 'Katherine', style: 'Powerful & Commanding',emoji: '📖' },
-                        { id: 'eleven:Nyip1VgoS6bg9Vl30y8v', name: 'Verity',    style: 'Calm & Meditative',    emoji: '✨' },
-                      ]).map(v => (
-                        <div key={v.id} className="rounded-xl p-2.5 transition-all"
-                          style={draftTtsVoice === v.id
-                            ? { background: `${accentColor}22`, border: `2px solid ${accentColor}55` }
-                            : { background: 'rgba(255,255,255,0.03)', border: '2px solid transparent' }}>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{v.emoji}</span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold" style={{ color: draftTtsVoice === v.id ? accentColor : '#f0f8f4' }}>{v.name}</p>
-                              <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>{v.style}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-1.5 mt-2">
-                            <button onClick={() => previewVoice(v.id.replace('eleven:', ''))}
-                              className="flex-1 py-1 rounded-lg text-[9px] font-bold transition-all"
-                              style={previewingVoiceId === v.id.replace('eleven:', '')
-                                ? { background: `${accentColor}33`, color: accentColor }
-                                : { background: `${accentColor}0d`, color: `${accentColor}88` }}>
-                              {previewLoadingId === v.id.replace('eleven:', '') ? '...' : previewingVoiceId === v.id.replace('eleven:', '') ? '■ Stop' : '▶ Preview'}
-                            </button>
-                            <button onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
-                              className="flex-1 py-1 rounded-lg text-[9px] font-bold"
-                              style={draftTtsVoice === v.id
-                                ? { background: accentColor, color: '#0a1410' }
-                                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)' }}>
-                              {draftTtsVoice === v.id ? '✓ Selected' : 'Select'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Speed */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold" style={{ color: 'rgba(232,240,236,0.5)' }}>Speed</p>
-                      <span className="text-xs font-bold" style={{ color: accentColor }}>{draftTtsRate}x</span>
-                    </div>
-                    <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="range" min="0.5" max="2" step="0.1" value={draftTtsRate}
-                      onChange={e => { setDraftTtsRate(parseFloat(e.target.value)); markChanged(); }}
-                      className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                      style={{ background: `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${((draftTtsRate - 0.5) / 1.5) * 100}%, rgba(255,255,255,0.1) ${((draftTtsRate - 0.5) / 1.5) * 100}%, rgba(255,255,255,0.1) 100%)` }} />
-                    <div className="flex justify-between mt-1">
-                      <span className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>Slow</span>
-                      <span className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>Fast</span>
-                    </div>
-                  </div>
+                  <SectionLabel text="Reading Experience" />
+                  <Card>
+                    <Row
+                      icon="🌄"
+                      label="Scripture Background"
+                      sub="Landscape image behind reading text"
+                      right={<Toggle value={!!scriptureBackground} onChange={v => { setScriptureBackground!(v); markChanged(); }} />}
+                    />
+                  </Card>
                 </>
               )}
             </div>
           )}
 
-          {/* ── About ─────────────────────────────────────────────── */}
-          {sectionTitle('About')}
-          {card(
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white"
-                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>T</div>
-                <div>
-                  <p className="text-sm font-bold" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', letterSpacing: '0.05em' }}>THE ALTAR</p>
-                  <p className="text-xs" style={{ color: `${accentColor}66` }}>The Entrance</p>
-                </div>
-              </div>
-              <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.4)' }}>
-                A sacred space to encounter God through His Word. Powered by AI to help you study Scripture deeper.
-              </p>
-              <div className="pt-2" style={{ borderTop: `1px solid ${accentColor}10` }}>
-                <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)' }}>Scripture via api.bible · AI powered by Claude</p>
-                <p className="text-[10px] mt-1" style={{ color: 'rgba(232,240,236,0.2)' }}>The Altar · thealtarco.app</p>
-              </div>
+          {/* VOICE TAB */}
+          {settingsTab === 'voice' && (
+            <div>
+              <SectionLabel text="Read Aloud" />
+              <Card>
+                <Row
+                  icon="🎙"
+                  label="Text-to-Speech"
+                  sub="AI-powered voices by ElevenLabs"
+                  right={<Toggle value={draftTtsEnabled} onChange={v => { setDraftTtsEnabled(v); markChanged(); }} />}
+                />
+              </Card>
+
+              {draftTtsEnabled && (
+                <>
+                  {setTtsMode && (
+                    <>
+                      <SectionLabel text="Listening Mode" />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                        {([
+                          { id: 'narrator' as const, label: 'My Narrator', icon: '🎧', desc: 'Your chosen voice reads everything' },
+                          { id: 'crafted' as const, label: 'Crafted', icon: '✨', desc: 'Era-curated voices shift across the Bible' },
+                        ]).map(m => (
+                          <button key={m.id} onClick={() => setTtsMode(m.id)} style={{
+                            padding: '14px 12px', borderRadius: 16, border: (ttsMode || 'narrator') === m.id ? `2px solid ${accentColor}55` : '2px solid transparent', background: (ttsMode || 'narrator') === m.id ? `${accentColor}18` : 'rgba(255,255,255,0.03)', cursor: 'pointer', textAlign: 'left' as const,
+                          }}>
+                            <div style={{ fontSize: 20, marginBottom: 6 }}>{m.icon}</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: (ttsMode || 'narrator') === m.id ? accentColor : '#e8f0ec', fontFamily: 'Montserrat, system-ui', marginBottom: 4 }}>{m.label}</div>
+                            <div style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)', lineHeight: '1.4' }}>{m.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <SectionLabel text="Male Voices" />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    {([
+                      { id: 'eleven:88cgASIFJ5iO94COdgBO', name: 'Bryan',   style: 'American · Steady',    emoji: '🌊' },
+                      { id: 'eleven:10xsyNwkKUXCUZPaoXgm', name: 'Marcus',  style: 'Soul · Rich',          emoji: '🎙' },
+                      { id: 'eleven:6r6oh5UtSHSD2htZsxdz', name: 'Oliver',  style: 'British · Refined',   emoji: '📜' },
+                      { id: 'eleven:957hysTL5aGCO5cymg1G', name: 'Declan',  style: 'Irish · Lyrical',     emoji: '🕊' },
+                      { id: 'eleven:UoBLa8QEkrOO2RHnuag7', name: 'Caleb',   style: 'Jamaican · Warm',     emoji: '🌴' },
+                      { id: 'eleven:uOVt3U9VZ1ymfF4QwI65', name: 'Ezra',    style: 'Ethiopian · Ancient', emoji: '✦' },
+                    ]).map(v => {
+                      const vid = v.id.replace('eleven:', '');
+                      const isSelected = draftTtsVoice === v.id;
+                      const isPreviewing = previewingVoiceId === vid;
+                      const isLoading = previewLoadingId === vid;
+                      return (
+                        <div key={v.id} style={{ borderRadius: 16, padding: '12px', background: isSelected ? `${accentColor}18` : 'rgba(255,255,255,0.03)', border: isSelected ? `2px solid ${accentColor}44` : '2px solid transparent', transition: 'all 0.15s' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                            <span style={{ fontSize: 18 }}>{v.emoji}</span>
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: isSelected ? accentColor : '#e8f0ec' }}>{v.name}</div>
+                              <div style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)' }}>{v.style}</div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => previewVoice(vid)}
+                              style={{ flex: 1, padding: '6px 4px', borderRadius: 10, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer', background: isPreviewing ? `${accentColor}30` : `${accentColor}0e`, color: isPreviewing ? accentColor : `${accentColor}77` }}>
+                              {isLoading ? '...' : isPreviewing ? '■ Stop' : '▶ Play'}
+                            </button>
+                            <button onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
+                              style={{ flex: 1, padding: '6px 4px', borderRadius: 10, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer', background: isSelected ? accentColor : 'rgba(255,255,255,0.06)', color: isSelected ? '#040706' : 'rgba(232,240,236,0.4)' }}>
+                              {isSelected ? '✓ On' : 'Use'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <SectionLabel text="Female Voices" />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    {([
+                      { id: 'eleven:uTnyvloPM4RqXGSsx4Du', name: 'Ashley',    style: 'American · Bright',   emoji: '🌸' },
+                      { id: 'eleven:XXoNoVctCSPJPEz3bIKW', name: 'Grace',     style: 'Soul · Warm',         emoji: '🌙' },
+                      { id: 'eleven:b55ueajWHRh5UzJ6mLZ8', name: 'Charlotte', style: 'British · Calm',      emoji: '🕯' },
+                      { id: 'eleven:US3Nq8hRtUadsih8oFTK', name: 'Zoe',       style: 'Australian · Clear',  emoji: '🌿' },
+                      { id: 'eleven:z7U1SjrEq4fDDDriOQEN', name: 'Katherine', style: 'Powerful & Bold',     emoji: '📖' },
+                      { id: 'eleven:Nyip1VgoS6bg9Vl30y8v', name: 'Verity',    style: 'Calm & Meditative',   emoji: '✨' },
+                    ]).map(v => {
+                      const vid = v.id.replace('eleven:', '');
+                      const isSelected = draftTtsVoice === v.id;
+                      const isPreviewing = previewingVoiceId === vid;
+                      const isLoading = previewLoadingId === vid;
+                      return (
+                        <div key={v.id} style={{ borderRadius: 16, padding: '12px', background: isSelected ? `${accentColor}18` : 'rgba(255,255,255,0.03)', border: isSelected ? `2px solid ${accentColor}44` : '2px solid transparent', transition: 'all 0.15s' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                            <span style={{ fontSize: 18 }}>{v.emoji}</span>
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: isSelected ? accentColor : '#e8f0ec' }}>{v.name}</div>
+                              <div style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)' }}>{v.style}</div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => previewVoice(vid)}
+                              style={{ flex: 1, padding: '6px 4px', borderRadius: 10, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer', background: isPreviewing ? `${accentColor}30` : `${accentColor}0e`, color: isPreviewing ? accentColor : `${accentColor}77` }}>
+                              {isLoading ? '...' : isPreviewing ? '■ Stop' : '▶ Play'}
+                            </button>
+                            <button onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
+                              style={{ flex: 1, padding: '6px 4px', borderRadius: 10, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer', background: isSelected ? accentColor : 'rgba(255,255,255,0.06)', color: isSelected ? '#040706' : 'rgba(232,240,236,0.4)' }}>
+                              {isSelected ? '✓ On' : 'Use'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <SectionLabel text="Reading Speed" />
+                  <Card>
+                    <div style={{ padding: '16px 0 8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <span style={{ fontSize: 13, color: 'rgba(232,240,236,0.5)' }}>Speed</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: accentColor }}>{draftTtsRate}×</span>
+                      </div>
+                      <input type="range" min="0.5" max="2" step="0.1" value={draftTtsRate}
+                        onChange={e => { setDraftTtsRate(parseFloat(e.target.value)); markChanged(); }}
+                        style={{ width: '100%', height: 4, borderRadius: 2, cursor: 'pointer', appearance: 'none' as any, background: `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${((draftTtsRate - 0.5) / 1.5) * 100}%, rgba(255,255,255,0.1) ${((draftTtsRate - 0.5) / 1.5) * 100}%, rgba(255,255,255,0.1) 100%)` }} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                        <span style={{ fontSize: 10, color: 'rgba(232,240,236,0.2)' }}>Slower</span>
+                        <span style={{ fontSize: 10, color: 'rgba(232,240,236,0.2)' }}>Faster</span>
+                      </div>
+                    </div>
+                  </Card>
+                </>
+              )}
             </div>
           )}
-        </div>
 
-        {/* ── Sticky Save Button ── */}
-        {/* Account section */}
-        <div className="px-6 py-4 space-y-2" style={{ borderTop: `1px solid ${accentColor}0a` }}>
-          {isSignedIn ? (
-            <>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: accentColor }}>
-                  {(userName || 'U')[0].toUpperCase()}
+          {/* ACCOUNT TAB */}
+          {settingsTab === 'account' && (
+            <div>
+              <SectionLabel text="Account" />
+              {isSignedIn ? (
+                <Card>
+                  <div style={{ padding: '16px 0 4px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 14, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}88)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800, color: '#fff' }}>
+                      {(userName || 'U')[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#e8f0ec', fontFamily: 'Montserrat, system-ui' }}>{userName || 'Signed In'}</div>
+                      <div style={{ fontSize: 11, color: `${accentColor}55`, marginTop: 2 }}>Account active</div>
+                    </div>
+                  </div>
+                  <Row icon="🚪" label="Sign Out" sub="You can sign back in anytime" right={
+                    <button onClick={async () => { if (onSignOut) { await onSignOut(); onClose(); window.location.href = '/bible/auth?logout=1'; } }}
+                      style={{ fontSize: 12, fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 10, padding: '8px 14px', cursor: 'pointer' }}>
+                      Sign Out
+                    </button>
+                  } />
+                </Card>
+              ) : (
+                <button onClick={() => { onClose(); onOpenAuth?.(); }}
+                  style={{ width: '100%', padding: '16px', borderRadius: 16, background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}0e)`, border: `1px solid ${accentColor}30`, color: accentColor, fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'Montserrat, system-ui' }}>
+                  Sign In / Create Account →
+                </button>
+              )}
+
+              <SectionLabel text="App" />
+              <Card>
+                <Row icon="📖" label="Restart Setup Guide" sub="Walk through the intro tour again" right={
+                  <button onClick={() => {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                      const k = localStorage.key(i);
+                      if (k && k.startsWith('trace-onboarding-done')) localStorage.removeItem(k);
+                    }
+                    window.location.reload();
+                  }} style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,240,236,0.4)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '7px 12px', cursor: 'pointer' }}>
+                    Restart
+                  </button>
+                } />
+              </Card>
+
+              <SectionLabel text="About" />
+              <Card>
+                <div style={{ padding: '16px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}aa)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#fff', fontSize: 20, fontFamily: 'Montserrat, system-ui' }}>T</div>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 800, color: '#e8f0ec', fontFamily: 'Montserrat, system-ui', letterSpacing: '0.08em' }}>THE ALTAR</div>
+                      <div style={{ fontSize: 11, color: `${accentColor}55`, marginTop: 2 }}>The Entrance</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 13, color: 'rgba(232,240,236,0.35)', lineHeight: '1.7', fontFamily: 'Georgia, serif', marginBottom: 14 }}>
+                    A sacred space to encounter God through His Word. Powered by AI to help you study Scripture deeper.
+                  </div>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+                    <div style={{ fontSize: 11, color: 'rgba(232,240,236,0.2)' }}>Scripture via api.bible · AI powered by Claude</div>
+                    <div style={{ fontSize: 11, color: 'rgba(232,240,236,0.15)', marginTop: 4 }}>thealtarco.app</div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold" style={{ color: '#f0f8f4' }}>{userName || 'Signed In'}</p>
-                  <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.35)' }}>Signed in</p>
-                </div>
-              </div>
-              <button onClick={async () => {
-                  if (onSignOut) {
-                    await onSignOut();
-                    onClose();
-                    window.location.href = '/bible/auth?logout=1';
-                  }
-                }}
-                className="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
-                style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <button onClick={() => { onClose(); onOpenAuth?.(); }}
-              className="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
-              style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}25` }}>
-              Sign In / Create Account
-            </button>
+              </Card>
+            </div>
           )}
-          <button onClick={() => {
-            // Clear all onboarding keys
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-              const k = localStorage.key(i);
-              if (k && k.startsWith('trace-onboarding-done')) localStorage.removeItem(k);
-            }
-            window.location.reload();
-          }}
-            className="w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(232,240,236,0.25)', border: '1px solid rgba(255,255,255,0.04)' }}>
-            Restart Setup Guide
-          </button>
+
         </div>
 
-        <div className="sticky bottom-0 px-6 py-4" style={{ background: 'linear-gradient(0deg, rgba(10,20,16,0.98) 60%, transparent)', borderTop: hasChanges || saved ? `1px solid ${accentColor}22` : 'none' }}>
+        {/* Sticky Save Button */}
+        <div style={{ position: 'sticky', bottom: 0, padding: '12px 20px 28px', background: 'linear-gradient(0deg, #040706 60%, transparent)', borderTop: hasChanges || saved ? `1px solid ${accentColor}14` : 'none' }}>
           <button
             onClick={handleSaveAll}
             disabled={!hasChanges && !saved}
-            className="w-full py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all active:scale-[0.98]"
-            style={saved
-              ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
-              : hasChanges
-                ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 4px 15px ${accentColor}30` }
-                : { background: 'rgba(255,255,255,0.05)', color: 'rgba(232,240,236,0.25)', border: '1px solid rgba(255,255,255,0.05)' }
-            }
+            style={{
+              width: '100%', padding: '15px', borderRadius: 16, fontWeight: 800, fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase' as const, fontFamily: 'Montserrat, system-ui', cursor: hasChanges ? 'pointer' : 'default', transition: 'all 0.2s', border: 'none',
+              ...(saved
+                ? { background: 'rgba(34,197,94,0.12)', color: '#22c55e' }
+                : hasChanges
+                  ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 6px 20px ${accentColor}35` }
+                  : { background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.2)' }
+              ),
+            }}
           >
             {saved ? '✓ Saved' : hasChanges ? 'Save Changes' : 'No Changes'}
           </button>
@@ -980,3 +828,4 @@ export default function SettingsPanel({
     </div>
   );
 }
+

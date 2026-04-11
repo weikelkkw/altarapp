@@ -1508,6 +1508,7 @@ export default function ReadTab({
   const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
   const [showTranslationPicker, setShowTranslationPicker] = useState(false);
+  const [compareOffset, setCompareOffset] = useState(0);
   const [translationSearch, setTranslationSearch] = useState('');
   const [languageFilter, setLanguageFilter] = useState('eng');
   const [showNotes, setShowNotes] = useState(false);
@@ -1834,6 +1835,7 @@ export default function ReadTab({
     setChapterStudy('');
     setMultiVerseStudyOpen(false);
     setMultiVerseResult('');
+    setCompareOffset(0);
   }, [selectedBook, selectedChapter]);
 
   // Jump to verse from search
@@ -2437,34 +2439,67 @@ export default function ReadTab({
           <div className="flex justify-center items-center h-48">
             <div className="w-7 h-7 rounded-full border-2 animate-spin" style={{ borderColor: 'rgba(99,102,241,0.3)', borderTopColor: '#6366f1' }} />
           </div>
-        ) : (
-          <div className={`grid gap-3 ${compareSet.length === 2 ? 'md:grid-cols-2' : compareSet.length >= 3 ? 'md:grid-cols-3' : ''}`}>
-            {compareSet.map((b, i) => {
-              const p = comparePassages[b.id];
-              const hues = [accentColor, '#6366f1', '#10b981'];
-              const hue = hues[i % hues.length];
-              return (
-                <div key={b.id} className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${hue}25` }}>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full" style={{ background: hue }} />
-                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: hue }}>{b.abbreviationLocal}</p>
-                    <p className="text-xs truncate" style={{ color: tx3 }}>{b.name}</p>
-                  </div>
-                  {p ? (
-                    <div className={`${fsClass} leading-loose`} style={{ color: txVerse, fontFamily: 'Georgia, serif' }}>
-                      {p.verses.map(v => (
-                        <span key={v.verse}>
-                          <sup className="font-bold mr-1" style={{ color: hue, fontSize: '0.6em', fontFamily: 'system-ui' }}>{v.verse}</sup>
-                          {v.text}{' '}
-                        </span>
-                      ))}
-                    </div>
-                  ) : <p className="text-sm italic" style={{ color: tx3 }}>Loading…</p>}
+        ) : (() => {
+          // Find the max verse count across all compare passages
+          const allPassages = compareSet.map(b => comparePassages[b.id]).filter(Boolean);
+          const maxVerses = allPassages.length > 0 ? Math.max(...allPassages.map(p => p.verses.length)) : 0;
+          const VERSES_PER_PAGE = 4;
+          const totalPages = Math.ceil(maxVerses / VERSES_PER_PAGE);
+          const currentPage = Math.floor(compareOffset / VERSES_PER_PAGE);
+          return (
+            <div>
+              {/* Verse range navigation */}
+              {maxVerses > VERSES_PER_PAGE && (
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <button
+                    onClick={() => setCompareOffset(Math.max(0, compareOffset - VERSES_PER_PAGE))}
+                    disabled={compareOffset === 0}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-30"
+                    style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(232,240,236,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    ← Prev
+                  </button>
+                  <span className="text-xs font-bold" style={{ color: `${accentColor}88` }}>
+                    Verses {compareOffset + 1}–{Math.min(compareOffset + VERSES_PER_PAGE, maxVerses)} of {maxVerses}
+                  </span>
+                  <button
+                    onClick={() => setCompareOffset(Math.min(compareOffset + VERSES_PER_PAGE, (totalPages - 1) * VERSES_PER_PAGE))}
+                    disabled={compareOffset + VERSES_PER_PAGE >= maxVerses}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-30"
+                    style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(232,240,236,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    Next →
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-        )
+              )}
+              <div className={`grid gap-3 ${compareSet.length === 2 ? 'md:grid-cols-2' : compareSet.length >= 3 ? 'md:grid-cols-3' : ''}`}>
+                {compareSet.map((b, i) => {
+                  const p = comparePassages[b.id];
+                  const hues = [accentColor, '#6366f1', '#10b981'];
+                  const hue = hues[i % hues.length];
+                  const visibleVerses = p ? p.verses.slice(compareOffset, compareOffset + VERSES_PER_PAGE) : [];
+                  return (
+                    <div key={b.id} className="rounded-2xl p-5" style={{ background: cardBg, border: `1px solid ${hue}25` }}>
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full" style={{ background: hue }} />
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: hue }}>{b.abbreviationLocal}</p>
+                        <p className="text-xs truncate" style={{ color: tx3 }}>{b.name}</p>
+                      </div>
+                      {p ? (
+                        <div className={`${fsClass} leading-loose`} style={{ color: txVerse, fontFamily: 'Georgia, serif' }}>
+                          {visibleVerses.map(v => (
+                            <span key={v.verse}>
+                              <sup className="font-bold mr-1" style={{ color: hue, fontSize: '0.6em', fontFamily: 'system-ui' }}>{v.verse}</sup>
+                              {v.text}{' '}
+                            </span>
+                          ))}
+                        </div>
+                      ) : <p className="text-sm italic" style={{ color: tx3 }}>Loading…</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()
       ) : (
         <>
           {/* Book overview — shown at top when chapter 1 is loaded */}
@@ -3104,7 +3139,7 @@ export default function ReadTab({
                     <div className="rounded-xl p-4" style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}22` }}>
                       <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: accentColor }}>Explanation</p>
                       <p className="text-sm leading-relaxed" style={{ color: tx2, fontFamily: 'Georgia, serif' }}>
-                        {q.explanation}
+                        {cleanMarkdown(q.explanation)}
                       </p>
                     </div>
                   )}

@@ -1023,7 +1023,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
                       <p className="text-xs font-black mb-1.5" style={{ color: isCorrect ? '#4ade80' : '#f87171' }}>
                         {isCorrect ? '✓ Correct!' : '✗ Not quite'}
                       </p>
-                      <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.55)', fontFamily: 'Georgia, serif' }}>{q.explanation}</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.55)', fontFamily: 'Georgia, serif' }}>{cleanMarkdown(q.explanation)}</p>
                     </div>
                   )}
                 </div>

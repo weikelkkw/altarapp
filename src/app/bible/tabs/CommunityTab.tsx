@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import BibleStudyMode from './BibleStudyMode';
 import MemberProfilePanel from './MemberProfilePanel';
 import MentionInput, { renderMessageWithMentions } from './MentionInput';
+import FindFriends from './FindFriends';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 
@@ -851,8 +852,8 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       <div className="grid grid-cols-3 gap-2">
         {([
           { id: 'groups' as const, icon: '👑', label: 'Groups' },
-          { id: 'prayer' as const, icon: '🙏', label: 'Prayer Wall' },
           { id: 'testimonies' as const, icon: '✦', label: 'Testimonies' },
+          { id: 'prayer' as const, icon: '👥', label: 'Friends' },
         ]).map(t => (
           <button key={t.id} onClick={() => { setTab(t.id); setSelectedGroup(null); }}
             className="flex flex-col items-center gap-1 py-3 rounded-xl transition-all active:scale-95"
@@ -867,77 +868,21 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       </div>
 
       {/* ══════════════════════════════════════════════════════ */}
-      {/* PRAYER WALL */}
+      {/* FRIENDS */}
       {/* ══════════════════════════════════════════════════════ */}
       {tab === 'prayer' && (
-        <div className="space-y-4">
-          <SectionHeader text="Prayer Wall" accentColor={accentColor} icon="🙏" />
-          <p className="text-xs" style={{ color: 'rgba(232,240,236,0.35)', fontFamily: 'Georgia, serif' }}>
-            Share what&apos;s on your heart. Pray for one another. Bear each other&apos;s burdens.
-          </p>
-
-          {authUser && profileId && (
-            <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
-              <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
-                value={newPrayer}
-                onChange={e => setNewPrayer(e.target.value)}
-                placeholder="Share a prayer request..."
-                className="w-full px-4 py-3 text-sm outline-none resize-none min-h-[70px]"
-                style={{ background: 'transparent', color: '#f0f8f4', fontFamily: 'Georgia, serif' }}
-              />
-              <div className="flex justify-between items-center px-4 py-2" style={{ borderTop: `1px solid ${accentColor}08` }}>
-                <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.2)' }}>Your request will be shared with the community</p>
-                <button onClick={submitPrayer} disabled={postingPrayer || !newPrayer.trim()}
-                  className="px-4 py-2 rounded-lg text-xs font-bold"
-                  style={{
-                    background: newPrayer.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.05)',
-                    color: newPrayer.trim() ? '#fff' : 'rgba(255,255,255,0.2)',
-                  }}>
-                  {postingPrayer ? 'Posting...' : 'Share Prayer'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {prayerLoading && (
-            <div className="flex justify-center py-8">
-              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-            </div>
-          )}
-
-          {!prayerLoading && prayers.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-2xl mb-2">🕊</p>
-              <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>No prayer requests yet. Be the first to share.</p>
-            </div>
-          )}
-
-          {prayers.map(prayer => (
-            <div key={prayer.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
-              <div className="flex items-start gap-3 mb-3">
-                <Avatar name={prayer.authorName} color={prayer.authorColor} size={34} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{prayer.authorName}</p>
-                  <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.3)' }}>{timeAgo(prayer.createdAt)}</p>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(232,240,236,0.7)', fontFamily: 'Georgia, serif' }}>
-                {prayer.content}
-              </p>
-              <button onClick={() => prayFor(prayer.id)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all"
-                style={{
-                  background: prayer.hasPrayed ? `${accentColor}18` : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${prayer.hasPrayed ? accentColor + '33' : 'rgba(255,255,255,0.06)'}`,
-                  color: prayer.hasPrayed ? accentColor : 'rgba(232,240,236,0.4)',
-                }}>
-                <span>🙏</span>
-                <span>{prayer.hasPrayed ? 'Prayed' : 'Pray for this'}</span>
-                {prayer.prayerCount > 0 && <span style={{ opacity: 0.6 }}>· {prayer.prayerCount}</span>}
-              </button>
-            </div>
-          ))}
-        </div>
+        authUser && profileId ? (
+          <FindFriends accentColor={accentColor} currentUserId={profileId} authToken={authUser.id} />
+        ) : (
+          <div className="rounded-xl p-6 text-center" style={{ background: `${accentColor}06`, border: `1px solid ${accentColor}15` }}>
+            <p className="text-3xl mb-3">👥</p>
+            <p className="text-sm font-bold mb-3" style={{ color: 'rgba(232,240,236,0.7)' }}>Sign in to find friends</p>
+            <button onClick={onOpenAuth} className="px-6 py-2.5 rounded-xl text-xs font-bold"
+              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>
+              Sign In
+            </button>
+          </div>
+        )
       )}
 
       {/* ══════════════════════════════════════════════════════ */}
