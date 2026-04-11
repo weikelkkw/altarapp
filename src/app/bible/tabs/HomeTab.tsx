@@ -96,6 +96,7 @@ export default function HomeTab({
   const [gospelCompleted, setGospelCompleted] = useState(false);
   const [devotionalsDone, setDevotionalsDone] = useState(0);
   const [expandedHealthCat, setExpandedHealthCat] = useState<string | null>(null);
+  const [walkOpen, setWalkOpen] = useState(false);
   const [journeyIdx, setJourneyIdx] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setJourneyIdx(i => (i + 1) % 3), 12000);
@@ -692,47 +693,54 @@ export default function HomeTab({
         </div>
       </div>
 
-      {/* ── Daily Checklist ──────────────────────────────────────────── */}
+      {/* ── Daily Checklist (dropdown) ────────────────────────────────── */}
       <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
-        <div className="px-4 py-3" style={{ borderBottom: `1px solid ${accentColor}08` }}>
+        <button className="w-full px-4 py-3" onClick={() => setWalkOpen(v => !v)}>
           <div className="flex items-center justify-between" style={{ minHeight: 72 }}>
-            <div>
+            <div className="text-left">
               <div className="flex items-center gap-2 mb-0.5">
                 <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
                 <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Walk</h2>
               </div>
               <p className="text-[10px] pl-3" style={{ color: checksCompleted === dailyItems.length ? '#22c55e' : `${accentColor}55` }}>
-                {checksCompleted}/{dailyItems.length} complete
+                {checksCompleted}/{dailyItems.length} complete · {walkOpen ? 'tap to close' : 'tap to open'}
               </p>
             </div>
-            <img src="/compass.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+            <div className="flex items-center gap-2">
+              <span className="text-xs transition-transform" style={{ color: `${accentColor}66`, transform: walkOpen ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>▼</span>
+              <img src="/compass.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+            </div>
           </div>
-        </div>
-        <div className="px-3 py-2">
-          {dailyItems.map(item => (
-            <button key={item.id} onClick={() => toggleCheck(item.id)}
-              className="w-full flex items-center gap-3 py-2 px-2 rounded-lg transition-all"
-              style={dailyChecks[item.id] ? { background: `${accentColor}08` } : {}}>
-              <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all"
-                style={dailyChecks[item.id]
-                  ? { background: accentColor, boxShadow: `0 0 8px ${accentColor}33` }
-                  : { border: `2px solid ${accentColor}33` }}>
-                {dailyChecks[item.id] && <span className="text-[10px] text-white font-bold">✓</span>}
+        </button>
+        {walkOpen && (
+          <>
+            <div className="px-3 py-2" style={{ borderTop: `1px solid ${accentColor}08` }}>
+              {dailyItems.map(item => (
+                <button key={item.id} onClick={() => toggleCheck(item.id)}
+                  className="w-full flex items-center gap-3 py-2 px-2 rounded-lg transition-all"
+                  style={dailyChecks[item.id] ? { background: `${accentColor}08` } : {}}>
+                  <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all"
+                    style={dailyChecks[item.id]
+                      ? { background: accentColor, boxShadow: `0 0 8px ${accentColor}33` }
+                      : { border: `2px solid ${accentColor}33` }}>
+                    {dailyChecks[item.id] && <span className="text-[10px] text-white font-bold">✓</span>}
+                  </div>
+                  <span className="flex-1 text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none' }}>
+                    {item.label}
+                  </span>
+                  {(item as any).img
+                    ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', mixBlendMode: 'screen', opacity: dailyChecks[item.id] ? 0.25 : 0.92, flexShrink: 0 }} />
+                    : <span className="text-xl shrink-0">{item.icon}</span>
+                  }
+                </button>
+              ))}
+            </div>
+            {checksCompleted === dailyItems.length && (
+              <div className="px-4 py-2 text-center" style={{ borderTop: `1px solid ${accentColor}08` }}>
+                <p className="text-[10px] font-bold" style={{ color: '#22c55e' }}>🎉 All done today! God is pleased with your faithfulness.</p>
               </div>
-              <span className="flex-1 text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none' }}>
-                {item.label}
-              </span>
-              {(item as any).img
-                ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', mixBlendMode: 'screen', opacity: dailyChecks[item.id] ? 0.25 : 0.92, flexShrink: 0 }} />
-                : <span className="text-xl shrink-0">{item.icon}</span>
-              }
-            </button>
-          ))}
-        </div>
-        {checksCompleted === dailyItems.length && (
-          <div className="px-4 py-2 text-center" style={{ borderTop: `1px solid ${accentColor}08` }}>
-            <p className="text-[10px] font-bold" style={{ color: '#22c55e' }}>🎉 All done today! God is pleased with your faithfulness.</p>
-          </div>
+            )}
+          </>
         )}
       </div>
 
@@ -1561,20 +1569,23 @@ export default function HomeTab({
       <GlowDivider accentColor={accentColor} dot />
 
       {/* ── Continue Reading ─────────────────────────────────────────── */}
-      <button onClick={onContinueReading} className="w-full text-left rounded-xl p-4 transition-all active:scale-[0.99] relative overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}22`, boxShadow: `0 2px 16px rgba(0,0,0,0.4)` }}>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at right, ${accentColor}06, transparent 65%)` }} />
+      <button onClick={onContinueReading} className="w-full text-left rounded-2xl p-5 transition-all active:scale-[0.99] relative overflow-hidden"
+        style={{ background: 'linear-gradient(160deg, rgba(8,5,2,0.98), rgba(4,3,1,0.97))', border: `1px solid ${accentColor}40`, boxShadow: `0 0 0 1px ${accentColor}15, 0 4px 24px rgba(0,0,0,0.7), 0 0 32px ${accentColor}12` }}>
+        {/* Glow pulse behind book */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}22, transparent 70%)`, filter: 'blur(8px)' }} />
+        {/* Subtle top accent */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] pointer-events-none" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}66, transparent)` }} />
         <div className="relative flex items-center gap-4">
           <div className="flex-1">
             <h3 className="text-[9px] font-black uppercase tracking-[0.15em] mb-1" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Continue Reading</h3>
             <p className="text-base font-black" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{selectedBook.name}</p>
-            <p className="text-[11px] mt-0.5" style={{ color: `${accentColor}66` }}>Chapter {selectedChapter} · {selectedBook.chapters - selectedChapter} chapters left</p>
-            <div className="mt-2.5 rounded-full overflow-hidden h-1.5" style={{ background: `${accentColor}15` }}>
-              <div className="h-full rounded-full transition-all" style={{ width: `${Math.max((selectedChapter / selectedBook.chapters) * 100, 3)}%`, background: `linear-gradient(90deg, ${accentColor}88, ${accentColor})` }} />
+            <p className="text-[11px] mt-0.5" style={{ color: `${accentColor}77` }}>Chapter {selectedChapter} · {selectedBook.chapters - selectedChapter} chapters left</p>
+            <div className="mt-2.5 rounded-full overflow-hidden h-1.5" style={{ background: `${accentColor}18` }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${Math.max((selectedChapter / selectedBook.chapters) * 100, 3)}%`, background: `linear-gradient(90deg, ${accentColor}88, ${accentColor})`, boxShadow: `0 0 6px ${accentColor}88` }} />
             </div>
-            <p className="text-[9px] mt-1" style={{ color: `${accentColor}33` }}>{selectedChapter} of {selectedBook.chapters} chapters</p>
+            <p className="text-[9px] mt-1" style={{ color: `${accentColor}44` }}>{selectedChapter} of {selectedBook.chapters} chapters</p>
           </div>
-          <img src="/read book.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', opacity: 0.85, flexShrink: 0 }} />
+          <img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', opacity: 0.9, flexShrink: 0, filter: `drop-shadow(0 0 10px ${accentColor}66)` }} />
         </div>
       </button>
 
@@ -1629,9 +1640,14 @@ export default function HomeTab({
       )}
 
       {/* ── This Week ──────────────────────────────────────────────────── */}
-      <div className="rounded-2xl p-4 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, rgba(0,0,0,0.72), rgba(0,0,0,0.60))`, border: `1px solid ${accentColor}20`, boxShadow: '0 2px 16px rgba(0,0,0,0.4)' }}>
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at top left, ${accentColor}07, transparent 60%)` }} />
+      <div className="rounded-2xl p-4 relative overflow-hidden" style={{
+        background: 'linear-gradient(160deg, #0e0a04 0%, #080602 40%, #0c0804 70%, #060402 100%)',
+        border: `1px solid ${accentColor}30`,
+        boxShadow: `0 4px 32px rgba(0,0,0,0.8), 0 0 0 1px ${accentColor}10`,
+      }}>
+        {/* Wood grain */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(92deg, transparent, transparent 18px, rgba(255,255,255,0.008) 18px, rgba(255,255,255,0.008) 19px)', zIndex: 0 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at top left, ${accentColor}09, transparent 60%)`, zIndex: 0 }} />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Week</p>
@@ -1681,9 +1697,9 @@ export default function HomeTab({
 
         return (
           <div className="rounded-2xl overflow-hidden relative" style={{
-            background: 'linear-gradient(160deg, rgba(10,10,18,0.97) 0%, rgba(18,14,28,0.95) 100%)',
-            border: `1px solid ${accentColor}28`,
-            boxShadow: `0 4px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.8), inset 0 1px 0 ${accentColor}14`,
+            background: 'linear-gradient(160deg, #0e0a04 0%, #080602 40%, #0c0804 70%, #060402 100%)',
+            border: `1px solid ${accentColor}30`,
+            boxShadow: `0 4px 32px rgba(0,0,0,0.8), 0 0 0 1px ${accentColor}10, inset 0 1px 0 ${accentColor}10`,
           }}>
             {/* Top accent bar */}
             <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, transparent 0%, ${accentColor}88 30%, ${accentColor} 60%, ${accentColor}44 85%, transparent 100%)` }} />
