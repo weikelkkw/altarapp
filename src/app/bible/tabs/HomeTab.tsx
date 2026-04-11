@@ -684,7 +684,7 @@ export default function HomeTab({
       {/* Single card — photo background */}
       <div className="rounded-2xl overflow-hidden relative -mt-1" style={{ border: '1px solid rgba(251,146,60,0.2)', minHeight: 130 }}>
         {/* Sunrise photo background */}
-        <img src="/sunrise and evening photo.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%', pointerEvents: 'none', zIndex: 0 }} />
+        <img src="/sunrise and evening photo.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right 30%', pointerEvents: 'none', zIndex: 0 }} />
         {/* Dark overlay for readability */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.6) 100%)', zIndex: 1 }} />
         {/* Left warm tint (morning) */}
