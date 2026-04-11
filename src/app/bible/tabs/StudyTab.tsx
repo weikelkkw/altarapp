@@ -276,7 +276,7 @@ function LibraryShelf({ onOpenApo, onOpenEth }: {
     <div className="space-y-3">
       <div className="rounded-2xl px-5 py-5" style={{ background: 'linear-gradient(135deg, rgba(92,60,20,0.25), rgba(139,90,43,0.12), rgba(20,10,5,0.3))', border: '1px solid rgba(139,90,43,0.25)' }}>
         <div className="flex items-center gap-3">
-          <span style={{ fontSize: 34 }}>📚</span>
+          <img src="/read book.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain' }} />
           <div>
             <h2 style={{ color: '#f0d9a0', fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 900 }}>Sacred Library</h2>
             <p style={{ color: 'rgba(240,217,160,0.4)', fontSize: 11, marginTop: 2 }}>Apocrypha · Ancient Canon · Historical Texts</p>

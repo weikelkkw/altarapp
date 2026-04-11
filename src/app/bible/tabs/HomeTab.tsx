@@ -576,7 +576,7 @@ export default function HomeTab({
             <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${accentColor}15` }}>
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                <span className="text-base">📖</span>
+                <img src="/read book.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} />
                 <h2 className="text-base font-black uppercase tracking-wider" style={{ color: '#ffffff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</h2>
               </div>
               {devotionalLoading && !devotional ? (
@@ -1531,7 +1531,7 @@ export default function HomeTab({
             <p className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color: `${accentColor}88` }}>This Week</p>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)' }}>📖 Chapters</span>
+                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)', display: 'flex', alignItems: 'center', gap: 3 }}><img src="/read book.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Chapters</span>
                 <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{chaptersStudied}</span>
               </div>
               <div className="flex items-center justify-between">

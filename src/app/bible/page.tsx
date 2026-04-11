@@ -27,9 +27,9 @@ import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'home' | 'read' | 'search' | 'study' | 'community';
 
-const TAB_CONFIG: { id: Tab; label: string; icon: string }[] = [
-  { id: 'home',      label: 'Home',   icon: '🏠' },
-  { id: 'read',      label: 'Read',   icon: '📖' },
+const TAB_CONFIG: { id: Tab; label: string; icon: string; img?: string }[] = [
+  { id: 'home',      label: 'Home',   icon: '🏠', img: '/home.png' },
+  { id: 'read',      label: 'Read',   icon: '📖', img: '/read book.png' },
   { id: 'search',    label: 'Search', icon: '🔍' },
   { id: 'study',     label: 'Study',  icon: '✦'  },
   { id: 'community', label: 'Church', icon: '⛪' },
@@ -850,8 +850,9 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     <span className="text-lg transition-transform" style={{
                       filter: active ? 'none' : 'grayscale(1) opacity(0.4)',
                       transform: active ? 'scale(1.15)' : 'scale(1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {t.icon}
+                      {t.img ? <img src={t.img} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : t.icon}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',
