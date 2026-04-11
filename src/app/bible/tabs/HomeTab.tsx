@@ -143,48 +143,6 @@ export default function HomeTab({
     }
   }, [dailyVerse, ttsVoice, versePlaying]);
 
-  const readIdentityAloud = useCallback(async () => {
-    if (identityPlaying) {
-      identityAudioRef.current?.pause();
-      if (identityAudioRef.current) { identityAudioRef.current.src = ''; identityAudioRef.current = null; }
-      setIdentityPlaying(false); return;
-    }
-    if (!identityStatement) return;
-    setIdentityAudioLoading(true);
-    try {
-      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: identityStatement, voiceId: ttsVoice || undefined }) });
-      if (!res.ok) throw new Error('TTS failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      identityAudioRef.current = audio;
-      audio.onended = () => { setIdentityPlaying(false); URL.revokeObjectURL(url); };
-      audio.onerror = () => { setIdentityPlaying(false); URL.revokeObjectURL(url); };
-      await audio.play(); setIdentityPlaying(true);
-    } catch { setIdentityPlaying(false); } finally { setIdentityAudioLoading(false); }
-  }, [identityStatement, ttsVoice, identityPlaying]);
-
-  const readDevotionalAloud = useCallback(async () => {
-    if (devotionalPlaying) {
-      devotionalAudioRef.current?.pause();
-      if (devotionalAudioRef.current) { devotionalAudioRef.current.src = ''; devotionalAudioRef.current = null; }
-      setDevotionalPlaying(false); return;
-    }
-    if (!devotional) return;
-    setDevotionalAudioLoading(true);
-    try {
-      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: devotional, voiceId: ttsVoice || undefined }) });
-      if (!res.ok) throw new Error('TTS failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      devotionalAudioRef.current = audio;
-      audio.onended = () => { setDevotionalPlaying(false); URL.revokeObjectURL(url); };
-      audio.onerror = () => { setDevotionalPlaying(false); URL.revokeObjectURL(url); };
-      await audio.play(); setDevotionalPlaying(true);
-    } catch { setDevotionalPlaying(false); } finally { setDevotionalAudioLoading(false); }
-  }, [devotional, ttsVoice, devotionalPlaying]);
-
   // Faith journey countdown — days since first app use
   const [journeyDays, setJourneyDays] = useState(0);
   useEffect(() => {
@@ -256,6 +214,48 @@ export default function HomeTab({
   const [showAllHighlights, setShowAllHighlights] = useState(false);
   const [prayerFilter, setPrayerFilter] = useState<'active' | 'waiting' | 'answered'>('active');
   const [identityStatement, setIdentityStatement] = useState('');
+
+  const readIdentityAloud = useCallback(async () => {
+    if (identityPlaying) {
+      identityAudioRef.current?.pause();
+      if (identityAudioRef.current) { identityAudioRef.current.src = ''; identityAudioRef.current = null; }
+      setIdentityPlaying(false); return;
+    }
+    if (!identityStatement) return;
+    setIdentityAudioLoading(true);
+    try {
+      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: identityStatement, voiceId: ttsVoice || undefined }) });
+      if (!res.ok) throw new Error('TTS failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      identityAudioRef.current = audio;
+      audio.onended = () => { setIdentityPlaying(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setIdentityPlaying(false); URL.revokeObjectURL(url); };
+      await audio.play(); setIdentityPlaying(true);
+    } catch { setIdentityPlaying(false); } finally { setIdentityAudioLoading(false); }
+  }, [identityStatement, ttsVoice, identityPlaying]);
+
+  const readDevotionalAloud = useCallback(async () => {
+    if (devotionalPlaying) {
+      devotionalAudioRef.current?.pause();
+      if (devotionalAudioRef.current) { devotionalAudioRef.current.src = ''; devotionalAudioRef.current = null; }
+      setDevotionalPlaying(false); return;
+    }
+    if (!devotional) return;
+    setDevotionalAudioLoading(true);
+    try {
+      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: devotional, voiceId: ttsVoice || undefined }) });
+      if (!res.ok) throw new Error('TTS failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      devotionalAudioRef.current = audio;
+      audio.onended = () => { setDevotionalPlaying(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setDevotionalPlaying(false); URL.revokeObjectURL(url); };
+      await audio.play(); setDevotionalPlaying(true);
+    } catch { setDevotionalPlaying(false); } finally { setDevotionalAudioLoading(false); }
+  }, [devotional, ttsVoice, devotionalPlaying]);
 
   // Check if today's devotional was already completed
   useEffect(() => {
