@@ -734,7 +734,7 @@ export default function HomeTab({
               <button onClick={() => setShowPrayerForm(true)}
                 className="rounded-xl transition-all overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, rgba(202,138,4,0.55), rgba(120,70,0,0.45))', border: '1px solid rgba(234,179,8,0.4)', boxShadow: '0 2px 12px rgba(202,138,4,0.2), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
-                <img src="/quill 2.png" alt="" style={{ position: 'absolute', left: -8, top: '50%', transform: 'translateY(-50%)', width: 80, height: 80, objectFit: 'contain', opacity: 0.95 }} />
+                <img src="/quill 2.png" alt="" style={{ position: 'absolute', left: -4, top: '50%', transform: 'translateY(-50%)', width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', marginLeft: 'auto' }}>
                   <p className="text-sm font-bold" style={{ color: '#fde68a', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Write</p>
                   <p className="text-[9px]" style={{ color: 'rgba(253,230,138,0.6)' }}>Type your prayer</p>
@@ -743,7 +743,7 @@ export default function HomeTab({
               <button onClick={() => setShowVoicePrayer(true)}
                 className="rounded-xl transition-all overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, rgba(120,70,30,0.6), rgba(80,40,10,0.5))', border: '1px solid rgba(180,110,40,0.4)', boxShadow: '0 2px 12px rgba(120,70,30,0.25), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
-                <img src="/microphone final.png" alt="" style={{ position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)', width: 80, height: 80, objectFit: 'contain', opacity: 0.95 }} />
+                <img src="/microphone final.png" alt="" style={{ position: 'absolute', left: -4, top: '50%', transform: 'translateY(-50%)', width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', marginLeft: 'auto' }}>
                   <p className="text-sm font-bold" style={{ color: '#fcd9a0', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Aloud</p>
                   <p className="text-[9px]" style={{ color: 'rgba(252,217,160,0.55)' }}>Speak your prayer</p>
@@ -1126,7 +1126,7 @@ export default function HomeTab({
         const weakest   = catScores.reduce((a, b) => b.gpaPoints < a.gpaPoints ? b : a);
 
         const catColors: Record<string, string> = { Foundation: '#60a5fa', Consistency: '#fb923c', Study: '#a855f7', Scripture: '#22c55e', Prayer: '#f472b6', Application: '#06b6d4' };
-        const catIcons: Record<string, string> = { Foundation: '✝', Consistency: '🔥', Study: '📖', Scripture: '💎', Prayer: '🙏', Application: '☀️' };
+        const catIcons: Record<string, string> = { Foundation: '✝', Consistency: '🔥', Study: '📖', Scripture: 'star', Prayer: '🙏', Application: '☀️' };
 
         return (
           <div className="rounded-2xl overflow-hidden relative" style={{ background: `linear-gradient(160deg, ${accentColor}0a, ${accentColor}04)`, border: `1px solid ${accentColor}20`, boxShadow: `0 8px 32px rgba(0,0,0,0.4)` }}>
@@ -1159,16 +1159,16 @@ export default function HomeTab({
               <div className="grid grid-cols-2 gap-2 mb-5">
                 {[
                   { val: streak, label: 'Day Streak', desc: `${streak === 1 ? 'Keep going!' : streak < 7 ? 'Building momentum' : 'On fire!'}`, icon: '🔥', color: '#fbbf24' },
-                  { val: highlightCount, label: 'Saved Verses', desc: `${highlightCount === 0 ? 'Tap verses to save' : highlightCount < 10 ? 'Growing collection' : 'Rich in the Word'}`, icon: '💎', color: '#a855f7' },
+                  { val: highlightCount, label: 'Saved Verses', desc: `${highlightCount === 0 ? 'Tap verses to save' : highlightCount < 10 ? 'Growing collection' : 'Rich in the Word'}`, icon: 'star', color: '#a855f7' },
                   { val: chaptersStudied, label: 'Chapters Read', desc: `${TOTAL_CHAPTERS - chaptersStudied} remaining`, icon: '📖', color: '#22c55e' },
                   { val: chaptersWithNotes, label: 'Study Notes', desc: `${chaptersWithNotes === 0 ? 'Start writing' : chaptersWithNotes < 10 ? 'Keep studying' : 'Deep roots'}`, icon: '📜', color: '#60a5fa' },
                 ].map(s => (
                   <div key={s.label} className="rounded-2xl p-3.5 relative overflow-hidden"
                     style={{ background: `linear-gradient(135deg, ${s.color}0c, ${s.color}04)`, border: `1px solid ${s.color}1a` }}>
-                    <div className="absolute -top-2 -right-2 text-4xl pointer-events-none select-none" style={{ opacity: 0.06 }}>{s.icon}</div>
+                    <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{s.icon}</span>}</div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">{s.icon}</span>
+                        {s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-lg">{s.icon}</span>}
                         <p className="text-2xl font-black" style={{ color: '#fff' }}>{s.val}</p>
                       </div>
                       <p className="text-[10px] font-bold" style={{ color: s.color }}>{s.label}</p>
@@ -1271,10 +1271,10 @@ export default function HomeTab({
                                 border: `1px solid ${isExpanded ? color + '60' : color + '1a'}`,
                                 opacity: isF ? 0.45 : 1,
                               }}>
-                              <div className="absolute -top-2 -right-2 text-4xl pointer-events-none select-none" style={{ opacity: 0.06 }}>{icon}</div>
+                              <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{icon}</span>}</div>
                               <div className="relative z-10">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-lg">{icon}</span>
+                                  {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-lg">{icon}</span>}
                                   <p suppressHydrationWarning className="text-2xl font-black" style={{ color: '#fff' }}>{c.grade}</p>
                                 </div>
                                 <p suppressHydrationWarning className="text-[10px] font-bold" style={{ color }}>{c.cat}</p>
@@ -1299,7 +1299,7 @@ export default function HomeTab({
                         return (
                           <div className="rounded-xl p-4 space-y-3" style={{ background: '#0c1610', border: `2px solid ${color}`, boxShadow: `0 0 20px ${color}44` }}>
                             <div className="flex items-center gap-3">
-                              <span className="text-2xl">{icon}</span>
+                              {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : <span className="text-2xl">{icon}</span>}
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <p className="text-sm font-black uppercase tracking-wider" style={{ color, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
@@ -1543,7 +1543,7 @@ export default function HomeTab({
                 <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{streak}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)' }}>💎 Saved</span>
+                <span className="text-[9px]" style={{ color: 'rgba(232,240,236,0.4)', display: 'flex', alignItems: 'center', gap: 3 }}><img src="/star.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Saved</span>
                 <span className="text-[10px] font-bold" style={{ color: '#fff' }}>{highlightCount}</span>
               </div>
             </div>
