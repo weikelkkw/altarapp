@@ -113,28 +113,17 @@ export default function AltarApp() {
 
   // Theme system — organized by background type
   type ThemeId = string;
-  interface ThemeDef { accent: string; bg: string; headerBg: string; label: string; group: 'black' | 'white' | 'dark' }
+  interface ThemeDef { accent: string; bg: string; headerBg: string; label: string; group: 'black' | 'dark' }
   const THEMES: Record<string, ThemeDef> = {
     // ── Pure Black backgrounds ─────────────────────────────────
     'black-green':   { accent: '#00d084', bg: '#000000', headerBg: '#000000', label: 'Green',    group: 'black' },
     'black-blue':    { accent: '#60a5fa', bg: '#000000', headerBg: '#000000', label: 'Blue',     group: 'black' },
-    'black-white':   { accent: '#e2e8f0', bg: '#000000', headerBg: '#000000', label: 'White',    group: 'black' },
     'black-red':     { accent: '#ef4444', bg: '#000000', headerBg: '#000000', label: 'Red',      group: 'black' },
     'black-purple':  { accent: '#a855f7', bg: '#000000', headerBg: '#000000', label: 'Purple',   group: 'black' },
     'black-gold':    { accent: '#d4a853', bg: '#000000', headerBg: '#000000', label: 'Gold',     group: 'black' },
     'black-cyan':    { accent: '#06b6d4', bg: '#000000', headerBg: '#000000', label: 'Cyan',     group: 'black' },
     'black-pink':    { accent: '#f472b6', bg: '#000000', headerBg: '#000000', label: 'Pink',     group: 'black' },
     'black-orange':  { accent: '#fb923c', bg: '#000000', headerBg: '#000000', label: 'Orange',   group: 'black' },
-    // ── White backgrounds ──────────────────────────────────────
-    'white-green':   { accent: '#059669', bg: '#ffffff', headerBg: '#f8faf9', label: 'Green',    group: 'white' },
-    'white-blue':    { accent: '#2563eb', bg: '#ffffff', headerBg: '#f8f9fc', label: 'Blue',     group: 'white' },
-    'white-black':   { accent: '#1e293b', bg: '#ffffff', headerBg: '#f8f8f8', label: 'Black',    group: 'white' },
-    'white-red':     { accent: '#dc2626', bg: '#ffffff', headerBg: '#fdf8f8', label: 'Red',      group: 'white' },
-    'white-purple':  { accent: '#7c3aed', bg: '#ffffff', headerBg: '#faf8fd', label: 'Purple',   group: 'white' },
-    'white-brown':   { accent: '#92400e', bg: '#ffffff', headerBg: '#faf9f6', label: 'Brown',    group: 'white' },
-    'white-teal':    { accent: '#0d9488', bg: '#ffffff', headerBg: '#f6fafa', label: 'Teal',     group: 'white' },
-    'white-pink':    { accent: '#db2777', bg: '#ffffff', headerBg: '#fdf8fa', label: 'Pink',     group: 'white' },
-    'white-slate':   { accent: '#475569', bg: '#f8fafc', headerBg: '#f1f5f9', label: 'Slate',    group: 'white' },
     // ── Dark themed backgrounds ────────────────────────────────
     'trace':         { accent: '#00d084', bg: 'linear-gradient(160deg,#080f0c 0%,#0f1f18 50%,#080f0c 100%)', headerBg: 'linear-gradient(135deg,#050505 0%,#0a0a0a 35%,#080808 65%,#050505 100%)', label: 'Trace', group: 'dark' },
     'midnight':      { accent: '#60a5fa', bg: 'linear-gradient(160deg,#080c14 0%,#0f1729 50%,#080c14 100%)', headerBg: 'linear-gradient(135deg,#060a12 0%,#0c1a3d 35%,#0a1225 65%,#060a12 100%)', label: 'Midnight', group: 'dark' },
@@ -148,8 +137,7 @@ export default function AltarApp() {
     'ember':         { accent: '#f97316', bg: 'linear-gradient(160deg,#0e0805 0%,#1f1208 50%,#0e0805 100%)', headerBg: 'linear-gradient(135deg,#0a0604 0%,#2d1506 35%,#1a0e05 65%,#0a0604 100%)', label: 'Ember', group: 'dark' },
   };
   const THEME_GROUPS = [
-    { id: 'black', label: 'Black', icon: '⬛' },
-    { id: 'white', label: 'White', icon: '⬜' },
+    { id: 'black', label: 'Pure Black', icon: '⬛' },
     { id: 'dark', label: 'Dark Themed', icon: '🌑' },
   ];
   const [themeId, setThemeId] = useState<ThemeId>('black-blue');
@@ -570,7 +558,6 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const xp = userIdentity.experienceLevel || 'beginner';
-  const isWhiteTheme = (THEMES[themeId] as any)?.group === 'white';
   const { gold, goldFaint, goldBorder, dark } = T;
 
   // ── Onboarding handler ─────────────────────────────────────────────────────
@@ -626,7 +613,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       {showTour && <AppTour accentColor={theme.accent} onDone={() => setShowTour(false)} />}
 
       {/* Full-page flowing Scripture background */}
-      {!isWhiteTheme && scriptureBackground && (
+      {scriptureBackground && (
         <>
           <style dangerouslySetInnerHTML={{ __html: `
             @keyframes pageScriptureGlow { 0% { background-position: 0% 100%; } 100% { background-position: 0% -100%; } }
@@ -653,23 +640,6 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
           </div>
         </>
       )}
-      {/* Light mode style overrides */}
-      {isWhiteTheme && (
-        <style dangerouslySetInnerHTML={{ __html: `
-          .trace-light-mode * { color: inherit; }
-          .trace-light-mode { color: #1e293b; }
-          .trace-light-mode [style*="Georgia"] { color: #334155 !important; }
-          .trace-light-mode sup { color: ${theme.accent} !important; }
-          .trace-light-mode textarea, .trace-light-mode input, .trace-light-mode select {
-            color: #1e293b !important;
-            background: rgba(0,0,0,0.04) !important;
-            border-color: rgba(0,0,0,0.12) !important;
-          }
-          .trace-light-mode textarea::placeholder, .trace-light-mode input::placeholder {
-            color: rgba(0,0,0,0.35) !important;
-          }
-        `}} />
-      )}
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -688,8 +658,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       />
 
       {/* ── CONTENT ────────────────────────────────────────────────────────── */}
-      <div className={`flex-1 overflow-y-auto pb-20 ${isWhiteTheme ? 'trace-light-mode' : ''}`}
-        style={isWhiteTheme ? { color: '#1a1a2e' } : {}}>
+      <div className="flex-1 overflow-y-auto pb-20" style={{}}>
         <div className="max-w-4xl mx-auto px-5 py-4 space-y-4">
 
           {tab === 'home' && (
