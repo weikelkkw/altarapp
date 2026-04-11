@@ -540,7 +540,7 @@ export default function HomeTab({
         <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}08, transparent 70%)`, zIndex: 0 }} />
 
         {/* Board label */}
-        <p className="relative text-center text-[9px] font-black uppercase tracking-[0.3em] mb-5" style={{ color: `${accentColor}55`, zIndex: 1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>— This Week's Board —</p>
+        <p className="relative text-center text-[11px] font-black uppercase tracking-[0.3em] mb-5" style={{ color: accentColor, zIndex: 1, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 16px ${accentColor}88, 0 0 32px ${accentColor}33` }}>— This Week's Board —</p>
 
         <div className="relative flex flex-col gap-6" style={{ zIndex: 1 }}>
 
