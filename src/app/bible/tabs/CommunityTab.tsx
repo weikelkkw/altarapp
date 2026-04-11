@@ -96,13 +96,76 @@ function Spinner({ accentColor }: { accentColor: string }) {
 
 const QUICK_REACTIONS = ['❤️','🙏','🔥','😂','😮','✝️'];
 
+interface ReactionGroup { emoji: string; count: number; reacted: boolean; }
+
 function ChatBubbleList({ messages, loading, emptyText, profileId, accentColor, userName, noBorder }: {
   messages: GroupMessage[]; loading: boolean; emptyText: string;
   profileId: string | null; accentColor: string; userName: string; noBorder?: boolean;
 }) {
   const [activeReact, setActiveReact] = useState<string | null>(null);
+  const [reactionMap, setReactionMap] = useState<Record<string, ReactionGroup[]>>({});
   const holdTimer = useRef<any>(null);
   const A = accentColor;
+  const sb = createClient();
+
+  // Fetch reactions for all visible messages
+  useEffect(() => {
+    if (!messages.length || !sb) return;
+    const ids = messages.map(m => m.id);
+    sb.from('trace_message_reactions')
+      .select('message_id, emoji, user_id')
+      .in('message_id', ids)
+      .then(({ data }: { data: any }) => {
+        if (!data) return;
+        const grouped: Record<string, Record<string, { count: number; reacted: boolean }>> = {};
+        for (const row of data) {
+          if (!grouped[row.message_id]) grouped[row.message_id] = {};
+          if (!grouped[row.message_id][row.emoji]) grouped[row.message_id][row.emoji] = { count: 0, reacted: false };
+          grouped[row.message_id][row.emoji].count += 1;
+          if (row.user_id === profileId) grouped[row.message_id][row.emoji].reacted = true;
+        }
+        const result: Record<string, ReactionGroup[]> = {};
+        for (const [msgId, emojis] of Object.entries(grouped)) {
+          result[msgId] = QUICK_REACTIONS
+            .filter(e => emojis[e])
+            .map(e => ({ emoji: e, count: emojis[e].count, reacted: emojis[e].reacted }));
+        }
+        setReactionMap(result);
+      });
+  }, [messages, profileId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleReaction = async (msgId: string, emoji: string) => {
+    if (!profileId || !sb) return;
+    const existing = reactionMap[msgId]?.find(r => r.emoji === emoji);
+    const alreadyReacted = existing?.reacted ?? false;
+
+    // Optimistic update
+    setReactionMap(prev => {
+      const curr = prev[msgId] || [];
+      let next: ReactionGroup[];
+      if (alreadyReacted) {
+        next = curr.map(r => r.emoji === emoji ? { ...r, count: r.count - 1, reacted: false } : r).filter(r => r.count > 0);
+      } else {
+        const exists = curr.find(r => r.emoji === emoji);
+        if (exists) {
+          next = curr.map(r => r.emoji === emoji ? { ...r, count: r.count + 1, reacted: true } : r);
+        } else {
+          const added = [...curr, { emoji, count: 1, reacted: true }];
+          next = QUICK_REACTIONS.filter(e => added.find(r => r.emoji === e)).map(e => added.find(r => r.emoji === e)!);
+        }
+      }
+      return { ...prev, [msgId]: next };
+    });
+
+    setActiveReact(null);
+
+    if (alreadyReacted) {
+      await sb.from('trace_message_reactions').delete()
+        .eq('message_id', msgId).eq('user_id', profileId).eq('emoji', emoji);
+    } else {
+      await sb.from('trace_message_reactions').insert({ message_id: msgId, user_id: profileId, emoji });
+    }
+  };
 
   const startHold = (msgId: string) => {
     holdTimer.current = setTimeout(() => setActiveReact(msgId), 400);
@@ -124,49 +187,72 @@ function ChatBubbleList({ messages, loading, emptyText, profileId, accentColor, 
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '14px 12px', maxHeight: 400, overflowY: 'auto' }}>
-          {messages.map(msg => (
-            <div key={msg.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 10, flexDirection: msg.isMine ? 'row-reverse' : 'row', position: 'relative' }}>
-              {!msg.isMine && <Avatar name={msg.authorName} color={msg.authorColor} size={34} />}
-              <div style={{ maxWidth: '80%', position: 'relative' }}>
-                {!msg.isMine && (
-                  <p style={{ fontSize: 10, fontWeight: 700, marginBottom: 4, paddingLeft: 4, color: msg.authorColor }}>{msg.authorName}</p>
-                )}
-                {/* Reaction popover */}
-                {activeReact === msg.id && (
-                  <div style={{ position: 'absolute', bottom: '100%', [msg.isMine ? 'right' : 'left']: 0, marginBottom: 6, background: '#1a2420', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 28, padding: '6px 10px', display: 'flex', gap: 4, zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-                    {QUICK_REACTIONS.map(emoji => (
-                      <button key={emoji} onClick={() => { setActiveReact(null); }}
-                        style={{ fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: 8, lineHeight: 1 }}>
-                        {emoji}
-                      </button>
-                    ))}
+          {messages.map(msg => {
+            const pills = reactionMap[msg.id] || [];
+            return (
+              <div key={msg.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 10, flexDirection: msg.isMine ? 'row-reverse' : 'row', position: 'relative' }}>
+                {!msg.isMine && <Avatar name={msg.authorName} color={msg.authorColor} size={34} />}
+                <div style={{ maxWidth: '80%', position: 'relative' }}>
+                  {!msg.isMine && (
+                    <p style={{ fontSize: 10, fontWeight: 700, marginBottom: 4, paddingLeft: 4, color: msg.authorColor }}>{msg.authorName}</p>
+                  )}
+                  {/* Reaction popover */}
+                  {activeReact === msg.id && (
+                    <div style={{ position: 'absolute', bottom: '100%', [msg.isMine ? 'right' : 'left']: 0, marginBottom: 6, background: '#1a2420', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 28, padding: '6px 10px', display: 'flex', gap: 4, zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+                      {QUICK_REACTIONS.map(emoji => {
+                        const reacted = pills.find(r => r.emoji === emoji)?.reacted ?? false;
+                        return (
+                          <button key={emoji} onClick={() => toggleReaction(msg.id, emoji)}
+                            style={{ fontSize: 22, background: reacted ? `${A}33` : 'none', border: reacted ? `1px solid ${A}50` : 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: 8, lineHeight: 1, transform: 'scale(1)', transition: 'transform 0.1s' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.25)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}>
+                            {emoji}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div
+                    onContextMenu={e => { e.preventDefault(); setActiveReact(msg.id); }}
+                    onTouchStart={() => startHold(msg.id)}
+                    onTouchEnd={cancelHold}
+                    onTouchMove={cancelHold}
+                    onMouseDown={() => startHold(msg.id)}
+                    onMouseUp={cancelHold}
+                    onMouseLeave={cancelHold}
+                    style={{
+                      padding: '11px 16px', fontSize: 15, lineHeight: 1.55,
+                      background: msg.isMine ? `linear-gradient(135deg, ${A}35, ${A}20)` : 'rgba(255,255,255,0.07)',
+                      color: '#f0f8f4',
+                      borderRadius: msg.isMine ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
+                      userSelect: 'none', WebkitUserSelect: 'none',
+                      border: msg.isMine ? `1px solid ${A}30` : '1px solid rgba(255,255,255,0.06)',
+                      cursor: 'default',
+                    }}>
+                    {msg.content}
                   </div>
-                )}
-                <div
-                  onContextMenu={e => { e.preventDefault(); setActiveReact(msg.id); }}
-                  onTouchStart={() => startHold(msg.id)}
-                  onTouchEnd={cancelHold}
-                  onTouchMove={cancelHold}
-                  onMouseDown={() => startHold(msg.id)}
-                  onMouseUp={cancelHold}
-                  onMouseLeave={cancelHold}
-                  style={{
-                    padding: '11px 16px', fontSize: 15, lineHeight: 1.55,
-                    background: msg.isMine ? `linear-gradient(135deg, ${A}35, ${A}20)` : 'rgba(255,255,255,0.07)',
-                    color: '#f0f8f4',
-                    borderRadius: msg.isMine ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
-                    userSelect: 'none', WebkitUserSelect: 'none',
-                    border: msg.isMine ? `1px solid ${A}30` : '1px solid rgba(255,255,255,0.06)',
-                    cursor: 'default',
-                  }}>
-                  {msg.content}
+                  {/* Reaction pills */}
+                  {pills.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, justifyContent: msg.isMine ? 'flex-end' : 'flex-start' }}>
+                      {pills.map(r => (
+                        <button key={r.emoji} onClick={() => toggleReaction(msg.id, r.emoji)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 3, borderRadius: 20, padding: '3px 8px', fontSize: 13, lineHeight: 1, cursor: 'pointer',
+                            border: r.reacted ? `1px solid ${A}40` : '1px solid rgba(255,255,255,0.08)',
+                            background: r.reacted ? `${A}22` : 'rgba(255,255,255,0.05)',
+                            color: r.reacted ? A : 'rgba(232,240,236,0.7)', fontWeight: r.reacted ? 700 : 400 }}>
+                          <span>{r.emoji}</span>
+                          <span style={{ fontSize: 11 }}>{r.count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p style={{ fontSize: 9, marginTop: 4, color: 'rgba(232,240,236,0.18)', textAlign: msg.isMine ? 'right' : 'left', paddingLeft: msg.isMine ? 0 : 4 }}>
+                    {timeAgo(msg.createdAt)}
+                  </p>
                 </div>
-                <p style={{ fontSize: 9, marginTop: 4, color: 'rgba(232,240,236,0.18)', textAlign: msg.isMine ? 'right' : 'left', paddingLeft: msg.isMine ? 0 : 4 }}>
-                  {timeAgo(msg.createdAt)}
-                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
