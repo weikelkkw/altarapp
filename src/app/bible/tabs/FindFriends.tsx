@@ -219,7 +219,7 @@ export default function FindFriends({ accentColor, currentUserId, authToken }: P
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${resolvedToken}`,
         },
         body: JSON.stringify({ toUserId }),
       });
@@ -241,7 +241,7 @@ export default function FindFriends({ accentColor, currentUserId, authToken }: P
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${resolvedToken}`,
         },
         body: JSON.stringify({ friendshipId, action }),
       });
