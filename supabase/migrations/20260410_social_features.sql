@@ -40,7 +40,7 @@ create index if not exists trace_reading_activity_read_at_idx on trace_reading_a
 
 create table if not exists trace_prayer_comments (
   id uuid primary key default gen_random_uuid(),
-  post_id uuid not null references trace_group_posts(id) on delete cascade,
+  post_id uuid not null references trace_posts(id) on delete cascade,
   user_id uuid not null references trace_profiles(id) on delete cascade,
   content text not null,
   created_at timestamptz not null default now()
@@ -130,25 +130,10 @@ create policy "users can insert own reading activity"
 
 alter table trace_prayer_comments enable row level security;
 
-create policy "group members can view prayer comments"
+create policy "authenticated users can view prayer comments"
   on trace_prayer_comments for select
-  using (
-    post_id in (
-      select p.id from trace_group_posts p
-      join trace_group_members gm on gm.group_id = p.group_id
-      where gm.user_id = (select id from trace_profiles where auth_id = auth.uid())
-      and gm.status = 'approved'
-    )
-  );
+  using (auth.role() = 'authenticated');
 
-create policy "group members can add prayer comments"
+create policy "users can add own prayer comments"
   on trace_prayer_comments for insert
-  with check (
-    auth.uid() = (select auth_id from trace_profiles where id = user_id)
-    and post_id in (
-      select p.id from trace_group_posts p
-      join trace_group_members gm on gm.group_id = p.group_id
-      where gm.user_id = (select id from trace_profiles where auth_id = auth.uid())
-      and gm.status = 'approved'
-    )
-  );
+  with check (auth.uid() = (select auth_id from trace_profiles where id = user_id));

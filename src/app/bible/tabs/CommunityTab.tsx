@@ -7,6 +7,11 @@ import BibleStudyMode from './BibleStudyMode';
 import MemberProfilePanel from './MemberProfilePanel';
 import MentionInput, { renderMessageWithMentions } from './MentionInput';
 import FindFriends from './FindFriends';
+import GroupEvents from './GroupEvents';
+import GroupReactions from './GroupReactions';
+import PinnedMessages, { ReplyPreview } from './PinnedMessages';
+import StudyScheduler from './StudyScheduler';
+import GroupReadingPlan from './GroupReadingPlan';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 
@@ -117,7 +122,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
   // Kingdom Groups state
   const [selectedGroup, setSelectedGroup] = useState<KingdomGroup | null>(null);
-  const [groupTab, setGroupTab] = useState<'chat' | 'prayer' | 'members'>('chat');
+  const [groupTab, setGroupTab] = useState<'chat' | 'prayer' | 'members' | 'info'>('chat');
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [groupMsgInput, setGroupMsgInput] = useState('');
   const [groupMsgsLoading, setGroupMsgsLoading] = useState(false);
@@ -128,6 +133,8 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
   const [dmInput, setDmInput] = useState('');
   const [dmLoading, setDmLoading] = useState(false);
   const [studyModeOpen, setStudyModeOpen] = useState(false);
+  const [pinnedOpen, setPinnedOpen] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ id: string; content: string; author: string } | null>(null);
 
   // Group management state
   const [groupView, setGroupView] = useState<'mine' | 'discover' | 'create'>('mine');
@@ -169,7 +176,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     const supabase = createClient();
     if (!supabase) return;
     supabase.from('trace_profiles').select('id').eq('auth_id', authUser.id).single()
-      .then(({ data }) => { if (data) setProfileId(data.id); });
+      .then(({ data }: { data: any }) => { if (data) setProfileId(data.id); });
   }, [authUser?.id]);
 
   /* ── Announcements ──────────────────────────────────────── */
@@ -799,21 +806,21 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
   /* ── Render ─────────────────────────────────────────────── */
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-      {/* Church header */}
-      <div className="flex items-center justify-between" style={{ minHeight: 72 }}>
+      {/* ── Church header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16 }}>
         <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-            <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Church</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            <div style={{ width: 4, height: 24, borderRadius: 9999, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+            <h2 style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', margin: 0 }}>Church</h2>
           </div>
-          <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Community · Groups · Prayer</p>
+          <p style={{ color: 'rgba(232,240,236,0.3)', fontSize: 10, paddingLeft: 12, margin: 0 }}>Community · Groups · Prayer</p>
         </div>
         <img src="/png_church-removebg-preview.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', mixBlendMode: 'screen', opacity: 0.9, flexShrink: 0 }} />
       </div>
 
-      {/* Bible Study Mode overlay */}
+      {/* ── Bible Study Mode overlay ── */}
       {studyModeOpen && (
         <BibleStudyMode
           accentColor={accentColor}
@@ -822,63 +829,72 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
         />
       )}
 
-      {/* Sign in prompt */}
+      {/* ── Sign in prompt ── */}
       {!authUser && (
-        <div className="rounded-xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}18` }}>
+        <div style={{ borderRadius: 16, padding: 24, textAlign: 'center', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}18`, marginBottom: 16 }}>
           <img src="/png_church-removebg-preview.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', margin: '0 auto 12px' }} />
-          <p className="text-sm font-bold mb-1" style={{ color: 'rgba(232,240,236,0.7)' }}>Welcome to Church</p>
-          <p className="text-xs mb-4" style={{ color: 'rgba(232,240,236,0.35)' }}>Sign in to join the community, share prayer requests, and connect with believers.</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(232,240,236,0.7)', marginBottom: 4 }}>Welcome to Church</p>
+          <p style={{ fontSize: 11, color: 'rgba(232,240,236,0.35)', fontFamily: 'Georgia, serif', marginBottom: 16 }}>Sign in to join the community, share prayer requests, and connect with believers.</p>
           {onOpenAuth && (
             <button onClick={onOpenAuth}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>
+              style={{ padding: '10px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', border: 'none', cursor: 'pointer' }}>
               Sign In / Create Account
             </button>
           )}
         </div>
       )}
 
-      {/* Announcements */}
+      {/* ── Announcements ── */}
       {announcements.length > 0 && (
-        <div className="rounded-xl p-4" style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}18` }}>
-          <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: accentColor }}>Announcement</p>
+        <div style={{ borderRadius: 12, padding: 16, background: `${accentColor}08`, border: `1px solid ${accentColor}18`, marginBottom: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: accentColor, marginBottom: 8 }}>Announcement</p>
           {announcements.map((a, i) => (
-            <p key={i} className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.6)', fontFamily: 'Georgia, serif' }}>{a}</p>
+            <p key={i} style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(232,240,236,0.6)', fontFamily: 'Georgia, serif', margin: 0 }}>{a}</p>
           ))}
         </div>
       )}
 
-      {/* Tab navigation */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* ── Pill tab navigation ── */}
+      <div style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 30, background: 'rgba(255,255,255,0.04)', marginBottom: 20 }}>
         {([
-          { id: 'groups' as const, icon: '👑', label: 'Groups' },
-          { id: 'testimonies' as const, icon: '✦', label: 'Testimonies' },
-          { id: 'prayer' as const, icon: '👥', label: 'Friends' },
+          { id: 'groups' as const, label: 'Groups' },
+          { id: 'prayer' as const, label: 'Friends' },
+          { id: 'testimonies' as const, label: 'Testimonies' },
         ]).map(t => (
-          <button key={t.id} onClick={() => { setTab(t.id); setSelectedGroup(null); }}
-            className="flex flex-col items-center gap-1 py-3 rounded-xl transition-all active:scale-95"
-            style={tab === t.id
-              ? { background: `${accentColor}18`, border: `1.5px solid ${accentColor}33` }
-              : { background: 'rgba(255,255,255,0.02)', border: '1.5px solid rgba(255,255,255,0.04)' }
-            }>
-            <span className="text-lg">{t.icon}</span>
-            <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: tab === t.id ? accentColor : 'rgba(232,240,236,0.4)' }}>{t.label}</span>
+          <button key={t.id}
+            onClick={() => { setTab(t.id); setSelectedGroup(null); }}
+            style={{
+              flex: 1,
+              padding: '8px 4px',
+              borderRadius: 26,
+              fontSize: 12,
+              fontWeight: 700,
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.18s',
+              fontFamily: 'Montserrat, system-ui, sans-serif',
+              ...(tab === t.id
+                ? { background: `${accentColor}22`, color: accentColor }
+                : { background: 'transparent', color: 'rgba(232,240,236,0.38)' }
+              ),
+            }}>
+            {t.label}
           </button>
         ))}
       </div>
 
       {/* ══════════════════════════════════════════════════════ */}
-      {/* FRIENDS */}
+      {/* FRIENDS                                               */}
       {/* ══════════════════════════════════════════════════════ */}
       {tab === 'prayer' && (
         authUser && profileId ? (
           <FindFriends accentColor={accentColor} currentUserId={profileId} authToken={authUser.id} />
         ) : (
-          <div className="rounded-xl p-6 text-center" style={{ background: `${accentColor}06`, border: `1px solid ${accentColor}15` }}>
-            <p className="text-3xl mb-3">👥</p>
-            <p className="text-sm font-bold mb-3" style={{ color: 'rgba(232,240,236,0.7)' }}>Sign in to find friends</p>
-            <button onClick={onOpenAuth} className="px-6 py-2.5 rounded-xl text-xs font-bold"
-              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>
+          <div style={{ borderRadius: 16, padding: 24, textAlign: 'center', background: `${accentColor}06`, border: `1px solid ${accentColor}15` }}>
+            <p style={{ fontSize: 28, marginBottom: 12 }}>👥</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(232,240,236,0.7)', marginBottom: 12 }}>Sign in to find friends</p>
+            <button onClick={onOpenAuth}
+              style={{ padding: '10px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', border: 'none', cursor: 'pointer' }}>
               Sign In
             </button>
           </div>
@@ -886,229 +902,141 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       )}
 
       {/* ══════════════════════════════════════════════════════ */}
-      {/* KINGDOM GROUPS */}
+      {/* KINGDOM GROUPS — list view                           */}
       {/* ══════════════════════════════════════════════════════ */}
       {tab === 'groups' && !selectedGroup && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {!authUser ? (
-            <div className="rounded-xl p-6 text-center" style={{ background: `${accentColor}06`, border: `1px solid ${accentColor}15` }}>
-              <p className="text-3xl mb-3">👑</p>
-              <p className="text-sm font-bold mb-3" style={{ color: 'rgba(232,240,236,0.7)' }}>Sign in to join a Kingdom Group</p>
-              <button onClick={onOpenAuth} className="px-6 py-2.5 rounded-xl text-xs font-bold"
-                style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>
+            <div style={{ borderRadius: 16, padding: 24, textAlign: 'center', background: `${accentColor}06`, border: `1px solid ${accentColor}15` }}>
+              <p style={{ fontSize: 28, marginBottom: 12 }}>👑</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(232,240,236,0.7)', marginBottom: 12 }}>Sign in to join a Kingdom Group</p>
+              <button onClick={onOpenAuth}
+                style={{ padding: '10px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', border: 'none', cursor: 'pointer' }}>
                 Sign In
               </button>
             </div>
-          ) : groupView === 'create' ? (
-            /* ─── CREATE GROUP FORM ─── */
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setGroupView('mine')}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  ← Back
-                </button>
-                <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Create a Group</h3>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: `${accentColor}66` }}>Group Icon</p>
-                <div className="flex flex-wrap gap-2">
-                  {GROUP_ICONS.map(ic => (
-                    <button key={ic} onClick={() => setCreateIcon(ic)}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all active:scale-95"
-                      style={{
-                        background: createIcon === ic ? `${accentColor}22` : 'rgba(255,255,255,0.04)',
-                        border: `1.5px solid ${createIcon === ic ? accentColor : 'rgba(255,255,255,0.08)'}`,
-                      }}>
-                      {ic}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: `${accentColor}66` }}>Group Name</p>
-                <input autoCorrect="on" autoCapitalize="words" spellCheck
-                  value={createName} onChange={e => setCreateName(e.target.value)}
-                  placeholder="e.g. Men of the Word" maxLength={40}
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: `${accentColor}66` }}>Description</p>
-                <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck
-                  value={createDesc} onChange={e => setCreateDesc(e.target.value)}
-                  placeholder="What is this group about? When do you meet?" maxLength={140} rows={3}
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
-                <p className="text-[9px] mt-1 text-right" style={{ color: 'rgba(232,240,236,0.2)' }}>{createDesc.length}/140</p>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: `${accentColor}66` }}>Who Can Join?</p>
-                <div className="space-y-2">
-                  {([
-                    { value: 'open' as const, label: 'Open', desc: 'Anyone can join immediately', icon: '🌐' },
-                    { value: 'request' as const, label: 'Approval Required', desc: 'Members request to join — you approve or deny', icon: '🔒' },
-                    { value: 'invite' as const, label: 'Invite Only', desc: 'Members must be invited by the group leader', icon: '✉️' },
-                  ]).map(opt => (
-                    <button key={opt.value} onClick={() => setCreatePrivacy(opt.value)}
-                      className="w-full flex items-start gap-3 px-4 py-3 rounded-xl text-left transition-all"
-                      style={{ background: createPrivacy === opt.value ? `${accentColor}12` : 'rgba(255,255,255,0.03)', border: `1.5px solid ${createPrivacy === opt.value ? accentColor + '40' : 'rgba(255,255,255,0.07)'}` }}>
-                      <span className="text-base mt-0.5">{opt.icon}</span>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold" style={{ color: createPrivacy === opt.value ? accentColor : 'rgba(232,240,236,0.7)' }}>{opt.label}</p>
-                        <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.3)' }}>{opt.desc}</p>
-                      </div>
-                      {createPrivacy === opt.value && (
-                        <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: accentColor }}>
-                          <span style={{ color: '#000', fontSize: 9, fontWeight: 900 }}>✓</span>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                disabled={!createName.trim() || createLoading || !profileId}
-                onClick={createGroupHandler}
-                className="w-full py-3.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all active:scale-[0.98] disabled:opacity-30"
-                style={{ background: createName.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.06)', color: '#fff', boxShadow: createName.trim() ? `0 4px 20px ${accentColor}33` : 'none' }}>
-                {createLoading ? 'Creating…' : `${createIcon} Create Group`}
-              </button>
-            </div>
-
-          ) : groupView === 'discover' ? (
-            /* ─── DISCOVER GROUPS ─── */
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setGroupView('mine')}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  ← Back
-                </button>
-                <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Discover Groups</h3>
-              </div>
-
-              {discoverGroups.map(group => {
-                const privacyLabel = group.privacy === 'open' ? 'Open' : group.privacy === 'invite' ? 'Invite Only' : 'Approval Required';
-                const privacyColor = group.privacy === 'open' ? '#22c55e' : group.privacy === 'invite' ? '#94a3b8' : '#f59e0b';
-                return (
-                  <div key={group.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="text-2xl w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}20` }}>
-                        {group.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-black" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{group.name}</p>
-                          <span className="text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
-                            style={{ background: `${privacyColor}18`, color: privacyColor, border: `1px solid ${privacyColor}30` }}>
-                            {privacyLabel}
-                          </span>
-                        </div>
-                        <p className="text-[10px] mt-1" style={{ color: 'rgba(232,240,236,0.4)', fontFamily: 'Georgia, serif' }}>{group.description}</p>
-                        <p className="text-[10px] mt-1 font-semibold" style={{ color: `${accentColor}60` }}>{group.memberCount} members</p>
-                      </div>
-                    </div>
-
-                    {group.pendingJoin ? (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#f59e0b' }} />
-                        <p className="text-[10px] font-bold" style={{ color: '#f59e0b' }}>Request sent — awaiting leader approval</p>
-                      </div>
-                    ) : group.privacy === 'invite' ? (
-                      <div className="px-3 py-2 rounded-lg text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Invite only — ask a member to invite you</p>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => joinGroup(group)}
-                        className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
-                        style={{
-                          background: group.privacy === 'open' ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : `${accentColor}15`,
-                          color: group.privacy === 'open' ? '#fff' : accentColor,
-                          border: group.privacy === 'open' ? 'none' : `1px solid ${accentColor}30`,
-                          boxShadow: group.privacy === 'open' ? `0 2px 12px ${accentColor}33` : 'none',
-                        }}>
-                        {group.privacy === 'open' ? '+ Join Group' : '📨 Request to Join'}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-
-              {discoverGroups.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-2xl mb-2">👑</p>
-                  <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>No other groups to discover right now.</p>
-                </div>
-              )}
-            </div>
-
           ) : (
-            /* ─── MY GROUPS ─── */
             <>
-              <SectionHeader text="Kingdom Groups" accentColor={accentColor} icon="👑" />
-              <div className="flex gap-2">
-                <button onClick={() => { setGroupView('discover'); loadDiscoverGroups(); }}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 2px 12px ${accentColor}33` }}>
-                  🔍 Find a Group
-                </button>
-                <button onClick={() => setGroupView('create')}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-                  style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}25` }}>
-                  + Create Group
+              {/* Header row */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ fontFamily: 'Montserrat, system-ui, sans-serif', fontSize: 16, fontWeight: 900, color: '#f0f8f4', margin: 0 }}>My Groups</h3>
+                <button
+                  onClick={() => setGroupView('create')}
+                  style={{ padding: '7px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `${accentColor}22`, color: accentColor, border: `1.5px solid ${accentColor}40`, cursor: 'pointer' }}>
+                  + New
                 </button>
               </div>
 
-              {groupsLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                </div>
-              ) : myGroups.length === 0 ? (
-                <div className="rounded-xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10` }}>
-                  <img src="/png_church-removebg-preview.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', mixBlendMode: 'screen', margin: '0 auto 8px' }} />
-                  <p className="text-sm font-bold mb-1" style={{ color: 'rgba(232,240,236,0.5)' }}>You&apos;re not in any groups yet</p>
-                  <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)', fontFamily: 'Georgia, serif' }}>Find a group or create your own to get started.</p>
-                </div>
-              ) : (
-                myGroups.map(group => (
-                  <button key={group.id}
-                    onClick={() => { setSelectedGroup(group); setGroupTab('chat'); setGroupMessages([]); setChatMode('group'); setSelectedDmMember(null); }}
-                    className="w-full rounded-xl p-4 text-left transition-all active:scale-[0.98]"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}20` }}>
-                        {group.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-black truncate" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{group.name}</p>
-                          {group.isLeader && (
-                            <span className="text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0"
-                              style={{ background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}33` }}>
-                              Leader
+              {/* My / Discover toggle */}
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => setGroupView('mine')}
+                  style={{ flex: 1, padding: '9px 0', borderRadius: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', ...(groupView !== 'discover' ? { background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}30` } : { background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.4)', border: 'none' }) }}>
+                  My Groups
+                </button>
+                <button
+                  onClick={() => { setGroupView('discover'); loadDiscoverGroups(); }}
+                  style={{ flex: 1, padding: '9px 0', borderRadius: 12, fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', ...(groupView === 'discover' ? { background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}30` } : { background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.4)', border: 'none' }) }}>
+                  Discover
+                </button>
+              </div>
+
+              {/* ─── MY GROUPS ─── */}
+              {groupView !== 'discover' && (
+                <>
+                  {groupsLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 12, border: `2px solid ${accentColor}33`, borderTopColor: accentColor, animation: 'spin 0.8s linear infinite' }} />
+                    </div>
+                  ) : myGroups.length === 0 ? (
+                    <div style={{ borderRadius: 16, padding: 24, textAlign: 'center', background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10` }}>
+                      <img src="/png_church-removebg-preview.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', mixBlendMode: 'screen', display: 'block', margin: '0 auto 8px' }} />
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'rgba(232,240,236,0.5)', marginBottom: 4 }}>You&apos;re not in any groups yet</p>
+                      <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.25)', fontFamily: 'Georgia, serif', margin: 0 }}>Find a group or create your own to get started.</p>
+                    </div>
+                  ) : (
+                    myGroups.map(group => (
+                      <button key={group.id}
+                        onClick={() => { setSelectedGroup(group); setGroupTab('chat'); setGroupMessages([]); setChatMode('group'); setSelectedDmMember(null); }}
+                        style={{ width: '100%', borderRadius: 20, padding: '16px 18px', textAlign: 'left', background: `linear-gradient(135deg, ${accentColor}06 0%, rgba(255,255,255,0.025) 100%)`, border: `1px solid ${accentColor}14`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
+                        {/* Icon circle */}
+                        <div style={{ width: 48, height: 48, borderRadius: 24, background: `${accentColor}18`, border: `1.5px solid ${accentColor}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+                          {group.icon}
+                        </div>
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                            <p style={{ fontSize: 14, fontWeight: 900, color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.name}</p>
+                            {group.isLeader && (
+                              <span style={{ fontSize: 8, fontWeight: 700, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.08em', background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}33`, flexShrink: 0 }}>Leader</span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.38)', margin: 0 }}>
+                            {group.memberCount} members
+                            <span style={{ margin: '0 5px', color: 'rgba(232,240,236,0.18)' }}>·</span>
+                            <span style={{ color: group.privacy === 'open' ? '#22c55e' : group.privacy === 'invite' ? '#94a3b8' : '#f59e0b' }}>
+                              {group.privacy === 'open' ? 'Open' : group.privacy === 'invite' ? 'Invite Only' : 'Approval Required'}
+                            </span>
+                          </p>
+                        </div>
+                        {/* Arrow + pending badge */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                          {group.isLeader && joinRequests.length > 0 && (
+                            <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 10, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' }}>
+                              {joinRequests.length} pending
                             </span>
                           )}
+                          <span style={{ color: `${accentColor}60`, fontSize: 16, fontWeight: 300 }}>›</span>
                         </div>
-                        <p className="text-[10px] mt-0.5 truncate" style={{ color: 'rgba(232,240,236,0.4)', fontFamily: 'Georgia, serif' }}>{group.description}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-[10px] font-bold" style={{ color: `${accentColor}80` }}>{group.memberCount} members</p>
-                        {group.isLeader && joinRequests.length > 0 && (
-                          <p className="text-[9px] font-bold mt-0.5" style={{ color: '#f59e0b' }}>⚠ {joinRequests.length} pending</p>
-                        )}
-                      </div>
+                      </button>
+                    ))
+                  )}
+                </>
+              )}
+
+              {/* ─── DISCOVER GROUPS ─── */}
+              {groupView === 'discover' && (
+                <>
+                  {discoverGroups.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                      <p style={{ fontSize: 24, marginBottom: 8 }}>👑</p>
+                      <p style={{ fontSize: 13, color: 'rgba(232,240,236,0.4)' }}>No other groups to discover right now.</p>
                     </div>
-                  </button>
-                ))
+                  ) : (
+                    discoverGroups.map(group => {
+                      const privacyColor = group.privacy === 'open' ? '#22c55e' : group.privacy === 'invite' ? '#94a3b8' : '#f59e0b';
+                      const privacyLabel = group.privacy === 'open' ? 'Open' : group.privacy === 'invite' ? 'Invite Only' : 'Approval Required';
+                      return (
+                        <div key={group.id} style={{ borderRadius: 20, padding: '16px 18px', background: `linear-gradient(135deg, ${accentColor}06 0%, rgba(255,255,255,0.02) 100%)`, border: `1px solid ${accentColor}12`, display: 'flex', alignItems: 'center', gap: 14 }}>
+                          <div style={{ width: 48, height: 48, borderRadius: 24, background: `${accentColor}15`, border: `1.5px solid ${accentColor}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+                            {group.icon}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 14, fontWeight: 900, color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.name}</p>
+                            <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.35)', fontFamily: 'Georgia, serif', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.description}</p>
+                            <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)', margin: 0 }}>
+                              {group.memberCount} members
+                              <span style={{ margin: '0 5px', color: 'rgba(232,240,236,0.15)' }}>·</span>
+                              <span style={{ color: privacyColor }}>{privacyLabel}</span>
+                            </p>
+                          </div>
+                          <div style={{ flexShrink: 0 }}>
+                            {group.pendingJoin ? (
+                              <span style={{ fontSize: 10, fontWeight: 700, padding: '5px 10px', borderRadius: 12, background: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.22)' }}>Requested</span>
+                            ) : group.privacy === 'invite' ? (
+                              <span style={{ fontSize: 10, fontWeight: 600, padding: '5px 10px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', color: 'rgba(232,240,236,0.3)' }}>Invite Only</span>
+                            ) : (
+                              <button onClick={() => joinGroup(group)}
+                                style={{ fontSize: 11, fontWeight: 700, padding: '7px 14px', borderRadius: 14, border: 'none', cursor: 'pointer', background: group.privacy === 'open' ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : `${accentColor}18`, color: group.privacy === 'open' ? '#fff' : accentColor, boxShadow: group.privacy === 'open' ? `0 2px 10px ${accentColor}33` : 'none' }}>
+                                {group.privacy === 'open' ? 'Join' : 'Request'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </>
               )}
             </>
           )}
@@ -1116,360 +1044,466 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       )}
 
       {/* ══════════════════════════════════════════════════════ */}
-      {/* GROUP DETAIL VIEW */}
+      {/* GROUP DETAIL VIEW                                     */}
       {/* ══════════════════════════════════════════════════════ */}
       {tab === 'groups' && selectedGroup && (
-        <div className="flex flex-col gap-3">
-          {/* Back + group header */}
-          <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+
+          {/* Group header bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
             <button onClick={() => setSelectedGroup(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
-              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              style={{ padding: '7px 12px', borderRadius: 10, fontSize: 12, fontWeight: 700, background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer', flexShrink: 0 }}>
               ← Groups
             </button>
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-lg">{selectedGroup.icon}</span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-black truncate" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{selectedGroup.name}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 20 }}>{selectedGroup.icon}</span>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <p style={{ fontSize: 13, fontWeight: 900, color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedGroup.name}</p>
                   {selectedGroup.isLeader && (
-                    <span className="text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0"
-                      style={{ background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}35` }}>
-                      Leader
-                    </span>
+                    <span style={{ fontSize: 8, fontWeight: 700, padding: '2px 7px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.08em', background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}35`, flexShrink: 0 }}>Leader</span>
                   )}
                 </div>
-                <p className="text-[9px]" style={{ color: `${accentColor}70` }}>{selectedGroup.memberCount} members · {selectedGroup.privacy === 'open' ? 'Open' : selectedGroup.privacy === 'invite' ? 'Invite Only' : 'Approval Required'}</p>
+                <p style={{ fontSize: 9, color: `${accentColor}70`, margin: 0 }}>{selectedGroup.memberCount} members · {selectedGroup.privacy === 'open' ? 'Open' : selectedGroup.privacy === 'invite' ? 'Invite Only' : 'Approval Required'}</p>
               </div>
             </div>
             <button onClick={() => setStudyModeOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0"
-              style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}25` }}>
+              style={{ padding: '7px 12px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}25`, cursor: 'pointer', flexShrink: 0 }}>
               📚 Study
             </button>
           </div>
 
-          {/* Group sub-tabs */}
-          <div className="grid grid-cols-3 gap-1.5">
-            {([
-              { id: 'chat' as const, icon: '💬', label: 'Chat', badge: 0 },
-              { id: 'prayer' as const, icon: '🙏', label: 'Prayer', badge: 0 },
-              { id: 'members' as const, icon: '👥', label: 'Members', badge: selectedGroup.isLeader ? joinRequests.length : 0 },
-            ]).map(gt => (
-              <button key={gt.id} onClick={() => {
-                setGroupTab(gt.id);
-                if (gt.id === 'members') { loadGroupMembers(selectedGroup.id); if (selectedGroup.isLeader) loadJoinRequests(selectedGroup.id); }
-                if (gt.id === 'chat' && chatMode === 'dm') loadGroupMembers(selectedGroup.id);
-              }}
-                className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold transition-all relative"
-                style={groupTab === gt.id
-                  ? { background: `${accentColor}18`, border: `1.5px solid ${accentColor}33`, color: accentColor }
-                  : { background: 'rgba(255,255,255,0.02)', border: '1.5px solid rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.4)' }
-                }>
-                <span>{gt.icon}</span>
-                <span className="uppercase tracking-wider">{gt.label}</span>
-                {gt.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black"
-                    style={{ background: '#f59e0b', color: '#000' }}>
-                    {gt.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          {/* ── TAB CONTENT ── */}
+          <div style={{ marginBottom: 60 }}>
 
-          {/* ── GROUP CHAT / DM ── */}
-          {groupTab === 'chat' && (
-            <div className="flex flex-col gap-2">
-              {/* Chat mode toggle */}
-              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <button onClick={() => { setChatMode('group'); setSelectedDmMember(null); }}
-                  className="flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all"
-                  style={chatMode === 'group'
-                    ? { background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}30` }
-                    : { background: 'transparent', color: 'rgba(232,240,236,0.35)', border: '1px solid transparent' }}>
-                  <span>👥</span> Group Chat
-                </button>
-                <button onClick={() => { setChatMode('dm'); if (!groupMembers.length) loadGroupMembers(selectedGroup.id); }}
-                  className="flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all"
-                  style={chatMode === 'dm'
-                    ? { background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}30` }
-                    : { background: 'transparent', color: 'rgba(232,240,236,0.35)', border: '1px solid transparent' }}>
-                  <span>🔒</span> Direct Message
-                </button>
-              </div>
-
-              {/* ─ GROUP CHAT ─ */}
-              {chatMode === 'group' && (
-                <>
-                  <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10`, minHeight: 200 }}>
-                    {groupMsgsLoading ? (
-                      <div className="flex justify-center py-10">
-                        <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                      </div>
-                    ) : groupMessages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
-                        <span className="text-3xl mb-3">💬</span>
-                        <p className="text-xs font-bold mb-1" style={{ color: 'rgba(232,240,236,0.4)' }}>No messages yet</p>
-                        <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif' }}>Only {selectedGroup.name} members can see this.</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-1 p-3 max-h-64 overflow-y-auto">
-                        {groupMessages.map(msg => (
-                          <div key={msg.id} className={`flex items-end gap-2 ${msg.isMine ? 'flex-row-reverse' : ''}`}>
-                            {!msg.isMine && <Avatar name={msg.authorName} color={msg.authorColor} size={26} />}
-                            <div className="max-w-[75%]">
-                              {!msg.isMine && <p className="text-[9px] font-bold mb-0.5 px-1" style={{ color: msg.authorColor }}>{msg.authorName}</p>}
-                              <div className="px-3 py-2 text-xs leading-relaxed"
-                                style={{ background: msg.isMine ? accentColor : 'rgba(255,255,255,0.06)', color: msg.isMine ? '#000' : 'rgba(232,240,236,0.85)', borderRadius: msg.isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px' }}>
-                                {renderMessageWithMentions(msg.content, userIdentity.name || '', accentColor)}
-                              </div>
-                              <p className="text-[8px] mt-0.5 px-1" style={{ color: 'rgba(232,240,236,0.2)', textAlign: msg.isMine ? 'right' : 'left' }}>{timeAgo(msg.createdAt)}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {authUser ? (
-                    <MentionInput
-                      value={groupMsgInput}
-                      onChange={setGroupMsgInput}
-                      onSend={sendGroupMessage}
-                      members={groupMembers.map(m => ({ userId: m.id, name: m.name, color: m.color }))}
-                      accentColor={accentColor}
-                      placeholder={`Message ${selectedGroup.name}...`}
-                    />
-                  ) : (
-                    <button onClick={onOpenAuth} className="py-3 rounded-xl text-xs font-bold" style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>Sign in to chat</button>
-                  )}
-                </>
-              )}
-
-              {/* ─ DIRECT MESSAGES ─ */}
-              {chatMode === 'dm' && !selectedDmMember && (
-                <div className="flex flex-col gap-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wider px-1" style={{ color: `${accentColor}60` }}>Send a private message to a member</p>
-                  {groupMembers.filter(m => !m.isMe).length === 0 ? (
-                    <div className="text-center py-6">
-                      <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.3)' }}>No other members to message yet.</p>
-                    </div>
-                  ) : (
-                    groupMembers.filter(m => !m.isMe).map(m => (
-                      <button key={m.id}
-                        onClick={() => startDm(m)}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all active:scale-[0.98]"
-                        style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}08` }}>
-                        <Avatar name={m.name} color={m.color} size={34} />
-                        <div className="flex-1 text-left">
-                          <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}</p>
-                          <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Tap to message privately</p>
-                        </div>
-                        <span style={{ color: 'rgba(232,240,236,0.2)', fontSize: 14 }}>🔒</span>
-                      </button>
-                    ))
-                  )}
+            {/* ── CHAT TAB ── */}
+            {groupTab === 'chat' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Pinned button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+                  <button onClick={() => setPinnedOpen(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(232,240,236,0.45)', cursor: 'pointer' }}>
+                    📌 Pinned
+                  </button>
                 </div>
-              )}
 
-              {chatMode === 'dm' && selectedDmMember && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => { setSelectedDmMember(null); setDmMessages([]); setDmConversationId(null); }}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold"
-                      style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      ←
-                    </button>
-                    <Avatar name={selectedDmMember.name} color={selectedDmMember.color} size={28} />
-                    <div>
-                      <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{selectedDmMember.name}</p>
-                      <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Private · only you two can see this</p>
-                    </div>
-                  </div>
-                  <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10`, minHeight: 180 }}>
-                    {dmLoading ? (
-                      <div className="flex justify-center py-10">
-                        <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                      </div>
-                    ) : dmMessages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-10 text-center px-6">
-                        <span className="text-2xl mb-2">🔒</span>
-                        <p className="text-xs font-bold mb-1" style={{ color: 'rgba(232,240,236,0.35)' }}>Private conversation</p>
-                        <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif' }}>Only you and {selectedDmMember.name} can read this.</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-1 p-3 max-h-64 overflow-y-auto">
-                        {dmMessages.map(msg => (
-                          <div key={msg.id} className={`flex items-end gap-2 ${msg.isMine ? 'flex-row-reverse' : ''}`}>
-                            {!msg.isMine && <Avatar name={msg.authorName} color={msg.authorColor} size={26} />}
-                            <div className="max-w-[75%]">
-                              <div className="px-3 py-2 text-xs leading-relaxed"
-                                style={{ background: msg.isMine ? accentColor : 'rgba(255,255,255,0.06)', color: msg.isMine ? '#000' : 'rgba(232,240,236,0.85)', borderRadius: msg.isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px' }}>
-                                {msg.content}
+                {/* Chat mode toggle */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: 4, borderRadius: 14, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <button onClick={() => { setChatMode('group'); setSelectedDmMember(null); }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', ...(chatMode === 'group' ? { background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}30` } : { background: 'transparent', color: 'rgba(232,240,236,0.35)', border: 'none' }) }}>
+                    <span>👥</span> Group Chat
+                  </button>
+                  <button onClick={() => { setChatMode('dm'); if (!groupMembers.length) loadGroupMembers(selectedGroup.id); }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 0', borderRadius: 10, fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s', ...(chatMode === 'dm' ? { background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}30` } : { background: 'transparent', color: 'rgba(232,240,236,0.35)', border: 'none' }) }}>
+                    <span>🔒</span> Direct Message
+                  </button>
+                </div>
+
+                {/* ─ GROUP CHAT ─ */}
+                {chatMode === 'group' && (
+                  <>
+                    <div style={{ borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10`, minHeight: 200 }}>
+                      {groupMsgsLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 10, border: `2px solid ${accentColor}33`, borderTopColor: accentColor, animation: 'spin 0.8s linear infinite' }} />
+                        </div>
+                      ) : groupMessages.length === 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center' }}>
+                          <span style={{ fontSize: 28, marginBottom: 10 }}>💬</span>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(232,240,236,0.4)', marginBottom: 4 }}>No messages yet</p>
+                          <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif', margin: 0 }}>Only {selectedGroup.name} members can see this.</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: 14, maxHeight: 320, overflowY: 'auto' }}>
+                          {groupMessages.map(msg => (
+                            <div key={msg.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, flexDirection: msg.isMine ? 'row-reverse' : 'row' }}>
+                              {!msg.isMine && <Avatar name={msg.authorName} color={msg.authorColor} size={26} />}
+                              <div style={{ maxWidth: '75%' }}>
+                                {!msg.isMine && (
+                                  <p style={{ fontSize: 9, fontWeight: 700, marginBottom: 3, paddingLeft: 4, color: msg.authorColor }}>{msg.authorName}</p>
+                                )}
+                                <div style={{
+                                  padding: '9px 13px',
+                                  fontSize: 12,
+                                  lineHeight: 1.5,
+                                  background: msg.isMine ? `${accentColor}25` : 'rgba(255,255,255,0.05)',
+                                  color: 'rgba(232,240,236,0.9)',
+                                  borderRadius: msg.isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                }}>
+                                  {renderMessageWithMentions(msg.content, userIdentity.name || '', accentColor)}
+                                </div>
+                                <p style={{ fontSize: 8, marginTop: 3, color: 'rgba(232,240,236,0.2)', textAlign: msg.isMine ? 'right' : 'left', paddingLeft: msg.isMine ? 0 : 4 }}>{timeAgo(msg.createdAt)}</p>
+                                {profileId && (
+                                  <GroupReactions
+                                    messageId={msg.id}
+                                    profileId={profileId}
+                                    accentColor={accentColor}
+                                  />
+                                )}
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {authUser ? (
+                      <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)' }}>
+                        {replyTo && (
+                          <ReplyPreview
+                            replyToAuthor={replyTo.author}
+                            replyToContent={replyTo.content}
+                            accentColor={accentColor}
+                            onClear={() => setReplyTo(null)}
+                          />
+                        )}
+                        <MentionInput
+                          value={groupMsgInput}
+                          onChange={setGroupMsgInput}
+                          onSend={sendGroupMessage}
+                          members={groupMembers.map(m => ({ userId: m.id, name: m.name, color: m.color }))}
+                          accentColor={accentColor}
+                          placeholder={`Message ${selectedGroup.name}...`}
+                        />
                       </div>
+                    ) : (
+                      <button onClick={onOpenAuth}
+                        style={{ width: '100%', padding: '12px 0', borderRadius: 14, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', border: 'none', cursor: 'pointer' }}>
+                        Sign in to chat
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {/* ─ DIRECT MESSAGES ─ */}
+                {chatMode === 'dm' && !selectedDmMember && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: `${accentColor}60`, paddingLeft: 2 }}>Send a private message to a member</p>
+                    {groupMembers.filter(m => !m.isMe).length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                        <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)' }}>No other members to message yet.</p>
+                      </div>
+                    ) : (
+                      groupMembers.filter(m => !m.isMe).map(m => (
+                        <button key={m.id}
+                          onClick={() => startDm(m)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, padding: '12px 16px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}08`, cursor: 'pointer', textAlign: 'left' }}>
+                          <Avatar name={m.name} color={m.color} size={34} />
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: 12, fontWeight: 700, color: '#f0f8f4', margin: 0 }}>{m.name}</p>
+                            <p style={{ fontSize: 9, color: 'rgba(232,240,236,0.3)', margin: 0 }}>Tap to message privately</p>
+                          </div>
+                          <span style={{ color: 'rgba(232,240,236,0.2)', fontSize: 14 }}>🔒</span>
+                        </button>
+                      ))
                     )}
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text"
-                      value={dmInput} onChange={e => setDmInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && dmInput.trim()) sendDm(); }}
-                      placeholder={`Message ${selectedDmMember.name}...`}
-                      className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}15`, color: '#f0f8f4' }} />
-                    <button disabled={!dmInput.trim() || !dmConversationId}
-                      onClick={sendDm}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: dmInput.trim() ? accentColor : 'rgba(255,255,255,0.04)', color: dmInput.trim() ? '#000' : 'rgba(255,255,255,0.2)', border: `1px solid ${dmInput.trim() ? accentColor : 'rgba(255,255,255,0.06)'}` }}>
-                      ↑
+                )}
+
+                {chatMode === 'dm' && selectedDmMember && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button onClick={() => { setSelectedDmMember(null); setDmMessages([]); setDmConversationId(null); }}
+                        style={{ padding: '6px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.5)', border: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer' }}>
+                        ←
+                      </button>
+                      <Avatar name={selectedDmMember.name} color={selectedDmMember.color} size={28} />
+                      <div>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: '#f0f8f4', margin: 0 }}>{selectedDmMember.name}</p>
+                        <p style={{ fontSize: 9, color: 'rgba(232,240,236,0.3)', margin: 0 }}>Private · only you two can see this</p>
+                      </div>
+                    </div>
+                    <div style={{ borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10`, minHeight: 180 }}>
+                      {dmLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 10, border: `2px solid ${accentColor}33`, borderTopColor: accentColor, animation: 'spin 0.8s linear infinite' }} />
+                        </div>
+                      ) : dmMessages.length === 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', textAlign: 'center' }}>
+                          <span style={{ fontSize: 22, marginBottom: 8 }}>🔒</span>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(232,240,236,0.35)', marginBottom: 4 }}>Private conversation</p>
+                          <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif', margin: 0 }}>Only you and {selectedDmMember.name} can read this.</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: 14, maxHeight: 280, overflowY: 'auto' }}>
+                          {dmMessages.map(msg => (
+                            <div key={msg.id} style={{ display: 'flex', alignItems: 'flex-end', gap: 8, flexDirection: msg.isMine ? 'row-reverse' : 'row' }}>
+                              {!msg.isMine && <Avatar name={msg.authorName} color={msg.authorColor} size={26} />}
+                              <div style={{ maxWidth: '75%' }}>
+                                <div style={{
+                                  padding: '9px 13px',
+                                  fontSize: 12,
+                                  lineHeight: 1.5,
+                                  background: msg.isMine ? `${accentColor}25` : 'rgba(255,255,255,0.05)',
+                                  color: 'rgba(232,240,236,0.9)',
+                                  borderRadius: msg.isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                }}>
+                                  {msg.content}
+                                </div>
+                                <p style={{ fontSize: 8, marginTop: 3, color: 'rgba(232,240,236,0.2)', textAlign: msg.isMine ? 'right' : 'left' }}>{timeAgo(msg.createdAt)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text"
+                        value={dmInput} onChange={e => setDmInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && dmInput.trim()) sendDm(); }}
+                        placeholder={`Message ${selectedDmMember.name}...`}
+                        style={{ flex: 1, padding: '12px 16px', borderRadius: 20, fontSize: 13, outline: 'none', background: 'rgba(255,255,255,0.04)', border: `1px solid rgba(255,255,255,0.08)`, color: '#f0f8f4' }} />
+                      <button disabled={!dmInput.trim() || !dmConversationId}
+                        onClick={sendDm}
+                        style={{ width: 40, height: 40, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none', cursor: dmInput.trim() ? 'pointer' : 'default', background: dmInput.trim() ? accentColor : 'rgba(255,255,255,0.05)', color: dmInput.trim() ? '#000' : 'rgba(255,255,255,0.2)', fontWeight: 900, fontSize: 16 }}>
+                        ↑
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* ── PRAYER TAB ── */}
+            {groupTab === 'prayer' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Post new prayer */}
+                <div style={{ borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
+                  <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
+                    value={newPrayer}
+                    onChange={e => setNewPrayer(e.target.value)}
+                    placeholder="Share a prayer request with the group..."
+                    style={{ width: '100%', padding: '14px 16px', fontSize: 13, outline: 'none', resize: 'none', minHeight: 72, background: 'transparent', color: '#f0f8f4', fontFamily: 'Georgia, serif', boxSizing: 'border-box', border: 'none' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 14px', borderTop: `1px solid ${accentColor}08` }}>
+                    <button onClick={submitPrayer} disabled={postingPrayer || !newPrayer.trim()}
+                      style={{ padding: '8px 16px', borderRadius: 10, fontSize: 11, fontWeight: 700, border: 'none', cursor: newPrayer.trim() ? 'pointer' : 'default', background: newPrayer.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.05)', color: newPrayer.trim() ? '#fff' : 'rgba(255,255,255,0.2)' }}>
+                      {postingPrayer ? 'Posting…' : '🙏 Post Prayer'}
                     </button>
                   </div>
-                </>
-              )}
-            </div>
-          )}
+                </div>
 
-          {/* ── GROUP PRAYER ── */}
-          {groupTab === 'prayer' && (
-            <div className="rounded-xl p-5 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10` }}>
-              <span className="text-2xl">🙏</span>
-              <p className="text-xs font-bold mt-2 mb-1" style={{ color: 'rgba(232,240,236,0.5)' }}>Group Prayer Wall</p>
-              <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)', fontFamily: 'Georgia, serif' }}>Prayer requests shared here are only visible to {selectedGroup.name}.</p>
-            </div>
-          )}
-
-          {/* ── GROUP MEMBERS ── */}
-          {groupTab === 'members' && (
-            <div className="space-y-3">
-              {/* Join Requests — visible only to leader */}
-              {selectedGroup.isLeader && joinRequests.length > 0 && (
-                <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid rgba(245,158,11,0.12)' }}>
-                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#f59e0b' }} />
-                    <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#f59e0b' }}>
-                      Join Requests ({joinRequests.length})
-                    </p>
+                {/* Prayer cards */}
+                {prayerLoading ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: 10, border: `2px solid ${accentColor}33`, borderTopColor: accentColor, animation: 'spin 0.8s linear infinite' }} />
                   </div>
-                  <div className="divide-y" style={{ borderColor: 'rgba(245,158,11,0.08)' }}>
-                    {joinRequests.map(req => (
-                      <div key={req.id} className="flex items-center gap-3 px-4 py-3">
-                        <Avatar name={req.userName} color={req.userColor} size={32} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{req.userName}</p>
-                          <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Requested {timeAgo(req.requestedAt)}</p>
+                ) : prayers.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '28px 0' }}>
+                    <p style={{ fontSize: 26, marginBottom: 8 }}>🙏</p>
+                    <p style={{ fontSize: 13, color: 'rgba(232,240,236,0.4)' }}>No prayer requests yet. Be the first to share.</p>
+                  </div>
+                ) : (
+                  prayers.map(pr => (
+                    <div key={pr.id} style={{ borderRadius: 16, padding: '14px 16px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <Avatar name={pr.authorName} color={pr.authorColor} size={32} />
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: '#f0f8f4', margin: 0 }}>{pr.authorName}</p>
+                          <p style={{ fontSize: 9, color: 'rgba(232,240,236,0.3)', margin: 0 }}>{timeAgo(pr.createdAt)}</p>
                         </div>
-                        <div className="flex gap-1.5 shrink-0">
-                          <button
-                            onClick={() => approveRequest(req)}
-                            className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95"
-                            style={{ background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}35` }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 12, background: pr.hasPrayed ? `${accentColor}20` : 'rgba(255,255,255,0.05)', color: pr.hasPrayed ? accentColor : 'rgba(232,240,236,0.4)', border: `1px solid ${pr.hasPrayed ? accentColor + '35' : 'rgba(255,255,255,0.08)'}` }}>
+                          🙏 {pr.prayerCount}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 13, lineHeight: 1.6, color: 'rgba(232,240,236,0.75)', fontFamily: 'Georgia, serif', margin: '0 0 12px' }}>{pr.content}</p>
+                      <button onClick={() => prayFor(pr.id)}
+                        style={{ padding: '8px 16px', borderRadius: 10, fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: pr.hasPrayed ? `${accentColor}18` : 'rgba(255,255,255,0.05)', color: pr.hasPrayed ? accentColor : 'rgba(232,240,236,0.5)' }}>
+                        {pr.hasPrayed ? '🙏 Praying' : '🙏 Pray'}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* ── MEMBERS TAB ── */}
+            {groupTab === 'members' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {groupMembers.length === 0 ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+                    <div style={{ width: 20, height: 20, borderRadius: 10, border: `2px solid ${accentColor}33`, borderTopColor: accentColor, animation: 'spin 0.8s linear infinite' }} />
+                  </div>
+                ) : (
+                  groupMembers.map(m => (
+                    <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, borderRadius: 16, padding: '12px 14px', background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}08` }}>
+                      <button onClick={() => setProfileMember(m)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                        <Avatar name={m.name} color={m.color} size={36} />
+                      </button>
+                      <button onClick={() => setProfileMember(m)} style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f8f4', margin: 0 }}>
+                          {m.role === 'leader' && <span style={{ fontSize: 12, marginRight: 4 }}>👑</span>}
+                          {m.name}{m.isMe ? ' (You)' : ''}
+                        </p>
+                        <p style={{ fontSize: 9, color: 'rgba(232,240,236,0.3)', margin: 0 }}>Joined {timeAgo(m.joinedAt)}</p>
+                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 10, fontWeight: 700, background: m.role === 'leader' ? `${accentColor}22` : 'rgba(255,255,255,0.04)', color: m.role === 'leader' ? accentColor : 'rgba(232,240,236,0.3)' }}>
+                          {m.role === 'leader' ? 'Leader' : 'Member'}
+                        </span>
+                        {selectedGroup.isLeader && !m.isMe && (
+                          <>
+                            <button onClick={() => promoteMember(m.id, m.role)} title={m.role === 'leader' ? 'Demote to Member' : 'Promote to Leader'}
+                              style={{ width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${accentColor}14`, color: accentColor, border: `1px solid ${accentColor}28`, fontSize: 11, cursor: 'pointer' }}>
+                              {m.role === 'leader' ? '↓' : '↑'}
+                            </button>
+                            <button onClick={() => removeMember(m.id)}
+                              style={{ width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(239,68,68,0.07)', color: 'rgba(239,68,68,0.55)', border: '1px solid rgba(239,68,68,0.12)', fontSize: 11, cursor: 'pointer' }}>
+                              ✕
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* ── INFO TAB ── */}
+            {groupTab === 'info' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Group identity card */}
+                <div style={{ borderRadius: 20, padding: '20px 18px', background: `linear-gradient(135deg, ${accentColor}08 0%, rgba(255,255,255,0.02) 100%)`, border: `1px solid ${accentColor}15`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: 32, background: `${accentColor}18`, border: `2px solid ${accentColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>
+                    {selectedGroup.icon}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 17, fontWeight: 900, color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', margin: '0 0 4px' }}>{selectedGroup.name}</p>
+                    {selectedGroup.description && (
+                      <p style={{ fontSize: 12, color: 'rgba(232,240,236,0.5)', fontFamily: 'Georgia, serif', lineHeight: 1.6, margin: '0 0 8px' }}>{selectedGroup.description}</p>
+                    )}
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: selectedGroup.privacy === 'open' ? 'rgba(34,197,94,0.12)' : selectedGroup.privacy === 'invite' ? 'rgba(148,163,184,0.1)' : 'rgba(245,158,11,0.12)', color: selectedGroup.privacy === 'open' ? '#22c55e' : selectedGroup.privacy === 'invite' ? '#94a3b8' : '#f59e0b', border: `1px solid ${selectedGroup.privacy === 'open' ? 'rgba(34,197,94,0.22)' : selectedGroup.privacy === 'invite' ? 'rgba(148,163,184,0.18)' : 'rgba(245,158,11,0.22)'}` }}>
+                      {selectedGroup.privacy === 'open' ? '🌐 Open' : selectedGroup.privacy === 'invite' ? '✉️ Invite Only' : '🔒 Approval Required'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 11, color: `${accentColor}70`, margin: 0 }}>{selectedGroup.memberCount} members</p>
+                </div>
+
+                {/* Join Requests — leader only */}
+                {selectedGroup.isLeader && joinRequests.length > 0 && (
+                  <div style={{ borderRadius: 16, overflow: 'hidden', background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid rgba(245,158,11,0.12)' }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 4, background: '#f59e0b', animation: 'pulse 2s infinite' }} />
+                      <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f59e0b', margin: 0 }}>
+                        Join Requests ({joinRequests.length})
+                      </p>
+                    </div>
+                    {joinRequests.map(req => (
+                      <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: '1px solid rgba(245,158,11,0.07)' }}>
+                        <Avatar name={req.userName} color={req.userColor} size={32} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: '#f0f8f4', margin: 0 }}>{req.userName}</p>
+                          <p style={{ fontSize: 9, color: 'rgba(232,240,236,0.3)', margin: 0 }}>Requested {timeAgo(req.requestedAt)}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          <button onClick={() => approveRequest(req)}
+                            style={{ padding: '6px 12px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: `${accentColor}20`, color: accentColor, border: `1px solid ${accentColor}35`, cursor: 'pointer' }}>
                             ✓ Approve
                           </button>
-                          <button
-                            onClick={() => denyRequest(req)}
-                            className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95"
-                            style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)' }}>
+                          <button onClick={() => denyRequest(req)}
+                            style={{ padding: '6px 12px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.18)', cursor: 'pointer' }}>
                             ✕ Deny
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Member list */}
-              <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: `${accentColor}55` }}>Members</p>
-              {groupMembers.length === 0 ? (
-                <div className="flex justify-center py-4">
-                  <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                </div>
-              ) : (
-                groupMembers.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 rounded-xl px-4 py-3"
-                    style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}08` }}>
-                    <button
-                      onClick={() => setProfileMember(m)}
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                    >
-                      <Avatar name={m.name} color={m.color} size={32} />
-                    </button>
-                    <button
-                      className="flex-1 text-left"
-                      onClick={() => setProfileMember(m)}
-                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                    >
-                      <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}{m.isMe ? ' (You)' : ''}</p>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] px-2 py-1 rounded-full font-bold"
-                        style={{ background: m.role === 'leader' ? `${accentColor}22` : 'rgba(255,255,255,0.04)', color: m.role === 'leader' ? accentColor : 'rgba(232,240,236,0.3)' }}>
-                        {m.role === 'leader' ? 'Leader' : 'Member'}
-                      </span>
-                      {selectedGroup.isLeader && !m.isMe && (
-                        <>
-                          <button
-                            onClick={() => promoteMember(m.id, m.role)}
-                            title={m.role === 'leader' ? 'Demote to Member' : 'Promote to Leader'}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
-                            style={{ background: `${accentColor}14`, color: accentColor, border: `1px solid ${accentColor}28`, fontSize: 10 }}>
-                            {m.role === 'leader' ? '↓' : '↑'}
-                          </button>
-                          <button onClick={() => removeMember(m.id)}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
-                            style={{ background: 'rgba(239,68,68,0.07)', color: 'rgba(239,68,68,0.5)', border: '1px solid rgba(239,68,68,0.12)', fontSize: 10 }}>
-                            ✕
-                          </button>
-                        </>
-                      )}
-                    </div>
+                {/* Events */}
+                {profileId && (
+                  <GroupEvents
+                    groupId={selectedGroup.id}
+                    profileId={profileId}
+                    isLeader={!!selectedGroup.isLeader}
+                    accentColor={accentColor}
+                  />
+                )}
+
+                {/* Study Scheduler */}
+                {profileId && (
+                  <StudyScheduler
+                    groupId={selectedGroup.id}
+                    profileId={profileId}
+                    isLeader={!!selectedGroup.isLeader}
+                    accentColor={accentColor}
+                  />
+                )}
+
+                {/* Reading Plan */}
+                {profileId && (
+                  <GroupReadingPlan
+                    groupId={selectedGroup.id}
+                    profileId={profileId}
+                    isLeader={!!selectedGroup.isLeader}
+                    accentColor={accentColor}
+                  />
+                )}
+
+                {/* Leave group — non-leader */}
+                {!selectedGroup.isLeader && (
+                  <button onClick={leaveGroup}
+                    style={{ width: '100%', padding: '13px 0', borderRadius: 14, fontSize: 13, fontWeight: 700, background: 'rgba(239,68,68,0.07)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)', cursor: 'pointer', marginTop: 8 }}>
+                    Leave Group
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Bottom tab bar — sticky within group view ── */}
+          <div style={{ position: 'sticky', bottom: 0, background: '#060a08', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', marginTop: 0, zIndex: 10 }}>
+            {([
+              { id: 'chat' as const, icon: '💬', label: 'Chat' },
+              { id: 'prayer' as const, icon: '🙏', label: 'Prayer' },
+              { id: 'members' as const, icon: '👥', label: 'Members' },
+              { id: 'info' as const, icon: 'ℹ️', label: 'Info', badge: selectedGroup.isLeader ? joinRequests.length : 0 },
+            ]).map(gt => (
+              <button key={gt.id}
+                onClick={() => {
+                  setGroupTab(gt.id);
+                  if (gt.id === 'members') { loadGroupMembers(selectedGroup.id); if (selectedGroup.isLeader) loadJoinRequests(selectedGroup.id); }
+                  if (gt.id === 'info' && selectedGroup.isLeader) loadJoinRequests(selectedGroup.id);
+                  if (gt.id === 'chat' && chatMode === 'dm') loadGroupMembers(selectedGroup.id);
+                }}
+                style={{ flex: 1, padding: '10px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, border: 'none', background: 'transparent', cursor: 'pointer', position: 'relative' }}>
+                <span style={{ fontSize: 18 }}>{gt.icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: groupTab === gt.id ? accentColor : 'rgba(232,240,236,0.3)' }}>{gt.label}</span>
+                {groupTab === gt.id && (
+                  <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 24, height: 2, borderRadius: 1, background: accentColor }} />
+                )}
+                {(gt as any).badge > 0 && (
+                  <div style={{ position: 'absolute', top: 6, right: '25%', width: 14, height: 14, borderRadius: 7, background: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 900, color: '#000' }}>
+                    {(gt as any).badge}
                   </div>
-                ))
-              )}
-
-              {/* Leave group (non-leader) */}
-              {!selectedGroup.isLeader && (
-                <button
-                  onClick={leaveGroup}
-                  className="w-full py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-                  style={{ background: 'rgba(239,68,68,0.07)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)' }}>
-                  Leave Group
-                </button>
-              )}
-            </div>
-          )}
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════════ */}
-      {/* TESTIMONIES */}
+      {/* PRAYER WALL                                          */}
       {/* ══════════════════════════════════════════════════════ */}
       {tab === 'testimonies' && (
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <SectionHeader text="Testimonies" accentColor={accentColor} icon="✦" />
-          <p className="text-xs" style={{ color: 'rgba(232,240,236,0.35)', fontFamily: 'Georgia, serif' }}>
+          <p style={{ fontSize: 12, color: 'rgba(232,240,236,0.35)', fontFamily: 'Georgia, serif', lineHeight: 1.7, margin: 0 }}>
             Share what God is doing in your life. Your testimony could be the encouragement someone needs today.
           </p>
 
           {authUser && profileId && (
-            <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
+            <div style={{ borderRadius: 16, overflow: 'hidden', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
               <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
                 value={newTestimony}
                 onChange={e => setNewTestimony(e.target.value)}
                 placeholder="Share what God has done..."
-                className="w-full px-4 py-3 text-sm outline-none resize-none min-h-[70px]"
-                style={{ background: 'transparent', color: '#f0f8f4', fontFamily: 'Georgia, serif' }}
+                style={{ width: '100%', padding: '14px 16px', fontSize: 13, outline: 'none', resize: 'none', minHeight: 70, background: 'transparent', color: '#f0f8f4', fontFamily: 'Georgia, serif', boxSizing: 'border-box', border: 'none' }}
               />
-              <div className="flex justify-end px-4 py-2" style={{ borderTop: `1px solid ${accentColor}08` }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 14px', borderTop: `1px solid ${accentColor}08` }}>
                 <button onClick={submitTestimony} disabled={postingTestimony || !newTestimony.trim()}
-                  className="px-4 py-2 rounded-lg text-xs font-bold"
-                  style={{
-                    background: newTestimony.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.05)',
-                    color: newTestimony.trim() ? '#fff' : 'rgba(255,255,255,0.2)',
-                  }}>
+                  style={{ padding: '8px 16px', borderRadius: 10, fontSize: 11, fontWeight: 700, border: 'none', cursor: newTestimony.trim() ? 'pointer' : 'default', background: newTestimony.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.05)', color: newTestimony.trim() ? '#fff' : 'rgba(255,255,255,0.2)' }}>
                   {postingTestimony ? 'Sharing...' : 'Share Testimony'}
                 </button>
               </div>
@@ -1477,44 +1511,44 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
           )}
 
           {testimonyLoading && (
-            <div className="flex justify-center py-8">
-              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+              <div style={{ width: 24, height: 24, borderRadius: 12, border: `2px solid ${accentColor}33`, borderTopColor: accentColor, animation: 'spin 0.8s linear infinite' }} />
             </div>
           )}
 
           {!testimonyLoading && testimonies.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-2xl mb-2">✦</p>
-              <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>No testimonies yet. Share what God has done.</p>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <p style={{ fontSize: 22, marginBottom: 8 }}>✦</p>
+              <p style={{ fontSize: 13, color: 'rgba(232,240,236,0.4)' }}>No testimonies yet. Share what God has done.</p>
             </div>
           )}
 
           {testimonies.map(t => (
-            <div key={t.id} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
-              <div className="flex items-start gap-3 mb-3">
-                <Avatar name={t.authorName} color={t.authorColor} size={34} />
+            <div key={t.id} style={{ borderRadius: 16, padding: '16px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <Avatar name={t.authorName} color={t.authorColor} size={36} />
                 <div>
-                  <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{t.authorName}</p>
-                  <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.3)' }}>{timeAgo(t.createdAt)}</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#f0f8f4', margin: 0 }}>{t.authorName}</p>
+                  <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)', margin: 0 }}>{timeAgo(t.createdAt)}</p>
                 </div>
               </div>
-              <p className="text-sm leading-relaxed" style={{ color: 'rgba(232,240,236,0.7)', fontFamily: 'Georgia, serif' }}>
-                {t.content}
-              </p>
+              <p style={{ fontSize: 13, lineHeight: 1.7, color: 'rgba(232,240,236,0.72)', fontFamily: 'Georgia, serif', margin: 0 }}>{t.content}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Footer verse */}
-      <div className="text-center py-4">
-        <p className="text-xs italic" style={{ color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif' }}>
-          &ldquo;For where two or three gather in my name, there am I with them.&rdquo;
-        </p>
-        <p className="text-[10px] font-bold mt-1" style={{ color: 'rgba(232,240,236,0.15)' }}>Matthew 18:20</p>
-      </div>
+      {/* ── Footer verse ── */}
+      {!selectedGroup && (
+        <div style={{ textAlign: 'center', padding: '24px 0 8px' }}>
+          <p style={{ fontSize: 12, fontStyle: 'italic', color: 'rgba(232,240,236,0.2)', fontFamily: 'Georgia, serif', margin: 0 }}>
+            &ldquo;For where two or three gather in my name, there am I with them.&rdquo;
+          </p>
+          <p style={{ fontSize: 10, fontWeight: 700, marginTop: 4, color: 'rgba(232,240,236,0.15)', marginBottom: 0 }}>Matthew 18:20</p>
+        </div>
+      )}
 
-      {/* Member Profile Panel */}
+      {/* ── Member Profile Panel ── */}
       {profileMember && selectedGroup && (
         <MemberProfilePanel
           member={{
@@ -1528,6 +1562,102 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
           accentColor={accentColor}
           onClose={() => setProfileMember(null)}
         />
+      )}
+
+      {/* ── Pinned Messages panel ── */}
+      {selectedGroup && (
+        <PinnedMessages
+          groupId={selectedGroup.id}
+          accentColor={accentColor}
+          open={pinnedOpen}
+          onClose={() => setPinnedOpen(false)}
+        />
+      )}
+
+      {/* ── Create Group bottom sheet ── */}
+      {groupView === 'create' && tab === 'groups' && !selectedGroup && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setGroupView('mine')}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40 }}
+          />
+          {/* Sheet */}
+          <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50, background: '#0d1410', borderRadius: '24px 24px 0 0', border: '1px solid rgba(255,255,255,0.07)', borderBottom: 'none', padding: '0 0 env(safe-area-inset-bottom)' }}>
+            {/* Handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)' }} />
+            </div>
+            <div style={{ padding: '8px 20px 24px', maxHeight: '85vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <h3 style={{ fontFamily: 'Montserrat, system-ui, sans-serif', fontSize: 16, fontWeight: 900, color: accentColor, margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Create a Group</h3>
+                <button onClick={() => setGroupView('mine')}
+                  style={{ width: 30, height: 30, borderRadius: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.07)', border: 'none', color: 'rgba(232,240,236,0.5)', fontSize: 16, cursor: 'pointer' }}>
+                  ×
+                </button>
+              </div>
+
+              {/* Icon picker */}
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${accentColor}66`, marginBottom: 10 }}>Group Icon</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
+                {GROUP_ICONS.map(ic => (
+                  <button key={ic} onClick={() => setCreateIcon(ic)}
+                    style={{ width: 44, height: 44, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, cursor: 'pointer', background: createIcon === ic ? `${accentColor}22` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${createIcon === ic ? accentColor : 'rgba(255,255,255,0.08)'}` }}>
+                    {ic}
+                  </button>
+                ))}
+              </div>
+
+              {/* Name */}
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${accentColor}66`, marginBottom: 8 }}>Group Name</p>
+              <input autoCorrect="on" autoCapitalize="words" spellCheck
+                value={createName} onChange={e => setCreateName(e.target.value)}
+                placeholder="e.g. Men of the Word" maxLength={40}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 14, fontSize: 13, outline: 'none', background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}18`, color: '#f0f8f4', boxSizing: 'border-box', marginBottom: 18 }}
+              />
+
+              {/* Description */}
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${accentColor}66`, marginBottom: 8 }}>Description</p>
+              <textarea autoCorrect="on" autoCapitalize="sentences" spellCheck
+                value={createDesc} onChange={e => setCreateDesc(e.target.value)}
+                placeholder="What is this group about? When do you meet?" maxLength={140} rows={3}
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 14, fontSize: 13, outline: 'none', resize: 'none', background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}18`, color: '#f0f8f4', boxSizing: 'border-box', marginBottom: 4 }}
+              />
+              <p style={{ fontSize: 9, textAlign: 'right', color: 'rgba(232,240,236,0.2)', marginBottom: 18 }}>{createDesc.length}/140</p>
+
+              {/* Privacy */}
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${accentColor}66`, marginBottom: 10 }}>Who Can Join?</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 22 }}>
+                {([
+                  { value: 'open' as const, label: 'Open', desc: 'Anyone can join immediately', icon: '🌐' },
+                  { value: 'request' as const, label: 'Approval Required', desc: 'Members request to join — you approve or deny', icon: '🔒' },
+                  { value: 'invite' as const, label: 'Invite Only', desc: 'Members must be invited by the group leader', icon: '✉️' },
+                ]).map(opt => (
+                  <button key={opt.value} onClick={() => setCreatePrivacy(opt.value)}
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 14px', borderRadius: 14, textAlign: 'left', cursor: 'pointer', background: createPrivacy === opt.value ? `${accentColor}12` : 'rgba(255,255,255,0.03)', border: `1.5px solid ${createPrivacy === opt.value ? accentColor + '40' : 'rgba(255,255,255,0.07)'}` }}>
+                    <span style={{ fontSize: 16, marginTop: 1 }}>{opt.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: createPrivacy === opt.value ? accentColor : 'rgba(232,240,236,0.7)', margin: 0 }}>{opt.label}</p>
+                      <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.3)', margin: '2px 0 0' }}>{opt.desc}</p>
+                    </div>
+                    {createPrivacy === opt.value && (
+                      <div style={{ width: 18, height: 18, borderRadius: 9, background: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                        <span style={{ color: '#000', fontSize: 10, fontWeight: 900 }}>✓</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                disabled={!createName.trim() || createLoading || !profileId}
+                onClick={createGroupHandler}
+                style={{ width: '100%', padding: '14px 0', borderRadius: 16, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', border: 'none', cursor: createName.trim() ? 'pointer' : 'default', background: createName.trim() ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` : 'rgba(255,255,255,0.06)', color: createName.trim() ? '#fff' : 'rgba(255,255,255,0.2)', boxShadow: createName.trim() ? `0 4px 20px ${accentColor}33` : 'none', opacity: (!createName.trim() || createLoading || !profileId) ? 0.5 : 1 }}>
+                {createLoading ? 'Creating…' : `${createIcon} Create Group`}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

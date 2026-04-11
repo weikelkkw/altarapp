@@ -8,7 +8,7 @@ function getAdminClient() {
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-async function verifyLeader(db: ReturnType<typeof createClient>, token: string, groupId: string): Promise<boolean> {
+async function verifyLeader(db: any, token: string, groupId: string): Promise<boolean> {
   const { data: { user }, error } = await db.auth.getUser(token);
   if (error || !user) return false;
 

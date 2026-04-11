@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ApiBible, Passage, PassageSection, AltarNote, UserIdentity, BookDef,
@@ -13,6 +13,7 @@ import SearchTab from './tabs/SearchTab';
 import StudyTab from './tabs/StudyTab';
 import CommunityTab from './tabs/CommunityTab';
 import NotificationsTab from './tabs/NotificationsTab';
+import NotificationCenter, { useUnreadCount } from './tabs/NotificationCenter';
 import Header from './tabs/Header';
 import SettingsPanel from './tabs/SettingsPanel';
 import FireMode from './tabs/FireMode';
@@ -51,13 +52,28 @@ function getOrCreateIdentity(): UserIdentity {
 }
 
 export default function AltarApp() {
-  const [tab, setTab] = useState<Tab>(() => {
-    try { return (localStorage.getItem('altar-active-tab') as Tab) || 'home'; } catch { return 'home'; }
-  });
+  const [tab, setTab] = useState<Tab>('home'); // always start at home on fresh load
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const readScrollY = useRef(0); // in-memory only — resets on page reload
+  const currentTab = useRef<Tab>('home');
 
   const handleSetTab = useCallback((t: Tab) => {
+    // Save Read tab scroll position before leaving
+    if (currentTab.current === 'read' && scrollRef.current) {
+      readScrollY.current = scrollRef.current.scrollTop;
+    }
+    currentTab.current = t;
     setTab(t);
-    try { localStorage.setItem('altar-active-tab', t); } catch {}
+    requestAnimationFrame(() => {
+      if (!scrollRef.current) return;
+      if (t === 'read') {
+        // Restore where you were in the reading session
+        scrollRef.current.scrollTop = readScrollY.current;
+      } else {
+        // All other tabs always start at the top
+        scrollRef.current.scrollTop = 0;
+      }
+    });
   }, []);
 
   // Navigation — persisted across sessions
@@ -179,8 +195,10 @@ export default function AltarApp() {
   const [gospelOpen, setGospelOpen] = useState(false);
   const [gospelIdx, setGospelIdx] = useState(0);
   const [trophyOpen, setTrophyOpen] = useState(false);
-  const [notifUnread, setNotifUnread] = useState(0);
   const [notifOpen, setNotifOpen] = useState(false);
+  const dbUnread = useUnreadCount(profile?.id ?? '');
+  const [legacyUnread, setLegacyUnread] = useState(0);
+  const notifUnread = dbUnread + legacyUnread;
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [ttsVoice, setTtsVoice] = useState('');
   const [scriptureBackground, setScriptureBackground] = useState(true);
@@ -203,18 +221,27 @@ export default function AltarApp() {
     const sb = createClient();
     if (!sb) return;
     sb.from('trace_profiles')
-      .select('display_name, avatar_color, experience_level, is_public, profile_data')
+      .select('display_name, avatar_color, experience_level, is_public, profile_data, settings_data, username')
       .eq('auth_id', user.id)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: { data: any }) => {
         if (!data) return;
         const pd: Record<string, any> = (data as any).profile_data || {};
+        // Restore appearance/voice/bible settings from Supabase (overrides localStorage)
+        const sd: Record<string, any> = (data as any).settings_data || {};
+        if (sd.themeId && THEMES[sd.themeId]) setThemeId(sd.themeId);
+        if (sd.fontSize) setFontSize(sd.fontSize);
+        if (sd.ttsEnabled !== undefined) setTtsEnabled(sd.ttsEnabled);
+        if (sd.ttsVoice) setTtsVoice(sd.ttsVoice);
+        if (sd.ttsRate) setTtsRate(sd.ttsRate);
+        if (sd.defaultBible) setDefaultBible(sd.defaultBible);
         setUserIdentity(prev => ({
           ...prev,
           name: (data as any).display_name || prev.name,
           color: (data as any).avatar_color || prev.color,
           experienceLevel: (data as any).experience_level || prev.experienceLevel,
           isPublic: (data as any).is_public !== false,
+          ...((data as any).username ? { username: (data as any).username } : {}),
           // Merge profile_data fields — only override if Supabase has a non-empty value
           ...(pd.bio        ? { bio: pd.bio }               : {}),
           ...(pd.testimony  ? { testimony: pd.testimony }   : {}),
@@ -658,7 +685,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       />
 
       {/* ── CONTENT ────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto pb-20" style={{}}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20" style={{}}>
         <div className="max-w-4xl mx-auto px-5 py-4 space-y-4">
 
           {tab === 'home' && (
@@ -860,7 +887,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               onOpenGospel={() => setGospelOpen(true)}
               authUser={user}
               onOpenAuth={() => setAuthOpen(true)}
-              onDmUnread={(n) => setNotifUnread(prev => prev + n)}
+              onDmUnread={(n) => setLegacyUnread(prev => prev + n)}
             />
           )}
 
@@ -1002,52 +1029,12 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       />
 
       {/* ── Notifications Panel ─────────────────────────────────────────────── */}
-      {notifOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[90]"
-            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
-            onClick={() => { setNotifOpen(false); setNotifUnread(0); }}
-          />
-          {/* Slide-down panel */}
-          <div
-            className="fixed top-0 inset-x-0 z-[91] max-w-lg mx-auto"
-            style={{
-              background: 'linear-gradient(180deg, #060e0a 0%, #0a140e 100%)',
-              borderBottom: `1px solid ${theme.accent}22`,
-              borderBottomLeftRadius: 24,
-              borderBottomRightRadius: 24,
-              boxShadow: `0 8px 40px rgba(0,0,0,0.8), 0 0 0 1px ${theme.accent}12`,
-              animation: 'notifSlideDown 0.25s cubic-bezier(0.32,0.72,0,1)',
-              maxHeight: '85vh',
-              overflowY: 'auto',
-            }}
-          >
-            {/* Panel handle */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full" style={{ background: `${theme.accent}30` }} />
-            </div>
-
-            <div className="px-4 pb-8">
-              <NotificationsTab
-                accentColor={theme.accent}
-                authUser={user}
-                highlighted={highlighted}
-                notes={notes}
-                onNavigate={(t) => { setNotifOpen(false); handleSetTab(t as Tab); }}
-                onUnreadChange={setNotifUnread}
-              />
-            </div>
-          </div>
-          <style dangerouslySetInnerHTML={{ __html: `
-            @keyframes notifSlideDown {
-              from { transform: translateY(-100%); opacity: 0; }
-              to   { transform: translateY(0);     opacity: 1; }
-            }
-          `}} />
-        </>
-      )}
+      <NotificationCenter
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        accentColor={theme.accent}
+        userId={profile?.id ?? ''}
+      />
     </div>
     </div>
   );

@@ -43,6 +43,7 @@ export interface UserIdentity {
   token: string;
   name: string;
   color: string;
+  username?: string;
   experienceLevel?: ExperienceLevel;
   bio?: string;
   profilePicture?: string;

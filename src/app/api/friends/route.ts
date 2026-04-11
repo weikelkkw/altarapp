@@ -8,14 +8,14 @@ function getAdminClient() {
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-async function getProfileId(db: ReturnType<typeof createClient>, token: string): Promise<string | null> {
+async function getProfileId(db: any, token: string): Promise<string | null> {
   const { data: { user } } = await db.auth.getUser(token);
   if (!user) return null;
   const { data } = await db.from('trace_profiles').select('id').eq('auth_id', user.id).single();
   return (data as any)?.id ?? null;
 }
 
-// GET — search users by name
+// GET — search users by username prefix
 export async function GET(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -23,21 +23,38 @@ export async function GET(req: NextRequest) {
   const db = getAdminClient();
   if (!db) return NextResponse.json({ error: 'Server not configured — add SUPABASE_SERVICE_ROLE_KEY to .env.local' }, { status: 500 });
 
-  const q = req.nextUrl.searchParams.get('q') ?? '';
-  if (!q.trim()) return NextResponse.json({ users: [] });
+  // Strip leading @ and require at least 2 characters
+  const raw = req.nextUrl.searchParams.get('q') ?? '';
+  const q = raw.startsWith('@') ? raw.slice(1) : raw;
+  if (q.trim().length < 2) return NextResponse.json({ users: [], friendIds: [] });
 
   // Verify caller is authenticated
   const profileId = await getProfileId(db, token);
   if (!profileId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data, error } = await db
-    .from('trace_profiles')
-    .select('id, display_name, avatar_color')
-    .ilike('display_name', `%${q}%`)
-    .limit(10);
+  // Load existing friendship ids for the current user
+  async function loadFriendIds(): Promise<string[]> {
+    const { data } = await db!
+      .from('trace_friendships')
+      .select('requester_id, addressee_id')
+      .or(`requester_id.eq.${profileId},addressee_id.eq.${profileId}`);
+    if (!data) return [];
+    return data.map((f: any) =>
+      f.requester_id === profileId ? f.addressee_id : f.requester_id
+    );
+  }
 
-  if (error) return NextResponse.json({ users: [] });
-  return NextResponse.json({ users: data ?? [] });
+  const [{ data, error }, friendIds] = await Promise.all([
+    db
+      .from('trace_profiles')
+      .select('id, display_name, username, avatar_color')
+      .ilike('username', `${q}%`)
+      .limit(10),
+    loadFriendIds(),
+  ]);
+
+  if (error) return NextResponse.json({ users: [], friendIds: [] });
+  return NextResponse.json({ users: data ?? [], friendIds });
 }
 
 // POST — send friend request
@@ -78,6 +95,26 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notify the addressee of the new friend request
+  try {
+    const { data: requesterProfile } = await db
+      .from('trace_profiles')
+      .select('display_name')
+      .eq('id', requesterId)
+      .single();
+
+    await db.from('trace_notifications').insert({
+      user_id:    body.toUserId,
+      type:       'friend_request',
+      title:      'New friend request',
+      body:       `${requesterProfile?.display_name ?? 'Someone'} wants to connect with you`,
+      data:       { fromUserId: requesterId },
+      read:       false,
+      created_at: new Date().toISOString(),
+    });
+  } catch {}
+
   return NextResponse.json({ success: true });
 }
 
@@ -102,7 +139,7 @@ export async function PATCH(req: NextRequest) {
   // Verify the current user is the addressee
   const { data: friendship } = await db
     .from('trace_friendships')
-    .select('id, addressee_id')
+    .select('id, addressee_id, requester_id')
     .eq('id', body.friendshipId)
     .single();
 
@@ -111,6 +148,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Only the addressee can accept or decline this request' }, { status: 403 });
   }
 
+  const addresseeProfileId = profileId;
+
   if (body.action === 'accept') {
     const { error } = await db
       .from('trace_friendships')
@@ -118,6 +157,25 @@ export async function PATCH(req: NextRequest) {
       .eq('id', body.friendshipId);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notify the requester that their request was accepted
+    try {
+      const { data: requesterProfile } = await db
+        .from('trace_profiles')
+        .select('display_name')
+        .eq('id', addresseeProfileId)
+        .single();
+
+      await db.from('trace_notifications').insert({
+        user_id:    (friendship as any).requester_id,
+        type:       'friend_accepted',
+        title:      'Friend request accepted',
+        body:       `${requesterProfile?.display_name ?? 'Someone'} accepted your friend request`,
+        data:       { fromUserId: addresseeProfileId },
+        read:       false,
+        created_at: new Date().toISOString(),
+      });
+    } catch {}
   } else {
     const { error } = await db
       .from('trace_friendships')
