@@ -637,7 +637,7 @@ export default function HomeTab({
                 {checksCompleted}/{dailyItems.length} complete
               </p>
             </div>
-            <img src="/png calendar.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+            <img src="/compass.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
           </div>
         </div>
         <div className="px-3 py-2">
