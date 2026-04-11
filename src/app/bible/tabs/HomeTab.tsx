@@ -1321,7 +1321,7 @@ export default function HomeTab({
                         const daysNeeded = nextGrade === 'D' ? 6 : nextGrade === 'C' ? 12 : nextGrade === 'B' ? 18 : nextGrade === 'A' ? 22 : nextGrade === 'A+' ? 27 : null;
                         const daysLeft = daysNeeded ? Math.max(0, daysNeeded - c.days) : 0;
                         return (
-                          <div className="rounded-xl p-4 space-y-3" style={{ background: '#0c1610', border: `2px solid ${color}`, boxShadow: `0 0 20px ${color}44` }}>
+                          <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(0,0,0,0.88)', border: `2px solid ${color}`, boxShadow: `0 0 20px ${color}44` }}>
                             <div className="flex items-center gap-3">
                               {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} /> : <span className="text-2xl">{icon}</span>}
                               <div className="flex-1">
@@ -1376,7 +1376,7 @@ export default function HomeTab({
                       const color = catColors[m.cat] || accentColor;
                       return (
                         <div key={m.id} className="rounded-xl p-3.5 relative overflow-hidden"
-                          style={{ background: `linear-gradient(135deg, ${color}0c, ${color}04)`, border: `1px solid ${color}20` }}>
+                          style={{ background: `linear-gradient(135deg, rgba(0,0,0,0.88), rgba(0,0,0,0.78))`, border: `1px solid ${color}44`, boxShadow: `0 2px 12px rgba(0,0,0,0.5)` }}>
                           {/* Ghost badge watermark */}
                           <div className="absolute -top-1 -right-1 text-3xl pointer-events-none select-none" style={{ opacity: 0.06 }}>{m.badge}</div>
                           {/* Badge + label */}
@@ -1407,7 +1407,7 @@ export default function HomeTab({
                   <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
                     {unlocked.map(m => (
                       <div key={m.id} className="flex flex-col items-center gap-1 min-w-[52px] py-2 px-1 rounded-xl shrink-0"
-                        style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}12` }}>
+                        style={{ background: `rgba(0,0,0,0.82)`, border: `1px solid ${accentColor}33` }}>
                         <span className="text-lg">{m.badge}</span>
                         <span className="text-[7px] font-bold text-center leading-tight" style={{ color: 'rgba(232,240,236,0.5)' }}>{m.label}</span>
                       </div>
