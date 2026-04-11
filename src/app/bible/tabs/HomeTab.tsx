@@ -1128,13 +1128,39 @@ export default function HomeTab({
         const catColors: Record<string, string> = { Foundation: '#60a5fa', Consistency: '#fb923c', Study: '#a855f7', Scripture: '#22c55e', Prayer: '#f472b6', Application: '#06b6d4' };
         const catIcons: Record<string, string> = { Foundation: '✝', Consistency: '🔥', Study: '📖', Scripture: 'star', Prayer: '🙏', Application: '☀️' };
 
+        const journeyImgs = ['/bilbe journey pic 1.png', '/bible journey pic 2.png', '/bible journy pic 3.png'];
         return (
-          <div className="rounded-2xl overflow-hidden relative" style={{ background: `linear-gradient(160deg, ${accentColor}0a, ${accentColor}04)`, border: `1px solid ${accentColor}20`, boxShadow: `0 8px 32px rgba(0,0,0,0.4)` }}>
+          <div className="rounded-2xl overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.7)', border: `1px solid ${accentColor}20`, boxShadow: `0 8px 32px rgba(0,0,0,0.6)` }}>
+            {/* Crossfading background images */}
+            <style>{`
+              @keyframes journeyGlow { 0%,100% { transform: translateX(-120%); } 50% { transform: translateX(220%); } }
+            `}</style>
+            {journeyImgs.map((src, i) => (
+              <div key={src} className="absolute inset-0 pointer-events-none" style={{
+                opacity: 0,
+                animation: `journeyFade${i} 18s ease-in-out infinite`,
+                animationDelay: `${i * 6}s`,
+              }}>
+                <style>{`
+                  @keyframes journeyFade${i} {
+                    0%, ${i === 0 ? 0 : i * 33 - 5}% { opacity: 0; }
+                    ${i * 33 + 5}%, ${i * 33 + 27}% { opacity: 1; }
+                    ${i * 33 + 33}%, 100% { opacity: 0; }
+                  }
+                `}</style>
+                <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.38 }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.55) 100%)' }} />
+              </div>
+            ))}
+            {/* Sweep glow */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(200,220,255,0.07), transparent)', animation: 'journeyGlow 8s ease-in-out infinite', borderRadius: '50%' }} />
+            </div>
             {/* Ambient glow */}
-            <div className="absolute pointer-events-none" style={{ top: '-20%', right: '-10%', width: '50%', height: '50%', borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}08, transparent 70%)` }} />
+            <div className="absolute pointer-events-none" style={{ zIndex: 1, top: '-20%', right: '-10%', width: '50%', height: '50%', borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}08, transparent 70%)` }} />
 
             {/* Header with big progress ring */}
-            <div className="px-5 pt-5 pb-4">
+            <div className="px-5 pt-5 pb-4" style={{ position: 'relative', zIndex: 2 }}>
               <div className="flex items-center gap-4 mb-5">
                 {/* Circular progress */}
                 <div className="relative w-16 h-16 shrink-0">
