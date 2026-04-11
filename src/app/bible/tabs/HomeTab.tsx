@@ -745,7 +745,7 @@ export default function HomeTab({
                 style={{ background: 'linear-gradient(135deg, rgba(120,70,30,0.6), rgba(80,40,10,0.5))', border: '1px solid rgba(180,110,40,0.4)', boxShadow: '0 2px 12px rgba(120,70,30,0.25), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
                 <img src="/microphone final.png" alt="" style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', width: 80, height: 80, objectFit: 'contain', opacity: 0.95 }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'left' }}>
-                  <p className="text-sm font-bold" style={{ color: '#fcd9a0', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Pray Aloud</p>
+                  <p className="text-sm font-bold" style={{ color: '#fcd9a0', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Aloud</p>
                   <p className="text-[9px]" style={{ color: 'rgba(252,217,160,0.55)' }}>Speak your prayer</p>
                 </div>
               </button>
