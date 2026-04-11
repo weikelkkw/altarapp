@@ -713,7 +713,7 @@ export default function HomeTab({
         {/* Two tap zones side by side */}
         <div className="relative z-10 flex">
           <button onClick={onOpenMorningEncounter} className="flex-1 py-4 flex flex-col items-center text-center gap-2 transition-all group">
-            <img src="/star.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.5))', transition: 'transform 0.2s' }} className="group-hover:scale-110" />
+            <img src="/sun.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', mixBlendMode: 'screen', transition: 'transform 0.2s' }} className="group-hover:scale-110" />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Morning</p>
               <p className="text-[8px] mt-0.5" style={{ color: 'rgba(251,191,36,0.45)' }}>Start grounded</p>
@@ -1157,7 +1157,7 @@ export default function HomeTab({
           Study:       { img: '/read book.png', emoji: '📖' },
           Scripture:   { img: '/star.png', emoji: '✦' },
           Prayer:      { img: '/Praying hands.png', emoji: '🙏' },
-          Application: { emoji: '☀️' },
+          Application: { img: '/sun.png', emoji: '☀️' },
         };
         function renderCatIcon(icon: { img?: string; emoji: string }, size = 26) {
           return icon.img ? <img src={icon.img} alt="" style={{ width: size, height: size, objectFit: 'contain' }} /> : <span style={{ fontSize: size * 0.85 }}>{icon.emoji}</span>;
@@ -1175,6 +1175,7 @@ export default function HomeTab({
         function badgeImg(badge: string): string | null {
           if (['📖','📚','📗','📘','📜'].includes(badge)) return '/read book.png';
           if (badge === '🙏') return '/Praying hands.png';
+          if (badge === '☀️') return '/sun.png';
           return null;
         }
         function renderBadge(badge: string, size = 28) {
@@ -1602,7 +1603,7 @@ export default function HomeTab({
               <span className="text-[11px] font-black" style={{ color: '#fff' }}>{highlightCount}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}>☀️ Encounters</span>
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/sun.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', mixBlendMode: 'screen' }} /> Encounters</span>
               <span className="text-[11px] font-black" style={{ color: '#fff' }}>{fireSessions}</span>
             </div>
             <div className="flex items-center justify-between">
