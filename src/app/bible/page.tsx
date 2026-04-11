@@ -855,12 +855,14 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                     className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px]"
                     style={active ? { background: `${theme.accent}18` } : {}}>
                     <span className="text-lg transition-transform" style={{
-                      filter: active ? 'none' : 'grayscale(1) opacity(0.4)',
                       transform: active ? 'scale(1.15)' : 'scale(1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       mixBlendMode: t.img ? 'screen' : 'normal',
                     }}>
-                      {t.img ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain' }} /> : t.icon}
+                      {t.img
+                        ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain', filter: active ? 'none' : 'grayscale(1) opacity(0.4)' }} />
+                        : <span style={{ filter: active ? 'none' : 'grayscale(1) opacity(0.4)' }}>{t.icon}</span>
+                      }
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',
