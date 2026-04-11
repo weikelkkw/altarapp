@@ -40,7 +40,7 @@ function SectionLabel({ text, accentColor, icon }: { text: string; accentColor: 
   return (
     <div className="flex items-center gap-2.5 mb-3">
       <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-      {icon && <span className="text-base">{icon}</span>}
+      {icon && (icon === 'star-img' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : icon === 'praying-hands' ? <img src="/Praying hands.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-base">{icon}</span>)}
       <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{text}</h2>
     </div>
   );
@@ -161,9 +161,9 @@ export default function HomeTab({
     localStorage.setItem(`trace-daily-checks-${new Date().toDateString()}`, JSON.stringify(updated));
   };
   const dailyItems = [
-    { id: 'devotional', label: 'Read today\'s devotional', icon: '📖' },
-    { id: 'prayer', label: 'Pray', icon: '🙏' },
-    { id: 'scripture', label: 'Read Scripture', icon: '✦' },
+    { id: 'devotional', label: 'Read today\'s devotional', icon: '📖', img: '/read book.png' },
+    { id: 'prayer', label: 'Pray', icon: '🙏', img: '/Praying hands.png' },
+    { id: 'scripture', label: 'Read Scripture', icon: '✦', img: '/star.png' },
     { id: 'apply', label: 'Apply what you learned', icon: '🎯' },
     { id: 'share', label: 'Encourage someone', icon: '💬' },
   ];
@@ -548,7 +548,7 @@ export default function HomeTab({
                   }}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
                     style={{ background: `${accentColor}14`, color: accentColor, border: `1px solid ${accentColor}22` }}>
-                    ✦ Study This Verse
+                    <img src="/star.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} /> Study This Verse
                   </button>
                 )}
                 <button
@@ -635,8 +635,8 @@ export default function HomeTab({
                   : { border: `2px solid ${accentColor}33` }}>
                 {dailyChecks[item.id] && <span className="text-[10px] text-white font-bold">✓</span>}
               </div>
-              <span className="text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none' }}>
-                {item.icon} {item.label}
+              <span className="text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {(item as any).img ? <img src={(item as any).img} alt="" style={{ width: 24, height: 24, objectFit: 'contain', opacity: dailyChecks[item.id] ? 0.4 : 1 }} /> : item.icon} {item.label}
               </span>
             </button>
           ))}
@@ -651,7 +651,7 @@ export default function HomeTab({
       <GlowDivider accentColor={accentColor} dot />
 
       {/* ── Daily Encounters — Sunrise to Sunset fade ─────────────────── */}
-      <SectionLabel text="Daily Encounters" accentColor={accentColor} icon="✦" />
+      <SectionLabel text="Daily Encounters" accentColor={accentColor} icon="star-img" />
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes staticTwinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 0.6; } }
         @keyframes sunrisePulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.3; } }
@@ -734,7 +734,7 @@ export default function HomeTab({
               <button onClick={() => setShowPrayerForm(true)}
                 className="rounded-xl transition-all overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, rgba(202,138,4,0.55), rgba(120,70,0,0.45))', border: '1px solid rgba(234,179,8,0.4)', boxShadow: '0 2px 12px rgba(202,138,4,0.2), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
-                <img src="/quill 2.png" alt="" style={{ position: 'absolute', left: -4, top: '50%', transform: 'translateY(-50%)', width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
+                <img src="/quill 2.png" alt="" style={{ position: 'absolute', left: 8, bottom: 10, width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', marginLeft: 'auto' }}>
                   <p className="text-sm font-bold" style={{ color: '#fde68a', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Write</p>
                   <p className="text-[9px]" style={{ color: 'rgba(253,230,138,0.6)' }}>Type your prayer</p>
@@ -743,7 +743,7 @@ export default function HomeTab({
               <button onClick={() => setShowVoicePrayer(true)}
                 className="rounded-xl transition-all overflow-hidden"
                 style={{ background: 'linear-gradient(135deg, rgba(120,70,30,0.6), rgba(80,40,10,0.5))', border: '1px solid rgba(180,110,40,0.4)', boxShadow: '0 2px 12px rgba(120,70,30,0.25), 0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.7)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
-                <img src="/microphone final.png" alt="" style={{ position: 'absolute', left: -4, top: '50%', transform: 'translateY(-50%)', width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
+                <img src="/microphone final.png" alt="" style={{ position: 'absolute', left: 8, bottom: 10, width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', marginLeft: 'auto' }}>
                   <p className="text-sm font-bold" style={{ color: '#fcd9a0', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Aloud</p>
                   <p className="text-[9px]" style={{ color: 'rgba(252,217,160,0.55)' }}>Speak your prayer</p>
