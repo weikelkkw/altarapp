@@ -744,7 +744,7 @@ export default function HomeTab({
               <button onClick={() => setShowPrayerForm(true)}
                 className="rounded-xl transition-all overflow-hidden"
                 style={{ background: 'linear-gradient(160deg, rgba(8,6,4,0.98), rgba(14,10,4,0.96))', border: '1px solid rgba(234,179,8,0.25)', boxShadow: '0 2px 12px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.95)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
-                <img src="/quill 2.png" alt="" style={{ position: 'absolute', left: 8, bottom: 10, width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
+                <img src="/quill 2.png" alt="" style={{ position: 'absolute', left: 8, bottom: 10, width: 52, height: 52, objectFit: 'contain', opacity: 0.95, filter: 'drop-shadow(0 0 8px rgba(253,230,138,0.7)) drop-shadow(0 0 18px rgba(234,179,8,0.4))' }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', marginLeft: 'auto' }}>
                   <p className="text-sm font-bold" style={{ color: '#fde68a', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Write</p>
                   <p className="text-[9px]" style={{ color: 'rgba(253,230,138,0.5)' }}>Type your prayer</p>
@@ -753,7 +753,7 @@ export default function HomeTab({
               <button onClick={() => setShowVoicePrayer(true)}
                 className="rounded-xl transition-all overflow-hidden"
                 style={{ background: 'linear-gradient(160deg, rgba(6,5,8,0.98), rgba(10,7,14,0.96))', border: '1px solid rgba(180,110,40,0.25)', boxShadow: '0 2px 12px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.95)', position: 'relative', minHeight: 90, display: 'flex', alignItems: 'flex-end', padding: '12px 14px' }}>
-                <img src="/microphone final.png" alt="" style={{ position: 'absolute', left: 8, bottom: 10, width: 52, height: 52, objectFit: 'contain', opacity: 0.95 }} />
+                <img src="/microphone final.png" alt="" style={{ position: 'absolute', left: 8, bottom: 10, width: 52, height: 52, objectFit: 'contain', opacity: 0.95, filter: 'drop-shadow(0 0 8px rgba(252,217,160,0.7)) drop-shadow(0 0 18px rgba(180,110,40,0.5))' }} />
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'right', marginLeft: 'auto' }}>
                   <p className="text-sm font-bold" style={{ color: '#fcd9a0', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Aloud</p>
                   <p className="text-[9px]" style={{ color: 'rgba(252,217,160,0.5)' }}>Speak your prayer</p>
