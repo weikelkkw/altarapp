@@ -706,8 +706,22 @@ export default function HomeTab({
                 {checksCompleted}/{dailyItems.length} complete · {walkOpen ? 'tap to close' : 'tap to open'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs transition-transform" style={{ color: `${accentColor}66`, transform: walkOpen ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>▼</span>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all" style={{
+                background: walkOpen ? `${accentColor}22` : `${accentColor}10`,
+                border: `1px solid ${accentColor}${walkOpen ? '55' : '28'}`,
+                minWidth: 52,
+              }}>
+                <span className="text-base font-black transition-transform" style={{
+                  color: accentColor,
+                  display: 'inline-block',
+                  transform: walkOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  lineHeight: 1,
+                }}>▼</span>
+                <span className="text-[8px] font-black uppercase tracking-wide mt-0.5" style={{ color: `${accentColor}99` }}>
+                  {walkOpen ? 'Close' : 'Open'}
+                </span>
+              </div>
               <img src="/compass.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
             </div>
           </div>
