@@ -90,6 +90,11 @@ export default function HomeTab({
   const [gospelCompleted, setGospelCompleted] = useState(false);
   const [devotionalsDone, setDevotionalsDone] = useState(0);
   const [expandedHealthCat, setExpandedHealthCat] = useState<string | null>(null);
+  const [journeyIdx, setJourneyIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setJourneyIdx(i => (i + 1) % 3), 6000);
+    return () => clearInterval(t);
+  }, []);
 
   // Read verse aloud
   const readVerseAloud = useCallback(async () => {
@@ -1130,31 +1135,23 @@ export default function HomeTab({
 
         const journeyImgs = ['/bilbe journey pic 1.png', '/bible journey pic 2.png', '/bible journy pic 3.png'];
         return (
-          <div className="rounded-2xl overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.7)', border: `1px solid ${accentColor}20`, boxShadow: `0 8px 32px rgba(0,0,0,0.6)` }}>
+          <div className="rounded-2xl overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.75)', border: `1px solid ${accentColor}20`, boxShadow: `0 8px 32px rgba(0,0,0,0.6)` }}>
             {/* Crossfading background images */}
-            <style>{`
-              @keyframes journeyGlow { 0%,100% { transform: translateX(-120%); } 50% { transform: translateX(220%); } }
-            `}</style>
             {journeyImgs.map((src, i) => (
-              <div key={src} className="absolute inset-0 pointer-events-none" style={{
-                opacity: 0,
-                animation: `journeyFade${i} 18s ease-in-out infinite`,
-                animationDelay: `${i * 6}s`,
-              }}>
-                <style>{`
-                  @keyframes journeyFade${i} {
-                    0%, ${i === 0 ? 0 : i * 33 - 5}% { opacity: 0; }
-                    ${i * 33 + 5}%, ${i * 33 + 27}% { opacity: 1; }
-                    ${i * 33 + 33}%, 100% { opacity: 0; }
-                  }
-                `}</style>
-                <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', opacity: 0.38 }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.55) 100%)' }} />
-              </div>
+              <img key={src} src={src} alt="" style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center',
+                opacity: i === journeyIdx ? 0.38 : 0,
+                transition: 'opacity 2s ease-in-out',
+                pointerEvents: 'none',
+              }} />
             ))}
+            {/* Dark overlay to keep text readable */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.4) 100%)', zIndex: 1 }} />
             {/* Sweep glow */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(200,220,255,0.07), transparent)', animation: 'journeyGlow 8s ease-in-out infinite', borderRadius: '50%' }} />
+              <style>{`@keyframes journeyGlow { 0%,100% { transform: translateX(-120%); } 50% { transform: translateX(280%); } }`}</style>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '30%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(200,220,255,0.06), transparent)', animation: 'journeyGlow 10s ease-in-out infinite' }} />
             </div>
             {/* Ambient glow */}
             <div className="absolute pointer-events-none" style={{ zIndex: 1, top: '-20%', right: '-10%', width: '50%', height: '50%', borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}08, transparent 70%)` }} />
