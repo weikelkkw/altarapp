@@ -159,7 +159,7 @@ function SectionLabel({ text, accentColor, icon }: { text: string; accentColor: 
   return (
     <div className="flex items-center gap-2.5 mb-3">
       <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-      {icon && (icon.startsWith('/') ? <img src={icon} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} /> : <span className="text-base">{icon}</span>)}
+      {icon && (icon.startsWith('/') ? <img src={icon} alt="" style={{ width: 30, height: 30, objectFit: 'contain' }} /> : <span className="text-base">{icon}</span>)}
       <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{text}</h2>
     </div>
   );
@@ -634,7 +634,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                     className="text-left rounded-xl p-2.5 transition-all active:scale-[0.97] group relative overflow-hidden flex flex-col items-center text-center gap-1"
                     style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
                     <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
-                    {story.icon.startsWith('/') ? <img src={story.icon} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-xl relative">{story.icon}</span>}
+                    {story.icon.startsWith('/') ? <img src={story.icon} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : <span className="text-2xl relative">{story.icon}</span>}
                     <span className="text-[9px] font-semibold leading-tight relative" style={{ color: 'rgba(232,240,236,0.7)' }}>{story.label}</span>
                   </button>
                 ))}
@@ -655,7 +655,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                     {/* Hover glow */}
                     <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
                     <div className="relative flex items-center gap-2.5">
-                      {topic.icon.startsWith('/') ? <img src={topic.icon} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} /> : <span className="text-lg">{topic.icon}</span>}
+                      {topic.icon.startsWith('/') ? <img src={topic.icon} alt="" style={{ width: 30, height: 30, objectFit: 'contain' }} /> : <span className="text-xl">{topic.icon}</span>}
                       <div>
                         <span className="text-xs font-semibold block" style={{ color: 'rgba(232,240,236,0.75)' }}>{topic.label}</span>
                         <span className="text-[9px] block mt-0.5" style={{ color: 'rgba(232,240,236,0.25)' }}>

@@ -859,7 +859,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       transform: active ? 'scale(1.15)' : 'scale(1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {t.img ? <img src={t.img} alt="" style={{ width: 44, height: 44, objectFit: 'contain' }} /> : t.icon}
+                      {t.img ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain' }} /> : t.icon}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',

@@ -169,8 +169,8 @@ export default function HomeTab({
     { id: 'devotional', label: 'Read today\'s devotional', icon: '📖', img: '/read book.png' },
     { id: 'prayer', label: 'Pray', icon: '🙏', img: '/Praying hands.png' },
     { id: 'scripture', label: 'Read Scripture', icon: '✦', img: '/star.png' },
-    { id: 'apply', label: 'Apply what you learned', icon: '🎯' },
-    { id: 'share', label: 'Encourage someone', icon: '💬' },
+    { id: 'apply', label: 'Apply what you learned', icon: '🧭', img: '/compass.png' },
+    { id: 'share', label: 'Encourage someone', icon: '✝', img: '/cross.png' },
   ];
   const checksCompleted = dailyItems.filter(i => dailyChecks[i.id]).length;
   const [toastMsg, setToastMsg] = useState('');
@@ -637,6 +637,7 @@ export default function HomeTab({
                 {checksCompleted}/{dailyItems.length} complete
               </p>
             </div>
+            <img src="/png calendar.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
           </div>
         </div>
         <div className="px-3 py-2">
@@ -654,8 +655,8 @@ export default function HomeTab({
                 {item.label}
               </span>
               {(item as any).img
-                ? <img src={(item as any).img} alt="" style={{ width: 32, height: 32, objectFit: 'contain', opacity: dailyChecks[item.id] ? 0.25 : 0.9, flexShrink: 0 }} />
-                : <span className="text-base shrink-0">{item.icon}</span>
+                ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', opacity: dailyChecks[item.id] ? 0.25 : 0.92, flexShrink: 0 }} />
+                : <span className="text-xl shrink-0">{item.icon}</span>
               }
             </button>
           ))}
@@ -1158,7 +1159,7 @@ export default function HomeTab({
           Prayer:      { img: '/Praying hands.png', emoji: '🙏' },
           Application: { emoji: '☀️' },
         };
-        function renderCatIcon(icon: { img?: string; emoji: string }, size = 18) {
+        function renderCatIcon(icon: { img?: string; emoji: string }, size = 26) {
           return icon.img ? <img src={icon.img} alt="" style={{ width: size, height: size, objectFit: 'contain' }} /> : <span style={{ fontSize: size * 0.85 }}>{icon.emoji}</span>;
         }
         function gradeColor(grade: string, catColor?: string) {
@@ -1176,7 +1177,7 @@ export default function HomeTab({
           if (badge === '🙏') return '/Praying hands.png';
           return null;
         }
-        function renderBadge(badge: string, size = 22) {
+        function renderBadge(badge: string, size = 28) {
           const src = badgeImg(badge);
           return src ? <img src={src} alt="" style={{ width: size, height: size, objectFit: 'contain' }} /> : <span style={{ fontSize: size }}>{badge}</span>;
         }
@@ -1243,7 +1244,7 @@ export default function HomeTab({
                     <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : s.icon === 'read-book' ? <img src="/read book.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{s.icon}</span>}</div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-1">
-                        {s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : s.icon === 'read-book' ? <img src="/read book.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-lg">{s.icon}</span>}
+                        {s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} /> : s.icon === 'read-book' ? <img src="/read book.png" alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} /> : <span className="text-2xl">{s.icon}</span>}
                         <p className="text-2xl font-black" style={{ color: '#fff' }}>{s.val}</p>
                       </div>
                       <p className="text-[10px] font-bold" style={{ color: s.color }}>{s.label}</p>
@@ -1585,11 +1586,11 @@ export default function HomeTab({
           </div>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/read book.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Chapters Read</span>
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/read book.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Chapters Read</span>
               <span className="text-[11px] font-black" style={{ color: '#fff' }}>{chaptersStudied}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/Praying hands.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Prayers</span>
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/Praying hands.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Prayers</span>
               <span className="text-[11px] font-black" style={{ color: '#fff' }}>{totalPrayers}</span>
             </div>
             <div className="flex items-center justify-between">
@@ -1597,7 +1598,7 @@ export default function HomeTab({
               <span className="text-[11px] font-black" style={{ color: '#fff' }}>{streak} day{streak === 1 ? '' : 's'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/star.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Saved Verses</span>
+              <span className="text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(232,240,236,0.45)' }}><img src="/star.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> Saved Verses</span>
               <span className="text-[11px] font-black" style={{ color: '#fff' }}>{highlightCount}</span>
             </div>
             <div className="flex items-center justify-between">
