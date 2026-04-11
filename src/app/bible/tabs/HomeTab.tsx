@@ -530,14 +530,14 @@ export default function HomeTab({
 
       {/* ── Bulletin Board ───────────────────────────────────────────── */}
       <div className="rounded-2xl p-5 relative overflow-hidden" style={{
-        background: 'linear-gradient(160deg, #0e0a04 0%, #080602 40%, #0c0804 70%, #060402 100%)',
-        boxShadow: `0 8px 48px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 2px ${accentColor}22`,
+        background: `rgba(14,10,4,0.45)`,
+        boxShadow: `0 8px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 2px ${accentColor}22`,
         border: `2px solid ${accentColor}30`,
       }}>
         {/* Wood grain texture */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(92deg, transparent, transparent 18px, rgba(255,255,255,0.008) 18px, rgba(255,255,255,0.008) 19px)', zIndex: 0 }} />
         {/* Ambient glow */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}08, transparent 70%)`, zIndex: 0 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}12, transparent 70%)`, zIndex: 0 }} />
 
         {/* Board label */}
         <p className="relative text-center text-[11px] font-black uppercase tracking-[0.3em] mb-5" style={{ color: accentColor, zIndex: 1, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 16px ${accentColor}88, 0 0 32px ${accentColor}33` }}>— This Week's Board —</p>
@@ -549,7 +549,7 @@ export default function HomeTab({
             <div className="relative" style={{ transform: 'rotate(-1.2deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
               {/* Pushpin */}
               <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #f87171, #b91c1c)', boxShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 8px rgba(248,113,113,0.4)', zIndex: 10 }} />
-              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: `linear-gradient(160deg, rgba(8,5,2,0.99), rgba(4,3,1,0.99))`, border: `1px solid ${accentColor}35`, boxShadow: `inset 0 1px 0 ${accentColor}15, 0 2px 20px rgba(0,0,0,0.8)` }}>
+              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: `linear-gradient(160deg, rgba(8,5,2,0.55), rgba(4,3,1,0.55))`, border: `1px solid ${accentColor}35`, boxShadow: `inset 0 1px 0 ${accentColor}15, 0 2px 20px rgba(0,0,0,0.8)` }}>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Message of the Week</p>
                 </div>
@@ -599,7 +599,7 @@ export default function HomeTab({
           <div className="relative" style={{ transform: 'rotate(0.8deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
             {/* Pushpin — accent */}
             <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: `radial-gradient(circle at 38% 35%, ${accentColor}, ${accentColor}99)`, boxShadow: `0 2px 6px rgba(0,0,0,0.6), 0 0 10px ${accentColor}55`, zIndex: 10 }} />
-            <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(6,4,2,0.99), rgba(3,2,1,0.99))', border: `1px solid ${accentColor}28`, boxShadow: `inset 0 1px 0 ${accentColor}10, 0 2px 20px rgba(0,0,0,0.8)` }}>
+            <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(6,4,2,0.55), rgba(3,2,1,0.55))', border: `1px solid ${accentColor}28`, boxShadow: `inset 0 1px 0 ${accentColor}10, 0 2px 20px rgba(0,0,0,0.8)` }}>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</p>
               {dailyVerse?.verses[0] ? (
                 <>
@@ -641,7 +641,7 @@ export default function HomeTab({
             <div className="relative" style={{ transform: 'rotate(-0.6deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
               {/* Pushpin — gold */}
               <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #fbbf24, #b45309)', boxShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(251,191,36,0.5)', zIndex: 10 }} />
-              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(7,5,1,0.99), rgba(4,3,1,0.99))', border: '1px solid rgba(251,191,36,0.22)', boxShadow: 'inset 0 1px 0 rgba(251,191,36,0.08), 0 2px 20px rgba(0,0,0,0.8)' }}>
+              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(7,5,1,0.55), rgba(4,3,1,0.55))', border: '1px solid rgba(251,191,36,0.22)', boxShadow: 'inset 0 1px 0 rgba(251,191,36,0.08), 0 2px 20px rgba(0,0,0,0.8)' }}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: 'rgba(251,191,36,0.8)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</p>
@@ -769,10 +769,22 @@ export default function HomeTab({
           </div>
           <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Morning &amp; Bedtime with God</p>
         </div>
-        <img src="/star.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+        <div className="flex items-center gap-1 shrink-0">
+          <img src="/sun.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.5))' }} />
+          <img src="/moon.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 6px rgba(129,140,248,0.5))' }} />
+        </div>
       </div>
       {/* Single card — photo background */}
-      <div className="rounded-2xl overflow-hidden relative -mt-1" style={{ border: '1px solid rgba(251,146,60,0.2)', minHeight: 130 }}>
+      <style>{`
+        @keyframes encounterPulseGold { 0%,100%{filter:drop-shadow(0 0 10px rgba(251,191,36,0.6)) drop-shadow(0 0 22px rgba(251,191,36,0.25))} 50%{filter:drop-shadow(0 0 18px rgba(251,191,36,0.9)) drop-shadow(0 0 36px rgba(251,191,36,0.45))} }
+        @keyframes encounterPulseBlue { 0%,100%{filter:drop-shadow(0 0 10px rgba(129,140,248,0.6)) drop-shadow(0 0 22px rgba(129,140,248,0.25))} 50%{filter:drop-shadow(0 0 18px rgba(129,140,248,0.9)) drop-shadow(0 0 36px rgba(129,140,248,0.45))} }
+        @keyframes sparkleFloat1 { 0%{opacity:0;transform:translate(0,0) scale(0.5)} 30%{opacity:1} 70%{opacity:0.8} 100%{opacity:0;transform:translate(-8px,-18px) scale(1.2)} }
+        @keyframes sparkleFloat2 { 0%{opacity:0;transform:translate(0,0) scale(0.3)} 25%{opacity:1} 75%{opacity:0.6} 100%{opacity:0;transform:translate(6px,-22px) scale(1)} }
+        @keyframes sparkleFloat3 { 0%{opacity:0;transform:translate(0,0) scale(0.4)} 40%{opacity:0.9} 80%{opacity:0.4} 100%{opacity:0;transform:translate(-4px,-14px) scale(0.8)} }
+        @keyframes shimmerSlide { 0%{transform:translateX(-100%) skewX(-15deg)} 100%{transform:translateX(300%) skewX(-15deg)} }
+        @keyframes borderGlow { 0%,100%{box-shadow:0 0 0 1px rgba(251,146,60,0.2),0 0 16px rgba(251,146,60,0.1)} 50%{box-shadow:0 0 0 1px rgba(251,146,60,0.5),0 0 28px rgba(251,146,60,0.2),0 0 0 1px rgba(129,140,248,0.2)} }
+      `}</style>
+      <div className="rounded-2xl overflow-hidden relative -mt-1" style={{ minHeight: 130, animation: 'borderGlow 4s ease-in-out infinite' }}>
         {/* Sunrise photo background */}
         <img src="/sunrise and evening photo.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'right 30%', pointerEvents: 'none', zIndex: 0 }} />
         {/* Dark overlay for readability */}
@@ -783,11 +795,29 @@ export default function HomeTab({
         <div className="absolute inset-y-0 right-0 pointer-events-none" style={{ width: '50%', background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.22))', zIndex: 2 }} />
         {/* Big center fade */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 40% 100% at 50% 50%, rgba(0,0,0,0.82), transparent 100%)', zIndex: 3 }} />
+        {/* Shimmer sweep */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 4 }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '35%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)', animation: 'shimmerSlide 5s ease-in-out infinite', animationDelay: '1.5s' }} />
+        </div>
+        {/* Morning sparkles */}
+        <div className="absolute pointer-events-none" style={{ left: '14%', top: '18%', zIndex: 5 }}>
+          <span style={{ position:'absolute', width:4, height:4, borderRadius:'50%', background:'#fbbf24', animation:'sparkleFloat1 2.8s ease-in-out infinite', animationDelay:'0s' }} />
+          <span style={{ position:'absolute', left:12, top:8, width:3, height:3, borderRadius:'50%', background:'#fde68a', animation:'sparkleFloat2 3.4s ease-in-out infinite', animationDelay:'0.6s' }} />
+          <span style={{ position:'absolute', left:-8, top:14, width:2, height:2, borderRadius:'50%', background:'#fbbf24', animation:'sparkleFloat3 2.2s ease-in-out infinite', animationDelay:'1.2s' }} />
+          <span style={{ position:'absolute', left:20, top:-4, width:2, height:2, borderRadius:'50%', background:'#fde68a', animation:'sparkleFloat1 3.1s ease-in-out infinite', animationDelay:'1.8s' }} />
+        </div>
+        {/* Bedtime sparkles */}
+        <div className="absolute pointer-events-none" style={{ right: '14%', top: '18%', zIndex: 5 }}>
+          <span style={{ position:'absolute', width:3, height:3, borderRadius:'50%', background:'#818cf8', animation:'sparkleFloat2 3.2s ease-in-out infinite', animationDelay:'0.3s' }} />
+          <span style={{ position:'absolute', left:-10, top:10, width:2, height:2, borderRadius:'50%', background:'#c7d2fe', animation:'sparkleFloat1 2.6s ease-in-out infinite', animationDelay:'1s' }} />
+          <span style={{ position:'absolute', left:14, top:6, width:4, height:4, borderRadius:'50%', background:'#818cf8', animation:'sparkleFloat3 3.6s ease-in-out infinite', animationDelay:'0.7s' }} />
+          <span style={{ position:'absolute', left:4, top:-6, width:2, height:2, borderRadius:'50%', background:'#c7d2fe', animation:'sparkleFloat2 2.9s ease-in-out infinite', animationDelay:'2s' }} />
+        </div>
 
         {/* Two tap zones side by side */}
         <div className="relative flex" style={{ zIndex: 10 }}>
           <button onClick={onOpenMorningEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all active:scale-95">
-            <img src="/sun.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))', transition: 'transform 0.2s' }} />
+            <img src="/sun.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', animation: 'encounterPulseGold 3s ease-in-out infinite', transition: 'transform 0.2s' }} />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Morning</p>
               <p className="text-sm mt-0.5" style={{ color: 'rgba(251,191,36,0.85)', fontFamily: 'var(--font-dancing), cursive', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>Rise in His presence</p>
@@ -796,7 +826,7 @@ export default function HomeTab({
           {/* Center divider */}
           <div className="w-px self-stretch my-4" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent)' }} />
           <button onClick={onOpenBedtimeEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all active:scale-95">
-            <img src="/moon.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(129,140,248,0.6))', transition: 'transform 0.2s' }} />
+            <img src="/moon.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', animation: 'encounterPulseBlue 3.5s ease-in-out infinite', animationDelay: '0.8s', transition: 'transform 0.2s' }} />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bedtime</p>
               <p className="text-sm mt-0.5" style={{ color: 'rgba(129,140,248,0.85)', fontFamily: 'var(--font-dancing), cursive', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>Rest in His peace</p>

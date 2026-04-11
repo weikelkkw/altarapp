@@ -32,7 +32,7 @@ const TAB_CONFIG: { id: Tab; label: string; icon: string; img?: string }[] = [
   { id: 'read',      label: 'Read',   icon: '📖', img: '/read book.png' },
   { id: 'search',    label: 'Search', icon: '🔍', img: '/magifying glass.png' },
   { id: 'study',     label: 'Study',  icon: '✦', img: '/star.png'  },
-  { id: 'community', label: 'Church', icon: '⛪' },
+  { id: 'community', label: 'Church', icon: '⛪', img: '/png_church-removebg-preview.png' },
 ];
 
 function getOrCreateIdentity(): UserIdentity {
@@ -863,20 +863,15 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                   <button key={t.id} onClick={() => handleSetTab(t.id)}
                     className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px]"
                     style={active ? { background: `${theme.accent}18` } : {}}>
-                    <span className="text-lg transition-transform" style={{
-                      transform: active ? 'scale(1.15)' : 'scale(1)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      mixBlendMode: (t.img && t.id !== 'community') ? 'screen' : 'normal',
-                    }}>
-                      {t.img
-                        ? <img src={t.img} alt="" style={{
-                            width: 52, height: 52, objectFit: 'contain',
-                            filter: t.id === 'community'
-                              ? active ? 'url(#removeWhiteBg)' : 'url(#removeWhiteBg) grayscale(1) opacity(0.4)'
-                              : active ? 'none' : 'grayscale(1) opacity(0.4)',
-                          }} />
-                        : <span style={{ filter: active ? 'none' : 'grayscale(1) opacity(0.4)' }}>{t.icon}</span>
-                      }
+                    <span style={{ transform: active ? 'scale(1.15)' : 'scale(1)', display: 'block', mixBlendMode: 'screen' }}>
+                      {t.img ? (
+                        <img src={t.img} alt={t.label} style={{
+                          width: 52, height: 52, objectFit: 'contain', display: 'block',
+                          opacity: active ? 1 : 0.45,
+                        }} />
+                      ) : (
+                        <span className="text-lg" style={{ opacity: active ? 1 : 0.4 }}>{t.icon}</span>
+                      )}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',

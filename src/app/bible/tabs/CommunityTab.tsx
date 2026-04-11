@@ -715,7 +715,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
           </div>
           <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Community · Groups · Prayer</p>
         </div>
-        <img src="/church 2.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', mixBlendMode: 'screen', opacity: 0.9, flexShrink: 0 }} />
+        <img src="/png_church-removebg-preview.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', mixBlendMode: 'screen', opacity: 0.9, flexShrink: 0 }} />
       </div>
 
       {/* Bible Study Mode overlay */}
@@ -730,7 +730,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       {/* Sign in prompt */}
       {!authUser && (
         <div className="rounded-xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}18` }}>
-          <p className="text-2xl mb-3">⛪</p>
+          <img src="/png_church-removebg-preview.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', margin: '0 auto 12px' }} />
           <p className="text-sm font-bold mb-1" style={{ color: 'rgba(232,240,236,0.7)' }}>Welcome to Church</p>
           <p className="text-xs mb-4" style={{ color: 'rgba(232,240,236,0.35)' }}>Sign in to join the community, share prayer requests, and connect with believers.</p>
           {onOpenAuth && (
@@ -1034,7 +1034,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                 </div>
               ) : myGroups.length === 0 ? (
                 <div className="rounded-xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}10` }}>
-                  <p className="text-2xl mb-2">⛪</p>
+                  <img src="/png_church-removebg-preview.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', mixBlendMode: 'screen', margin: '0 auto 8px' }} />
                   <p className="text-sm font-bold mb-1" style={{ color: 'rgba(232,240,236,0.5)' }}>You&apos;re not in any groups yet</p>
                   <p className="text-[10px]" style={{ color: 'rgba(232,240,236,0.25)', fontFamily: 'Georgia, serif' }}>Find a group or create your own to get started.</p>
                 </div>
