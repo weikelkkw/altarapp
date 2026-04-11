@@ -32,7 +32,7 @@ const TAB_CONFIG: { id: Tab; label: string; icon: string; img?: string }[] = [
   { id: 'read',      label: 'Read',   icon: '📖', img: '/read book.png' },
   { id: 'search',    label: 'Search', icon: '🔍', img: '/magifying glass.png' },
   { id: 'study',     label: 'Study',  icon: '✦', img: '/star.png'  },
-  { id: 'community', label: 'Church', icon: '⛪', img: '/church.png' },
+  { id: 'community', label: 'Church', icon: '⛪', img: '/png church.png' },
 ];
 
 function getOrCreateIdentity(): UserIdentity {

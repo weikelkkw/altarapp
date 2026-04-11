@@ -579,10 +579,15 @@ export default function HomeTab({
           {/* Divider + Devotional */}
           {(devotional || devotionalLoading) && (
             <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${accentColor}15` }}>
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
-                <h2 className="text-base font-black uppercase tracking-wider" style={{ color: '#ffffff', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</h2>
+              <div className="relative flex items-center justify-between mb-3" style={{ minHeight: 64 }}>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+                    <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</h2>
+                  </div>
+                  <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>{devotionalRef || 'Daily Word'}</p>
+                </div>
+                <img src="/read book.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
               </div>
               {devotionalLoading && !devotional ? (
                 <div className="flex items-center gap-2">
@@ -621,13 +626,18 @@ export default function HomeTab({
 
       {/* ── Daily Checklist ──────────────────────────────────────────── */}
       <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
-        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${accentColor}08` }}>
-          <div className="flex items-center gap-2">
-            <SectionLabel text="Today's Walk" accentColor={accentColor} icon="✅" />
+        <div className="px-4 py-3" style={{ borderBottom: `1px solid ${accentColor}08` }}>
+          <div className="flex items-center justify-between" style={{ minHeight: 56 }}>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+                <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Walk</h2>
+              </div>
+              <p className="text-[10px] pl-3" style={{ color: checksCompleted === dailyItems.length ? '#22c55e' : `${accentColor}55` }}>
+                {checksCompleted}/{dailyItems.length} complete
+              </p>
+            </div>
           </div>
-          <span className="text-[10px] font-bold" style={{ color: checksCompleted === dailyItems.length ? '#22c55e' : `${accentColor}55` }}>
-            {checksCompleted}/{dailyItems.length}
-          </span>
         </div>
         <div className="px-3 py-2">
           {dailyItems.map(item => (
@@ -660,7 +670,16 @@ export default function HomeTab({
       <GlowDivider accentColor={accentColor} dot />
 
       {/* ── Daily Encounters — Sunrise to Sunset fade ─────────────────── */}
-      <SectionLabel text="Daily Encounters" accentColor={accentColor} icon="star-img" />
+      <div className="relative flex items-center justify-between mb-2" style={{ minHeight: 56 }}>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+            <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Daily Encounters</h2>
+          </div>
+          <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Morning &amp; Bedtime with God</p>
+        </div>
+        <img src="/star.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+      </div>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes staticTwinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 0.6; } }
         @keyframes sunrisePulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.3; } }
@@ -692,10 +711,8 @@ export default function HomeTab({
 
         {/* Two tap zones side by side */}
         <div className="relative z-10 flex">
-          <button onClick={onOpenMorningEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all group">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ background: 'rgba(251,191,36,0.15)', boxShadow: '0 0 16px rgba(251,191,36,0.12)' }}>
-              <span className="text-lg">☀️</span>
-            </div>
+          <button onClick={onOpenMorningEncounter} className="flex-1 py-4 flex flex-col items-center text-center gap-2 transition-all group">
+            <img src="/star.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.5))', transition: 'transform 0.2s' }} className="group-hover:scale-110" />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Morning</p>
               <p className="text-[8px] mt-0.5" style={{ color: 'rgba(251,191,36,0.45)' }}>Start grounded</p>
@@ -703,10 +720,8 @@ export default function HomeTab({
           </button>
           {/* Subtle center divider */}
           <div className="w-px self-stretch my-4" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
-          <button onClick={onOpenBedtimeEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all group">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ background: 'rgba(99,102,241,0.15)', boxShadow: '0 0 16px rgba(99,102,241,0.08)' }}>
-              <span className="text-lg">🌙</span>
-            </div>
+          <button onClick={onOpenBedtimeEncounter} className="flex-1 py-4 flex flex-col items-center text-center gap-2 transition-all group">
+            <img src="/moon.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: '50%', filter: 'drop-shadow(0 0 8px rgba(129,140,248,0.5))', transition: 'transform 0.2s' }} className="group-hover:scale-110" />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Bedtime</p>
               <p className="text-[8px] mt-0.5" style={{ color: 'rgba(129,140,248,0.45)' }}>Rest in His Word</p>
@@ -1146,8 +1161,13 @@ export default function HomeTab({
         function renderCatIcon(icon: { img?: string; emoji: string }, size = 18) {
           return icon.img ? <img src={icon.img} alt="" style={{ width: size, height: size, objectFit: 'contain' }} /> : <span style={{ fontSize: size * 0.85 }}>{icon.emoji}</span>;
         }
-        function gradeColor(grade: string) {
-          return grade === 'A+' || grade === 'A' ? '#22c55e' : grade === 'B' ? '#60a5fa' : grade === 'C' ? '#fbbf24' : grade === 'D' ? '#fb923c' : '#ef4444';
+        function gradeColor(grade: string, catColor?: string) {
+          if (grade === 'A+' || grade === 'A') return '#22c55e';
+          if (grade === 'B') return '#60a5fa';
+          if (grade === 'C') return '#fbbf24';
+          if (grade === 'D') return '#fb923c';
+          // F: use category color at lower opacity so it's distinct but not all the same red
+          return catColor ? catColor : '#ef4444';
         }
         const overallGrade = gpa >= 4.0 ? 'A+' : gpa >= 3.5 ? 'A' : gpa >= 3.0 ? 'B' : gpa >= 2.0 ? 'C' : gpa >= 1.0 ? 'D' : 'F';
         const overallGradeColor = gradeColor(overallGrade);
@@ -1292,7 +1312,7 @@ export default function HomeTab({
                   <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Spiritual Health</h2>
                   <div className="ml-auto flex items-center gap-1.5">
                     <span suppressHydrationWarning className="text-lg font-black" style={{ color: overallGradeColor, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 16px ${overallGradeColor}88` }}>{overallGrade}</span>
-                    <span suppressHydrationWarning className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${overallGradeColor}18`, color: `${overallGradeColor}99` }}>GPA {gpa.toFixed(1)}</span>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${overallGradeColor}18`, color: `${overallGradeColor}66` }}>Overall</span>
                   </div>
                 </div>
 
@@ -1301,7 +1321,7 @@ export default function HomeTab({
                   {catScores.map(c => {
                     const color = catColors[c.cat] || accentColor;
                     const icon = catIcons[c.cat] || { emoji: '•' };
-                    const gc = gradeColor(c.grade);
+                    const gc = gradeColor(c.grade, color);
                     const isExpanded = expandedHealthCat === c.cat;
                     return (
                       <button key={c.cat}
@@ -1309,29 +1329,30 @@ export default function HomeTab({
                         className="rounded-xl relative overflow-hidden transition-all active:scale-95 text-center"
                         style={{
                           background: 'linear-gradient(160deg, rgba(3,3,8,0.98), rgba(7,5,14,0.96))',
-                          border: `1px solid ${isExpanded ? color + '65' : color + '28'}`,
+                          border: `1px solid ${isExpanded ? color + '70' : color + '38'}`,
                           boxShadow: isExpanded
-                            ? `0 0 18px ${gc}28, 0 0 0 1px rgba(0,0,0,0.95), inset 0 1px 0 ${color}12`
+                            ? `0 0 20px ${gc}30, 0 0 0 1px rgba(0,0,0,0.95), inset 0 1px 0 ${color}14`
                             : `0 2px 14px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.95)`,
-                          padding: '10px 6px 10px 6px',
+                          padding: '12px 6px 10px 6px',
                         }}>
-                        {/* Icon + category */}
-                        <div className="flex items-center justify-center gap-1 mb-1.5">
-                          {renderCatIcon(icon, 14)}
-                          <p suppressHydrationWarning className="text-[8px] font-black uppercase tracking-wider" style={{ color: 'rgba(232,240,236,0.45)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
+                        {/* Icon */}
+                        <div className="flex items-center justify-center mb-1.5">
+                          {renderCatIcon(icon, 22)}
                         </div>
                         {/* BIG GRADE */}
-                        <p suppressHydrationWarning className="font-black leading-none mb-2" style={{
-                          fontSize: c.grade === 'A+' ? 28 : 32,
+                        <p suppressHydrationWarning className="font-black leading-none mb-1.5" style={{
+                          fontSize: c.grade === 'A+' ? 26 : 30,
                           color: gc,
                           fontFamily: 'Montserrat, system-ui, sans-serif',
-                          textShadow: `0 0 24px ${gc}77, 0 0 48px ${gc}22`,
+                          textShadow: `0 0 20px ${gc}88, 0 0 40px ${gc}33`,
                         }}>{c.grade}</p>
+                        {/* Category name */}
+                        <p suppressHydrationWarning className="text-[8px] font-black uppercase tracking-wide mb-2" style={{ color: `${color}99`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
                         {/* Progress bar */}
-                        <div className="rounded-full overflow-hidden mx-1 mb-1.5" style={{ height: 3, background: `${color}18` }}>
-                          <div suppressHydrationWarning className="h-full rounded-full" style={{ width: `${Math.max((c.days / 30) * 100, 4)}%`, background: `linear-gradient(90deg, ${color}55, ${color})` }} />
+                        <div className="rounded-full overflow-hidden mx-1 mb-1" style={{ height: 3, background: `${color}18` }}>
+                          <div suppressHydrationWarning className="h-full rounded-full" style={{ width: `${Math.max((c.days / 30) * 100, 4)}%`, background: `linear-gradient(90deg, ${gc}55, ${gc})` }} />
                         </div>
-                        <p suppressHydrationWarning className="text-[8px]" style={{ color: 'rgba(232,240,236,0.22)' }}>{c.days}/30d</p>
+                        <p suppressHydrationWarning className="text-[8px]" style={{ color: 'rgba(232,240,236,0.2)' }}>{c.days}/30d</p>
                       </button>
                     );
                   })}
@@ -1352,7 +1373,7 @@ export default function HomeTab({
                   const color = catColors[c.cat] || accentColor;
                   const icon = catIcons[c.cat] || { emoji: '•' };
                   const detail = catDetails[c.cat];
-                  const gc = gradeColor(c.grade);
+                  const gc = gradeColor(c.grade, color);
                   const isF = c.grade === 'F';
                   const nextGrade = c.grade === 'F' ? 'D' : c.grade === 'D' ? 'C' : c.grade === 'C' ? 'B' : c.grade === 'B' ? 'A' : c.grade === 'A' ? 'A+' : null;
                   const daysNeeded = nextGrade === 'D' ? 6 : nextGrade === 'C' ? 12 : nextGrade === 'B' ? 18 : nextGrade === 'A' ? 22 : nextGrade === 'A+' ? 27 : null;
