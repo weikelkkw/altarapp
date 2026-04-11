@@ -681,51 +681,37 @@ export default function HomeTab({
         </div>
         <img src="/star.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes staticTwinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 0.6; } }
-        @keyframes sunrisePulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.3; } }
-        @keyframes shimmerSweep { 0% { left: -30%; opacity: 0; } 20% { opacity: 0.2; } 80% { opacity: 0.2; } 100% { left: 130%; opacity: 0; } }
-      `}} />
-      {/* Single card — sunrise fading to sunset */}
-      <div className="rounded-2xl overflow-hidden relative -mt-1" style={{ border: '1px solid rgba(251,146,60,0.15)', minHeight: 130 }}>
-        {/* Full gradient: warm sunrise left → sunset middle → night sky right */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, #2d1f06 0%, #4a2c0a 20%, #3d1a2e 45%, #1a1040 65%, #0a0a20 100%)' }} />
-        {/* Sun glow on left */}
-        <div className="absolute pointer-events-none" style={{ left: '-5%', bottom: '-20%', width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(251,191,36,0.2), transparent 65%)', animation: 'sunrisePulse 5s ease-in-out infinite' }} />
-        {/* Horizon line */}
-        <div className="absolute pointer-events-none" style={{ bottom: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, rgba(251,191,36,0.2), rgba(251,146,60,0.15), rgba(244,114,182,0.1), rgba(129,140,248,0.08), transparent)' }} />
-        {/* Shimmer sweep */}
-        <div className="absolute pointer-events-none" style={{ top: 0, width: '20%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)', animation: 'shimmerSweep 6s ease-in-out infinite', transform: 'skewX(-15deg)' }} />
-        {/* Stars on the right side only */}
-        {[...Array(20)].map((_, i) => (
-          <div key={i} className="absolute rounded-full pointer-events-none"
-            style={{
-              left: `${55 + ((i * 41 + 7) % 42)}%`,
-              top: `${((i * 53 + 11) % 85) + 5}%`,
-              width: i % 5 === 0 ? 1.8 : 1, height: i % 5 === 0 ? 1.8 : 1,
-              background: ['#e2e8f0', '#c4b5fd', '#93c5fd'][i % 3],
-              animation: `staticTwinkle ${2 + (i % 4)}s ease-in-out ${i * 0.3}s infinite`,
-            }} />
-        ))}
-        {/* Moon on far right */}
-        <div className="absolute rounded-full pointer-events-none" style={{ top: 12, right: '8%', width: 12, height: 12, background: 'rgba(226,232,240,0.12)', boxShadow: '0 0 10px rgba(226,232,240,0.08)' }} />
+      {/* Single card — photo background */}
+      <div className="rounded-2xl overflow-hidden relative -mt-1" style={{ border: '1px solid rgba(251,146,60,0.2)', minHeight: 130 }}>
+        {/* Sunrise photo background */}
+        <img src="/sunrise and evening photo.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%', pointerEvents: 'none', zIndex: 0 }} />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.6) 100%)', zIndex: 1 }} />
+        {/* Left warm tint (morning) */}
+        <div className="absolute inset-y-0 left-0 pointer-events-none" style={{ width: '50%', background: 'linear-gradient(90deg, rgba(251,146,36,0.18), transparent)', zIndex: 2 }} />
+        {/* Right cool tint (bedtime) */}
+        <div className="absolute inset-y-0 right-0 pointer-events-none" style={{ width: '50%', background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.22))', zIndex: 2 }} />
 
         {/* Two tap zones side by side */}
-        <div className="relative z-10 flex">
-          <button onClick={onOpenMorningEncounter} className="flex-1 py-4 flex flex-col items-center text-center gap-2 transition-all group">
-            <img src="/sun.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', mixBlendMode: 'screen', transition: 'transform 0.2s' }} className="group-hover:scale-110" />
+        <div className="relative flex" style={{ zIndex: 10 }}>
+          <button onClick={onOpenMorningEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all active:scale-95">
+            <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(251,191,36,0.4)', boxShadow: '0 0 16px rgba(251,146,36,0.3)' }}>
+              <img src="/sunrise and evening photo.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 75%' }} />
+            </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Morning</p>
-              <p className="text-[8px] mt-0.5" style={{ color: 'rgba(251,191,36,0.45)' }}>Start grounded</p>
+              <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Morning</p>
+              <p className="text-[8px] mt-0.5" style={{ color: 'rgba(251,191,36,0.6)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Start grounded</p>
             </div>
           </button>
-          {/* Subtle center divider */}
-          <div className="w-px self-stretch my-4" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
-          <button onClick={onOpenBedtimeEncounter} className="flex-1 py-4 flex flex-col items-center text-center gap-2 transition-all group">
-            <img src="/moon.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: '50%', filter: 'drop-shadow(0 0 8px rgba(129,140,248,0.5))', transition: 'transform 0.2s' }} className="group-hover:scale-110" />
+          {/* Center divider */}
+          <div className="w-px self-stretch my-4" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent)' }} />
+          <button onClick={onOpenBedtimeEncounter} className="flex-1 py-5 flex flex-col items-center text-center gap-2 transition-all active:scale-95">
+            <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', border: '1.5px solid rgba(129,140,248,0.4)', boxShadow: '0 0 16px rgba(99,102,241,0.3)' }}>
+              <img src="/sunrise and evening photo.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', filter: 'hue-rotate(180deg) brightness(0.75) saturate(1.5)' }} />
+            </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Bedtime</p>
-              <p className="text-[8px] mt-0.5" style={{ color: 'rgba(129,140,248,0.45)' }}>Rest in His Word</p>
+              <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bedtime</p>
+              <p className="text-[8px] mt-0.5" style={{ color: 'rgba(129,140,248,0.6)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Rest in His Word</p>
             </div>
           </button>
         </div>
