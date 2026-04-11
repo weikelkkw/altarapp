@@ -632,7 +632,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
     { id: 'terms' as const, label: 'Biblical Words', icon: '📖' },
     { id: 'sermons' as const, label: 'Media', icon: '🎬' },
     { id: 'maps' as const, label: 'Timeline', icon: '🕰' },
-    { id: 'ancient' as const, label: 'Library', icon: '📜', minLevel: 'expert' as const },
+    { id: 'ancient' as const, label: 'Library', icon: '📜' },
     { id: 'religions' as const, label: 'Religions', icon: '🌍' },
   ] as (Item & { id: typeof mode })[]).filter(lvl);
 
