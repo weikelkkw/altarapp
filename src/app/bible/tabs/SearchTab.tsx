@@ -514,7 +514,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
             <div className="flex flex-col items-center justify-center flex-1 gap-4">
               <div className="relative">
                 <div className="w-12 h-12 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}22`, borderTopColor: accentColor }} />
-                <div className="absolute inset-0 flex items-center justify-center"><img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /></div>
+                <div className="absolute inset-0 flex items-center justify-center"><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /></div>
               </div>
               <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>Preparing study…</p>
             </div>
@@ -757,7 +757,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                     onClick={() => doStudy(searchQuery, `Question: "${searchQuery}"\n\nAnswer context:\n${askText}`)}
                     className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
                     style={{ background: `${accentColor}10`, color: accentColor, border: `1px solid ${accentColor}20` }}>
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /> Go Deeper on This Topic</span>
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /> Go Deeper on This Topic</span>
                   </button>
                 </div>
               )}
@@ -825,7 +825,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                   )}
                   className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
                   style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}22` }}>
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /> Deep Study This Passage</span>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /> Deep Study This Passage</span>
                 </button>
               </div>
             </div>
@@ -934,7 +934,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                     )}
                     className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
                     style={{ background: `linear-gradient(135deg, ${accentColor}18, ${accentColor}0c)`, color: accentColor, border: `1px solid ${accentColor}30` }}>
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /> Deep Study This Passage</span>
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /> Deep Study This Passage</span>
                   </button>
                 </div>
               )}
@@ -992,7 +992,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                   )}
                   className="w-full mb-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98]"
                   style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}25` }}>
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /> Study These {aiResults.length} Verses Together</span>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /> Study These {aiResults.length} Verses Together</span>
                 </button>
               )}
 
@@ -1041,7 +1041,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                               onClick={() => doStudy(v.reference, `${v.reference}: "${v.text}"\n\nContext: This verse came up in a search for "${searchQuery}".`)}
                               className="w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-[0.98] mt-3"
                               style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}22` }}>
-                              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /> Deep Study This Verse</span>
+                              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /> Deep Study This Verse</span>
                             </button>
                           </div>
                           <div className="px-5 py-3 flex items-center gap-3" style={{ borderTop: `1px solid ${accentColor}08` }}>

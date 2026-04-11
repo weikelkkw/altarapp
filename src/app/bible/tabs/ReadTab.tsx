@@ -2323,7 +2323,7 @@ export default function ReadTab({
             <button onClick={() => setDeepStudyOpen(true)}
               className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
               style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}20`, color: accentColor }}>
-              <img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} />
+              <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
               <span>Overview</span>
             </button>
           )}
@@ -2396,7 +2396,7 @@ export default function ReadTab({
                   className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-black uppercase tracking-widest text-[11px] transition-all active:scale-95"
                   style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}0d)`, border: `1px solid ${accentColor}33`, color: accentColor }}
                 >
-                  <img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} />
+                  <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
                   <span>Deep Study</span>
                   <span style={{ opacity: 0.6 }}>→</span>
                 </button>
@@ -3268,7 +3268,7 @@ export default function ReadTab({
                 disabled={selectedVerses.size === 0}
                 className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold disabled:opacity-40"
                 style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>
-                <img src="/read book.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} /><span>Study Together</span>
+                <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} /><span>Study Together</span>
               </button>
               <button
                 onClick={() => {
