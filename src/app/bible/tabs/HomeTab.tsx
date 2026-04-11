@@ -479,148 +479,149 @@ export default function HomeTab({
         @keyframes dotPulseGlow { 0%, 100% { opacity: 0.8; box-shadow: 0 0 8px ${accentColor}88, 0 0 16px ${accentColor}44; } 50% { opacity: 1; box-shadow: 0 0 12px ${accentColor}aa, 0 0 24px ${accentColor}66; } }
       ` }} />
 
-      {/* ── Hero: Your Word Today ────────────────────────────────────── */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: `linear-gradient(135deg, ${accentColor}12, ${accentColor}06)`, border: `1px solid ${accentColor}22`, boxShadow: '0 8px 40px rgba(0,0,0,0.4)' }}>
-        <div className="px-6 py-6">
-          {/* Section header */}
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: accentColor }} />
-            <h2 className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Message of the Week</h2>
-          </div>
+      {/* ── Bulletin Board ───────────────────────────────────────────── */}
+      <div className="rounded-2xl p-4 relative overflow-hidden" style={{
+        background: 'linear-gradient(160deg, #b8824a 0%, #9a6530 25%, #c09050 50%, #8a5820 75%, #b07840 100%)',
+        boxShadow: '0 6px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+        border: '3px solid #6a3e18',
+      }}>
+        {/* Cork grain texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 12px)', zIndex: 0 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.02) 8px, rgba(255,255,255,0.02) 16px)', zIndex: 0 }} />
 
-          {/* Weekly identity declaration — expandable */}
+        {/* Board label */}
+        <p className="relative text-center text-[9px] font-black uppercase tracking-[0.3em] mb-4" style={{ color: 'rgba(60,30,10,0.55)', zIndex: 1 }}>— This Week's Board —</p>
+
+        <div className="relative flex flex-col gap-5" style={{ zIndex: 1 }}>
+
+          {/* ── Note 1: Message of the Week ── */}
           {identityStatement && (
-            <div className="mb-4">
-              <p className="text-lg font-black leading-snug" style={{ color: '#ffffff', fontFamily: 'Montserrat, system-ui, sans-serif', letterSpacing: '-0.01em' }}>
-                {cleanMarkdown(identityStatement)}
-              </p>
-              <button onClick={() => setShowIdentityExpand(v => !v)}
-                className="mt-2 text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: `${accentColor}88` }}>
-                {showIdentityExpand ? '▲ Less' : '▼ What does this mean?'}
-              </button>
-              {showIdentityExpand && (
-                <div className="mt-3 rounded-xl p-4" style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}15` }}>
-                  {!identityExplain ? (
-                    (() => {
-                      // Fetch explanation
-                      fetch('/api/altar/explain', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ reference: 'Identity', verseText: identityStatement, translation: 'KJV',
-                          question: `In 2-3 sentences, explain what it means that "${identityStatement}" according to Scripture. Give 2 supporting verse references. Be warm and personal. No markdown or asterisks.` }),
-                      }).then(async r => {
-                        const reader = r.body?.getReader(); if (!reader) return;
-                        const d = new TextDecoder(); let t = '';
-                        while (true) { const { done, value } = await reader.read(); if (done) break; t += d.decode(value, { stream: true }); setIdentityExplain(t); }
-                      }).catch(() => setIdentityExplain('God declares this over you. Meditate on it today.'));
-                      return (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                          <span className="text-xs" style={{ color: 'rgba(232,240,236,0.35)' }}>Reflecting…</span>
-                        </div>
-                      );
-                    })()
-                  ) : (
-                    <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.6)', fontFamily: 'Georgia, serif' }}>
-                      {cleanMarkdown(identityExplain)}
-                    </p>
-                  )}
-                </div>
-              )}
+            <div className="relative" style={{ transform: 'rotate(-1.2deg)', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.45))' }}>
+              {/* Pushpin */}
+              <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #f87171, #b91c1c)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 }} />
+              <div className="rounded-sm px-5 pt-6 pb-4" style={{ background: 'linear-gradient(175deg, #fefaf2, #f5ecd8)', borderTop: '1px solid rgba(255,255,255,0.9)' }}>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: '#8a6030', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Message of the Week</p>
+                <p className="text-base font-black leading-snug mb-2" style={{ color: '#1a0e04', fontFamily: 'Georgia, serif' }}>
+                  {cleanMarkdown(identityStatement)}
+                </p>
+                <button onClick={() => setShowIdentityExpand(v => !v)}
+                  className="text-[10px] font-bold uppercase tracking-wider"
+                  style={{ color: '#8a5020' }}>
+                  {showIdentityExpand ? '▲ less' : '▼ what does this mean?'}
+                </button>
+                {showIdentityExpand && (
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px dashed rgba(120,80,20,0.3)' }}>
+                    {!identityExplain ? (
+                      (() => {
+                        fetch('/api/altar/explain', {
+                          method: 'POST', headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ reference: 'Identity', verseText: identityStatement, translation: 'KJV',
+                            question: `In 2-3 sentences, explain what it means that "${identityStatement}" according to Scripture. Give 2 supporting verse references. Be warm and personal. No markdown or asterisks.` }),
+                        }).then(async r => {
+                          const reader = r.body?.getReader(); if (!reader) return;
+                          const d = new TextDecoder(); let t = '';
+                          while (true) { const { done, value } = await reader.read(); if (done) break; t += d.decode(value, { stream: true }); setIdentityExplain(t); }
+                        }).catch(() => setIdentityExplain('God declares this over you. Meditate on it today.'));
+                        return <p className="text-xs italic" style={{ color: '#8a6030' }}>Reflecting…</p>;
+                      })()
+                    ) : (
+                      <p className="text-xs leading-relaxed italic" style={{ color: '#3a2010', fontFamily: 'Georgia, serif' }}>
+                        {cleanMarkdown(identityExplain)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Your Word Today label */}
-          <div className="flex items-center gap-2 mt-5 mb-3" style={{ borderTop: `1px solid ${accentColor}15`, paddingTop: 16 }}>
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColor, opacity: 0.7 }} />
-            <h3 className="text-xs font-black uppercase tracking-[0.15em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</h3>
+          {/* ── Note 2: Your Word Today ── */}
+          <div className="relative" style={{ transform: 'rotate(0.8deg)', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.4))' }}>
+            {/* Pushpin — blue */}
+            <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #60a5fa, #1d4ed8)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 }} />
+            <div className="rounded-sm px-5 pt-6 pb-4" style={{ background: 'linear-gradient(175deg, #f8fbff, #edf4ff)' }}>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: '#2563eb', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</p>
+              {dailyVerse?.verses[0] ? (
+                <>
+                  <p className="text-sm leading-relaxed mb-2 italic" style={{ color: '#1a2a3a', fontFamily: 'Georgia, serif' }}>
+                    &ldquo;{dailyVerse.verses[0].text}&rdquo;
+                  </p>
+                  <p className="text-xs font-bold mb-3" style={{ color: '#2563eb' }}>{dailyVerse.reference}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {onStudyVerse && (
+                      <button onClick={() => {
+                        const ref = dailyVerse.reference;
+                        const match = ref.match(/^(.+?)\s+(\d+)/);
+                        if (match) onStudyVerse(match[1], parseInt(match[2]));
+                      }}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold"
+                        style={{ background: 'rgba(37,99,235,0.1)', color: '#1d4ed8', border: '1px solid rgba(37,99,235,0.25)' }}>
+                        <img src="/star.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Study
+                      </button>
+                    )}
+                    <button onClick={readVerseAloud} disabled={verseAudioLoading}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold"
+                      style={versePlaying
+                        ? { background: 'rgba(37,99,235,0.18)', color: '#1d4ed8', border: '1px solid rgba(37,99,235,0.4)' }
+                        : { background: 'rgba(37,99,235,0.08)', color: '#1d4ed8', border: '1px solid rgba(37,99,235,0.2)' }}>
+                      {verseAudioLoading ? <span className="inline-block w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" /> : versePlaying ? '■' : '▶'}
+                      {verseAudioLoading ? ' Loading…' : versePlaying ? ' Stop' : ' Read Aloud'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="h-10 flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: 'rgba(37,99,235,0.2)', borderTopColor: '#2563eb' }} />
+                  <span className="text-xs italic" style={{ color: '#2563eb88' }}>Loading verse…</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Daily verse */}
-          {dailyVerse?.verses[0] ? (
-            <>
-              <p className="text-base leading-relaxed mb-2 italic" style={{ color: 'rgba(240,248,244,0.8)', fontFamily: 'Georgia, serif' }}>
-                &ldquo;{dailyVerse.verses[0].text}&rdquo;
-              </p>
-              <div className="flex items-center gap-3 flex-wrap">
-                <p className="text-xs font-semibold" style={{ color: accentColor }}>{dailyVerse.reference}</p>
-                {onStudyVerse && (
-                  <button onClick={() => {
-                    // Parse reference to get book and chapter
-                    const ref = dailyVerse.reference;
-                    const match = ref.match(/^(.+?)\s+(\d+)/);
-                    if (match) onStudyVerse(match[1], parseInt(match[2]));
-                  }}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
-                    style={{ background: `${accentColor}14`, color: accentColor, border: `1px solid ${accentColor}22` }}>
-                    <img src="/star.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} /> Study This Verse
-                  </button>
+          {/* ── Note 3: Today's Devotional ── */}
+          {(devotional || devotionalLoading) && (
+            <div className="relative" style={{ transform: 'rotate(-0.6deg)', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.4))' }}>
+              {/* Pushpin — green */}
+              <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #4ade80, #15803d)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 }} />
+              <div className="rounded-sm px-5 pt-6 pb-4" style={{ background: 'linear-gradient(175deg, #f6fef9, #ecfdf5)' }}>
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: '#15803d', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</p>
+                    <p className="text-[9px] mt-0.5" style={{ color: '#15803d88' }}>{devotionalRef || 'Daily Word'}</p>
+                  </div>
+                  <img src="/read book.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', opacity: 0.7, flexShrink: 0 }} />
+                </div>
+                {devotionalLoading && !devotional ? (
+                  <p className="text-xs italic" style={{ color: '#15803d88' }}>Preparing your devotional…</p>
+                ) : (
+                  <>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap mb-3" style={{ color: '#0f2a1a', fontFamily: 'Georgia, serif' }}>
+                      {cleanMarkdown(devotional)}
+                      {devotionalLoading && <span className="inline-block w-1 h-3.5 ml-0.5 animate-pulse" style={{ background: '#15803d', borderRadius: 1 }} />}
+                    </p>
+                    {!devotionalLoading && devotional && (
+                      <button onClick={() => {
+                        const key = `trace-devotional-done-${new Date().toDateString()}`;
+                        localStorage.setItem(key, 'true');
+                        const count = parseInt(localStorage.getItem('trace-devotional-count') || '0');
+                        localStorage.setItem('trace-devotional-count', String(count + 1));
+                        setDevotionalCompleted(true);
+                        completeDailyCheck('devotional');
+                      }}
+                        disabled={devotionalCompleted}
+                        className="w-full py-2 rounded text-xs font-bold transition-all"
+                        style={devotionalCompleted
+                          ? { background: 'rgba(21,128,61,0.12)', color: '#15803d', border: '1px solid rgba(21,128,61,0.3)' }
+                          : { background: 'linear-gradient(135deg, #15803d, #16a34a)', color: '#fff', boxShadow: '0 2px 6px rgba(21,128,61,0.3)' }}>
+                        {devotionalCompleted ? '✓ Devotional Complete' : 'Mark as Read'}
+                      </button>
+                    )}
+                  </>
                 )}
-                <button
-                  onClick={readVerseAloud}
-                  disabled={verseAudioLoading}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
-                  style={versePlaying
-                    ? { background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}55` }
-                    : { background: `${accentColor}0d`, color: accentColor, border: `1px solid ${accentColor}22` }}>
-                  {verseAudioLoading ? (
-                    <span className="inline-block w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" />
-                  ) : versePlaying ? '■' : '▶'}
-                  {verseAudioLoading ? ' Loading…' : versePlaying ? ' Stop' : ' Read Aloud'}
-                </button>
               </div>
-            </>
-          ) : (
-            <div className="h-12 flex items-center">
-              <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
             </div>
           )}
 
-          {/* Divider + Devotional */}
-          {(devotional || devotionalLoading) && (
-            <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${accentColor}15` }}>
-              <div className="relative flex items-center justify-between mb-3" style={{ minHeight: 72 }}>
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                    <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</h2>
-                  </div>
-                  <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>{devotionalRef || 'Daily Word'}</p>
-                </div>
-                <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
-              </div>
-              {devotionalLoading && !devotional ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-                  <span className="text-xs" style={{ color: 'rgba(232,240,236,0.35)' }}>Preparing your devotional…</span>
-                </div>
-              ) : (
-                <>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(232,240,236,0.65)', fontFamily: 'Georgia, serif' }}>
-                    {cleanMarkdown(devotional)}
-                    {devotionalLoading && <span className="inline-block w-1.5 h-3.5 ml-0.5 animate-pulse" style={{ background: accentColor, borderRadius: 1 }} />}
-                  </p>
-                  {!devotionalLoading && devotional && (
-                    <button onClick={() => {
-                      const key = `trace-devotional-done-${new Date().toDateString()}`;
-                      localStorage.setItem(key, 'true');
-                      const count = parseInt(localStorage.getItem('trace-devotional-count') || '0');
-                      localStorage.setItem('trace-devotional-count', String(count + 1));
-                      setDevotionalCompleted(true);
-                      completeDailyCheck('devotional');
-                    }}
-                      disabled={devotionalCompleted}
-                      className="mt-3 w-full py-2.5 rounded-xl text-xs font-bold transition-all"
-                      style={devotionalCompleted
-                        ? { background: `${accentColor}14`, color: accentColor, border: `1px solid ${accentColor}22` }
-                        : { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 2px 8px ${accentColor}33` }}>
-                      {devotionalCompleted ? '✓ Devotional Complete' : 'Mark as Read'}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
