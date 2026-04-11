@@ -2319,14 +2319,6 @@ export default function ReadTab({
               <path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          {BOOK_DEEP_STUDY[selectedBook.name] && (
-            <button onClick={() => setDeepStudyOpen(true)}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95"
-              style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}20`, color: accentColor }}>
-              <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
-              <span>Overview</span>
-            </button>
-          )}
         </div>
       </div>
 
