@@ -528,27 +528,27 @@ export default function HomeTab({
       ` }} />
 
       {/* ── Bulletin Board ───────────────────────────────────────────── */}
-      <div className="rounded-2xl p-4 relative overflow-hidden" style={{
-        background: 'linear-gradient(160deg, #1c1208 0%, #140e06 40%, #1a1008 70%, #100c04 100%)',
-        boxShadow: `0 6px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 2px ${accentColor}22`,
+      <div className="rounded-2xl p-5 relative overflow-hidden" style={{
+        background: 'linear-gradient(160deg, #0e0a04 0%, #080602 40%, #0c0804 70%, #060402 100%)',
+        boxShadow: `0 8px 48px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 2px ${accentColor}22`,
         border: `2px solid ${accentColor}30`,
       }}>
         {/* Wood grain texture */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(92deg, transparent, transparent 18px, rgba(255,255,255,0.012) 18px, rgba(255,255,255,0.012) 19px)', zIndex: 0 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(92deg, transparent, transparent 18px, rgba(255,255,255,0.008) 18px, rgba(255,255,255,0.008) 19px)', zIndex: 0 }} />
         {/* Ambient glow */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}10, transparent 70%)`, zIndex: 0 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}08, transparent 70%)`, zIndex: 0 }} />
 
         {/* Board label */}
-        <p className="relative text-center text-[9px] font-black uppercase tracking-[0.3em] mb-4" style={{ color: `${accentColor}55`, zIndex: 1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>— This Week's Board —</p>
+        <p className="relative text-center text-[9px] font-black uppercase tracking-[0.3em] mb-5" style={{ color: `${accentColor}55`, zIndex: 1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>— This Week's Board —</p>
 
-        <div className="relative flex flex-col gap-5" style={{ zIndex: 1 }}>
+        <div className="relative flex flex-col gap-6" style={{ zIndex: 1 }}>
 
           {/* ── Note 1: Message of the Week ── */}
           {identityStatement && (
             <div className="relative" style={{ transform: 'rotate(-1.2deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
               {/* Pushpin */}
               <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #f87171, #b91c1c)', boxShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 8px rgba(248,113,113,0.4)', zIndex: 10 }} />
-              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: `linear-gradient(160deg, rgba(28,18,8,0.98), rgba(20,12,4,0.96))`, border: `1px solid ${accentColor}35`, boxShadow: `inset 0 1px 0 ${accentColor}15` }}>
+              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: `linear-gradient(160deg, rgba(8,5,2,0.99), rgba(4,3,1,0.99))`, border: `1px solid ${accentColor}35`, boxShadow: `inset 0 1px 0 ${accentColor}15, 0 2px 20px rgba(0,0,0,0.8)` }}>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Message of the Week</p>
                 </div>
@@ -598,7 +598,7 @@ export default function HomeTab({
           <div className="relative" style={{ transform: 'rotate(0.8deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
             {/* Pushpin — accent */}
             <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: `radial-gradient(circle at 38% 35%, ${accentColor}, ${accentColor}99)`, boxShadow: `0 2px 6px rgba(0,0,0,0.6), 0 0 10px ${accentColor}55`, zIndex: 10 }} />
-            <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(22,16,6,0.98), rgba(16,12,4,0.96))', border: `1px solid ${accentColor}28`, boxShadow: `inset 0 1px 0 ${accentColor}10` }}>
+            <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(6,4,2,0.99), rgba(3,2,1,0.99))', border: `1px solid ${accentColor}28`, boxShadow: `inset 0 1px 0 ${accentColor}10, 0 2px 20px rgba(0,0,0,0.8)` }}>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</p>
               {dailyVerse?.verses[0] ? (
                 <>
@@ -640,7 +640,7 @@ export default function HomeTab({
             <div className="relative" style={{ transform: 'rotate(-0.6deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
               {/* Pushpin — gold */}
               <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #fbbf24, #b45309)', boxShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(251,191,36,0.5)', zIndex: 10 }} />
-              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(24,16,4,0.98), rgba(18,12,2,0.96))', border: '1px solid rgba(251,191,36,0.22)', boxShadow: 'inset 0 1px 0 rgba(251,191,36,0.08)' }}>
+              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(7,5,1,0.99), rgba(4,3,1,0.99))', border: '1px solid rgba(251,191,36,0.22)', boxShadow: 'inset 0 1px 0 rgba(251,191,36,0.08), 0 2px 20px rgba(0,0,0,0.8)' }}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: 'rgba(251,191,36,0.8)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</p>
