@@ -92,7 +92,7 @@ export default function HomeTab({
   const [expandedHealthCat, setExpandedHealthCat] = useState<string | null>(null);
   const [journeyIdx, setJourneyIdx] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setJourneyIdx(i => (i + 1) % 3), 6000);
+    const t = setInterval(() => setJourneyIdx(i => (i + 1) % 3), 12000);
     return () => clearInterval(t);
   }, []);
 
