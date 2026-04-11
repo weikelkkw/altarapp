@@ -31,7 +31,7 @@ const TAB_CONFIG: { id: Tab; label: string; icon: string; img?: string }[] = [
   { id: 'home',      label: 'Home',   icon: '🏠', img: '/home.png' },
   { id: 'read',      label: 'Read',   icon: '📖', img: '/read book.png' },
   { id: 'search',    label: 'Search', icon: '🔍' },
-  { id: 'study',     label: 'Study',  icon: '✦'  },
+  { id: 'study',     label: 'Study',  icon: '✦', img: '/star.png'  },
   { id: 'community', label: 'Church', icon: '⛪' },
 ];
 
