@@ -715,19 +715,17 @@ export default function HomeTab({
 
           {/* ── Header ── */}
           <div className="relative flex items-center justify-between mb-4" style={{ minHeight: 72 }}>
-            <div className="flex items-center gap-3">
-              <img src="/Praying hands.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.95, flexShrink: 0 }} />
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                  <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Prayer Journal</h2>
-                </div>
-                <div className="flex items-center gap-2 pl-3">
-                  {activePrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#22c55e18', color: '#22c55e' }}>{activePrayers.length} active</span>}
-                  {answeredPrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#a855f718', color: '#a855f7' }}>{answeredPrayers.length} answered ✓</span>}
-                </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+                <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Prayer Journal</h2>
+              </div>
+              <div className="flex items-center gap-2 pl-3">
+                {activePrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#22c55e18', color: '#22c55e' }}>{activePrayers.length} active</span>}
+                {answeredPrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#a855f718', color: '#a855f7' }}>{answeredPrayers.length} answered ✓</span>}
               </div>
             </div>
+            <img src="/Praying hands.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.95, flexShrink: 0 }} />
           </div>
 
           {/* ── Step 1: "Do you need to pray?" button ── */}
