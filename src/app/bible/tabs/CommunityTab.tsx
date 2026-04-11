@@ -706,6 +706,18 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
   return (
     <div className="space-y-4">
 
+      {/* Church header */}
+      <div className="flex items-center justify-between" style={{ minHeight: 72 }}>
+        <div>
+          <div className="flex items-center gap-2 mb-0.5">
+            <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+            <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Church</h2>
+          </div>
+          <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Community · Groups · Prayer</p>
+        </div>
+        <img src="/church 2.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', mixBlendMode: 'screen', opacity: 0.9, flexShrink: 0 }} />
+      </div>
+
       {/* Bible Study Mode overlay */}
       {studyModeOpen && (
         <BibleStudyMode

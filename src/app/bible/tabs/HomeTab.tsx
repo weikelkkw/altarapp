@@ -73,6 +73,12 @@ export default function HomeTab({
   const [verseAudioLoading, setVerseAudioLoading] = useState(false);
   const [versePlaying, setVersePlaying] = useState(false);
   const verseAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [identityAudioLoading, setIdentityAudioLoading] = useState(false);
+  const [identityPlaying, setIdentityPlaying] = useState(false);
+  const identityAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [devotionalAudioLoading, setDevotionalAudioLoading] = useState(false);
+  const [devotionalPlaying, setDevotionalPlaying] = useState(false);
+  const devotionalAudioRef = useRef<HTMLAudioElement | null>(null);
   const [streak, setStreak] = useState(0);
   const [prayers, setPrayers] = useState<PrayerItem[]>([]);
   const [newPrayer, setNewPrayer] = useState('');
@@ -136,6 +142,48 @@ export default function HomeTab({
       setVerseAudioLoading(false);
     }
   }, [dailyVerse, ttsVoice, versePlaying]);
+
+  const readIdentityAloud = useCallback(async () => {
+    if (identityPlaying) {
+      identityAudioRef.current?.pause();
+      if (identityAudioRef.current) { identityAudioRef.current.src = ''; identityAudioRef.current = null; }
+      setIdentityPlaying(false); return;
+    }
+    if (!identityStatement) return;
+    setIdentityAudioLoading(true);
+    try {
+      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: identityStatement, voiceId: ttsVoice || undefined }) });
+      if (!res.ok) throw new Error('TTS failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      identityAudioRef.current = audio;
+      audio.onended = () => { setIdentityPlaying(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setIdentityPlaying(false); URL.revokeObjectURL(url); };
+      await audio.play(); setIdentityPlaying(true);
+    } catch { setIdentityPlaying(false); } finally { setIdentityAudioLoading(false); }
+  }, [identityStatement, ttsVoice, identityPlaying]);
+
+  const readDevotionalAloud = useCallback(async () => {
+    if (devotionalPlaying) {
+      devotionalAudioRef.current?.pause();
+      if (devotionalAudioRef.current) { devotionalAudioRef.current.src = ''; devotionalAudioRef.current = null; }
+      setDevotionalPlaying(false); return;
+    }
+    if (!devotional) return;
+    setDevotionalAudioLoading(true);
+    try {
+      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: devotional, voiceId: ttsVoice || undefined }) });
+      if (!res.ok) throw new Error('TTS failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      devotionalAudioRef.current = audio;
+      audio.onended = () => { setDevotionalPlaying(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setDevotionalPlaying(false); URL.revokeObjectURL(url); };
+      await audio.play(); setDevotionalPlaying(true);
+    } catch { setDevotionalPlaying(false); } finally { setDevotionalAudioLoading(false); }
+  }, [devotional, ttsVoice, devotionalPlaying]);
 
   // Faith journey countdown — days since first app use
   const [journeyDays, setJourneyDays] = useState(0);
@@ -481,36 +529,47 @@ export default function HomeTab({
 
       {/* ── Bulletin Board ───────────────────────────────────────────── */}
       <div className="rounded-2xl p-4 relative overflow-hidden" style={{
-        background: 'linear-gradient(160deg, #b8824a 0%, #9a6530 25%, #c09050 50%, #8a5820 75%, #b07840 100%)',
-        boxShadow: '0 6px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
-        border: '3px solid #6a3e18',
+        background: 'linear-gradient(160deg, #1c1208 0%, #140e06 40%, #1a1008 70%, #100c04 100%)',
+        boxShadow: `0 6px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 2px ${accentColor}22`,
+        border: `2px solid ${accentColor}30`,
       }}>
-        {/* Cork grain texture */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(0,0,0,0.04) 6px, rgba(0,0,0,0.04) 12px)', zIndex: 0 }} />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.02) 8px, rgba(255,255,255,0.02) 16px)', zIndex: 0 }} />
+        {/* Wood grain texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(92deg, transparent, transparent 18px, rgba(255,255,255,0.012) 18px, rgba(255,255,255,0.012) 19px)', zIndex: 0 }} />
+        {/* Ambient glow */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}10, transparent 70%)`, zIndex: 0 }} />
 
         {/* Board label */}
-        <p className="relative text-center text-[9px] font-black uppercase tracking-[0.3em] mb-4" style={{ color: 'rgba(60,30,10,0.55)', zIndex: 1 }}>— This Week's Board —</p>
+        <p className="relative text-center text-[9px] font-black uppercase tracking-[0.3em] mb-4" style={{ color: `${accentColor}55`, zIndex: 1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>— This Week's Board —</p>
 
         <div className="relative flex flex-col gap-5" style={{ zIndex: 1 }}>
 
           {/* ── Note 1: Message of the Week ── */}
           {identityStatement && (
-            <div className="relative" style={{ transform: 'rotate(-1.2deg)', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.45))' }}>
+            <div className="relative" style={{ transform: 'rotate(-1.2deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
               {/* Pushpin */}
-              <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #f87171, #b91c1c)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 }} />
-              <div className="rounded-sm px-5 pt-6 pb-4" style={{ background: 'linear-gradient(175deg, #fefaf2, #f5ecd8)', borderTop: '1px solid rgba(255,255,255,0.9)' }}>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: '#8a6030', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Message of the Week</p>
-                <p className="text-base font-black leading-snug mb-2" style={{ color: '#1a0e04', fontFamily: 'Georgia, serif' }}>
+              <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #f87171, #b91c1c)', boxShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 8px rgba(248,113,113,0.4)', zIndex: 10 }} />
+              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: `linear-gradient(160deg, rgba(28,18,8,0.98), rgba(20,12,4,0.96))`, border: `1px solid ${accentColor}35`, boxShadow: `inset 0 1px 0 ${accentColor}15` }}>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Message of the Week</p>
+                </div>
+                <p className="text-base font-black leading-snug mb-3" style={{ color: '#f0e8d8', fontFamily: 'Georgia, serif' }}>
                   {cleanMarkdown(identityStatement)}
                 </p>
-                <button onClick={() => setShowIdentityExpand(v => !v)}
-                  className="text-[10px] font-bold uppercase tracking-wider"
-                  style={{ color: '#8a5020' }}>
-                  {showIdentityExpand ? '▲ less' : '▼ what does this mean?'}
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={() => setShowIdentityExpand(v => !v)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                    style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}30` }}>
+                    {showIdentityExpand ? '▲ Less' : '✦ Study'}
+                  </button>
+                  <button onClick={readIdentityAloud} disabled={identityAudioLoading}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                    style={{ background: `${accentColor}10`, color: `${accentColor}cc`, border: `1px solid ${accentColor}22` }}>
+                    {identityAudioLoading ? <span className="inline-block w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" /> : identityPlaying ? '■' : '▶'}
+                    {identityAudioLoading ? ' Loading…' : identityPlaying ? ' Stop' : ' Read Aloud'}
+                  </button>
+                </div>
                 {showIdentityExpand && (
-                  <div className="mt-3 pt-3" style={{ borderTop: '1px dashed rgba(120,80,20,0.3)' }}>
+                  <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${accentColor}18` }}>
                     {!identityExplain ? (
                       (() => {
                         fetch('/api/altar/explain', {
@@ -522,10 +581,10 @@ export default function HomeTab({
                           const d = new TextDecoder(); let t = '';
                           while (true) { const { done, value } = await reader.read(); if (done) break; t += d.decode(value, { stream: true }); setIdentityExplain(t); }
                         }).catch(() => setIdentityExplain('God declares this over you. Meditate on it today.'));
-                        return <p className="text-xs italic" style={{ color: '#8a6030' }}>Reflecting…</p>;
+                        return <p className="text-xs italic" style={{ color: `${accentColor}66` }}>Reflecting…</p>;
                       })()
                     ) : (
-                      <p className="text-xs leading-relaxed italic" style={{ color: '#3a2010', fontFamily: 'Georgia, serif' }}>
+                      <p className="text-xs leading-relaxed italic" style={{ color: 'rgba(240,232,216,0.6)', fontFamily: 'Georgia, serif' }}>
                         {cleanMarkdown(identityExplain)}
                       </p>
                     )}
@@ -536,17 +595,17 @@ export default function HomeTab({
           )}
 
           {/* ── Note 2: Your Word Today ── */}
-          <div className="relative" style={{ transform: 'rotate(0.8deg)', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.4))' }}>
-            {/* Pushpin — blue */}
-            <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #60a5fa, #1d4ed8)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 }} />
-            <div className="rounded-sm px-5 pt-6 pb-4" style={{ background: 'linear-gradient(175deg, #f8fbff, #edf4ff)' }}>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: '#2563eb', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</p>
+          <div className="relative" style={{ transform: 'rotate(0.8deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
+            {/* Pushpin — accent */}
+            <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: `radial-gradient(circle at 38% 35%, ${accentColor}, ${accentColor}99)`, boxShadow: `0 2px 6px rgba(0,0,0,0.6), 0 0 10px ${accentColor}55`, zIndex: 10 }} />
+            <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(22,16,6,0.98), rgba(16,12,4,0.96))', border: `1px solid ${accentColor}28`, boxShadow: `inset 0 1px 0 ${accentColor}10` }}>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</p>
               {dailyVerse?.verses[0] ? (
                 <>
-                  <p className="text-sm leading-relaxed mb-2 italic" style={{ color: '#1a2a3a', fontFamily: 'Georgia, serif' }}>
+                  <p className="text-sm leading-relaxed mb-1 italic" style={{ color: '#f0e8d8', fontFamily: 'Georgia, serif' }}>
                     &ldquo;{dailyVerse.verses[0].text}&rdquo;
                   </p>
-                  <p className="text-xs font-bold mb-3" style={{ color: '#2563eb' }}>{dailyVerse.reference}</p>
+                  <p className="text-xs font-bold mb-3" style={{ color: accentColor }}>{dailyVerse.reference}</p>
                   <div className="flex items-center gap-2 flex-wrap">
                     {onStudyVerse && (
                       <button onClick={() => {
@@ -554,16 +613,14 @@ export default function HomeTab({
                         const match = ref.match(/^(.+?)\s+(\d+)/);
                         if (match) onStudyVerse(match[1], parseInt(match[2]));
                       }}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold"
-                        style={{ background: 'rgba(37,99,235,0.1)', color: '#1d4ed8', border: '1px solid rgba(37,99,235,0.25)' }}>
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                        style={{ background: `${accentColor}15`, color: accentColor, border: `1px solid ${accentColor}30` }}>
                         <img src="/star.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} /> Study
                       </button>
                     )}
                     <button onClick={readVerseAloud} disabled={verseAudioLoading}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold"
-                      style={versePlaying
-                        ? { background: 'rgba(37,99,235,0.18)', color: '#1d4ed8', border: '1px solid rgba(37,99,235,0.4)' }
-                        : { background: 'rgba(37,99,235,0.08)', color: '#1d4ed8', border: '1px solid rgba(37,99,235,0.2)' }}>
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                      style={{ background: `${accentColor}10`, color: `${accentColor}cc`, border: `1px solid ${accentColor}22` }}>
                       {verseAudioLoading ? <span className="inline-block w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" /> : versePlaying ? '■' : '▶'}
                       {verseAudioLoading ? ' Loading…' : versePlaying ? ' Stop' : ' Read Aloud'}
                     </button>
@@ -571,8 +628,8 @@ export default function HomeTab({
                 </>
               ) : (
                 <div className="h-10 flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: 'rgba(37,99,235,0.2)', borderTopColor: '#2563eb' }} />
-                  <span className="text-xs italic" style={{ color: '#2563eb88' }}>Loading verse…</span>
+                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}22`, borderTopColor: accentColor }} />
+                  <span className="text-xs italic" style={{ color: `${accentColor}55` }}>Loading verse…</span>
                 </div>
               )}
             </div>
@@ -580,25 +637,35 @@ export default function HomeTab({
 
           {/* ── Note 3: Today's Devotional ── */}
           {(devotional || devotionalLoading) && (
-            <div className="relative" style={{ transform: 'rotate(-0.6deg)', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.4))' }}>
-              {/* Pushpin — green */}
-              <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #4ade80, #15803d)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 }} />
-              <div className="rounded-sm px-5 pt-6 pb-4" style={{ background: 'linear-gradient(175deg, #f6fef9, #ecfdf5)' }}>
+            <div className="relative" style={{ transform: 'rotate(-0.6deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
+              {/* Pushpin — gold */}
+              <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: 'radial-gradient(circle at 38% 35%, #fbbf24, #b45309)', boxShadow: '0 2px 6px rgba(0,0,0,0.6), 0 0 10px rgba(251,191,36,0.5)', zIndex: 10 }} />
+              <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(24,16,4,0.98), rgba(18,12,2,0.96))', border: '1px solid rgba(251,191,36,0.22)', boxShadow: 'inset 0 1px 0 rgba(251,191,36,0.08)' }}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: '#15803d', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</p>
-                    <p className="text-[9px] mt-0.5" style={{ color: '#15803d88' }}>{devotionalRef || 'Daily Word'}</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: 'rgba(251,191,36,0.8)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</p>
+                    <p className="text-[9px] mt-0.5" style={{ color: 'rgba(251,191,36,0.35)' }}>{devotionalRef || 'Daily Word'}</p>
                   </div>
-                  <img src="/read book.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', opacity: 0.7, flexShrink: 0 }} />
+                  <img src="/read book.png" alt="" style={{ width: 32, height: 32, objectFit: 'contain', opacity: 0.7, flexShrink: 0 }} />
                 </div>
                 {devotionalLoading && !devotional ? (
-                  <p className="text-xs italic" style={{ color: '#15803d88' }}>Preparing your devotional…</p>
+                  <p className="text-xs italic" style={{ color: 'rgba(251,191,36,0.4)' }}>Preparing your devotional…</p>
                 ) : (
                   <>
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap mb-3" style={{ color: '#0f2a1a', fontFamily: 'Georgia, serif' }}>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap mb-3" style={{ color: 'rgba(240,232,216,0.75)', fontFamily: 'Georgia, serif' }}>
                       {cleanMarkdown(devotional)}
-                      {devotionalLoading && <span className="inline-block w-1 h-3.5 ml-0.5 animate-pulse" style={{ background: '#15803d', borderRadius: 1 }} />}
+                      {devotionalLoading && <span className="inline-block w-1 h-3.5 ml-0.5 animate-pulse" style={{ background: '#fbbf24', borderRadius: 1 }} />}
                     </p>
+                    {!devotionalLoading && devotional && (
+                      <div className="flex items-center gap-2 flex-wrap mb-3">
+                        <button onClick={readDevotionalAloud} disabled={devotionalAudioLoading}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                          style={{ background: 'rgba(251,191,36,0.1)', color: 'rgba(251,191,36,0.8)', border: '1px solid rgba(251,191,36,0.22)' }}>
+                          {devotionalAudioLoading ? <span className="inline-block w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" /> : devotionalPlaying ? '■' : '▶'}
+                          {devotionalAudioLoading ? ' Loading…' : devotionalPlaying ? ' Stop' : ' Read Aloud'}
+                        </button>
+                      </div>
+                    )}
                     {!devotionalLoading && devotional && (
                       <button onClick={() => {
                         const key = `trace-devotional-done-${new Date().toDateString()}`;
@@ -609,10 +676,10 @@ export default function HomeTab({
                         completeDailyCheck('devotional');
                       }}
                         disabled={devotionalCompleted}
-                        className="w-full py-2 rounded text-xs font-bold transition-all"
+                        className="w-full py-2 rounded-lg text-xs font-bold transition-all"
                         style={devotionalCompleted
-                          ? { background: 'rgba(21,128,61,0.12)', color: '#15803d', border: '1px solid rgba(21,128,61,0.3)' }
-                          : { background: 'linear-gradient(135deg, #15803d, #16a34a)', color: '#fff', boxShadow: '0 2px 6px rgba(21,128,61,0.3)' }}>
+                          ? { background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }
+                          : { background: 'linear-gradient(135deg, #b45309, #d97706)', color: '#fff', boxShadow: '0 2px 8px rgba(180,83,9,0.4)' }}>
                         {devotionalCompleted ? '✓ Devotional Complete' : 'Mark as Read'}
                       </button>
                     )}
