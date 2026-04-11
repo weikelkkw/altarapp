@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserIdentity, BookDef, timeAgo } from '../types';
 import { createClient } from '@/lib/supabase/client';
 import BibleStudyMode from './BibleStudyMode';
+import MemberProfilePanel from './MemberProfilePanel';
+import MentionInput, { renderMessageWithMentions } from './MentionInput';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 
@@ -50,10 +52,12 @@ interface KingdomGroup {
 
 interface GroupMember {
   id: string;
+  userId: string;
   name: string;
   color: string;
   role: 'leader' | 'member';
   isMe: boolean;
+  joinedAt: string;
 }
 
 interface JoinRequest {
@@ -151,6 +155,9 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
   // Announcements
   const [announcements, setAnnouncements] = useState<string[]>([]);
+
+  // Profile panel
+  const [profileMember, setProfileMember] = useState<GroupMember | null>(null);
 
   const groupChatChannelRef = useRef<any>(null);
   const dmChannelRef = useRef<any>(null);
@@ -266,7 +273,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     try {
       const { data: members } = await supabase
         .from('trace_group_members')
-        .select('user_id, role')
+        .select('user_id, role, joined_at')
         .eq('group_id', groupId)
         .eq('status', 'approved');
       if (!members?.length) { setGroupMembers([]); return; }
@@ -281,10 +288,12 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
 
       setGroupMembers(members.map((m: any) => ({
         id: m.user_id,
+        userId: m.user_id,
         name: profMap[m.user_id]?.display_name || 'Member',
         color: profMap[m.user_id]?.avatar_color || '#6366f1',
         role: m.role as 'leader' | 'member',
         isMe: m.user_id === profileId,
+        joinedAt: m.joined_at || new Date().toISOString(),
       })));
     } catch (err) { console.warn('loadGroupMembers:', err); }
   }, [profileId]);
@@ -570,6 +579,21 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
       setGroupMembers(prev => prev.filter(m => m.id !== memberId));
       setMyGroups(prev => prev.map(g => g.id === selectedGroup.id ? { ...g, memberCount: Math.max(0, g.memberCount - 1) } : g));
     } catch (err) { console.error('Remove member:', err); }
+  };
+
+  const promoteMember = async (memberId: string, currentRole: 'leader' | 'member') => {
+    if (!selectedGroup) return;
+    const newRole = currentRole === 'leader' ? 'member' : 'leader';
+    try {
+      const res = await fetch('/api/group/promote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ groupId: selectedGroup.id, userId: memberId, role: newRole }),
+      });
+      if (res.ok) {
+        setGroupMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: newRole } : m));
+      }
+    } catch (err) { console.error('Promote member:', err); }
   };
 
   const sendGroupMessage = async () => {
@@ -1253,7 +1277,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                               {!msg.isMine && <p className="text-[9px] font-bold mb-0.5 px-1" style={{ color: msg.authorColor }}>{msg.authorName}</p>}
                               <div className="px-3 py-2 text-xs leading-relaxed"
                                 style={{ background: msg.isMine ? accentColor : 'rgba(255,255,255,0.06)', color: msg.isMine ? '#000' : 'rgba(232,240,236,0.85)', borderRadius: msg.isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px' }}>
-                                {msg.content}
+                                {renderMessageWithMentions(msg.content, userIdentity.name || '', accentColor)}
                               </div>
                               <p className="text-[8px] mt-0.5 px-1" style={{ color: 'rgba(232,240,236,0.2)', textAlign: msg.isMine ? 'right' : 'left' }}>{timeAgo(msg.createdAt)}</p>
                             </div>
@@ -1263,19 +1287,14 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                     )}
                   </div>
                   {authUser ? (
-                    <div className="flex gap-2 items-center">
-                      <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} type="text"
-                        value={groupMsgInput} onChange={e => setGroupMsgInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && groupMsgInput.trim()) sendGroupMessage(); }}
-                        placeholder={`Message ${selectedGroup.name}...`}
-                        className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}15`, color: '#f0f8f4' }} />
-                      <button disabled={!groupMsgInput.trim()} onClick={sendGroupMessage}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: groupMsgInput.trim() ? accentColor : 'rgba(255,255,255,0.04)', color: groupMsgInput.trim() ? '#000' : 'rgba(255,255,255,0.2)', border: `1px solid ${groupMsgInput.trim() ? accentColor : 'rgba(255,255,255,0.06)'}` }}>
-                        ↑
-                      </button>
-                    </div>
+                    <MentionInput
+                      value={groupMsgInput}
+                      onChange={setGroupMsgInput}
+                      onSend={sendGroupMessage}
+                      members={groupMembers.map(m => ({ userId: m.id, name: m.name, color: m.color }))}
+                      accentColor={accentColor}
+                      placeholder={`Message ${selectedGroup.name}...`}
+                    />
                   ) : (
                     <button onClick={onOpenAuth} className="py-3 rounded-xl text-xs font-bold" style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>Sign in to chat</button>
                   )}
@@ -1427,21 +1446,39 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
                 groupMembers.map(m => (
                   <div key={m.id} className="flex items-center gap-3 rounded-xl px-4 py-3"
                     style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${accentColor}08` }}>
-                    <Avatar name={m.name} color={m.color} size={32} />
-                    <div className="flex-1">
+                    <button
+                      onClick={() => setProfileMember(m)}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    >
+                      <Avatar name={m.name} color={m.color} size={32} />
+                    </button>
+                    <button
+                      className="flex-1 text-left"
+                      onClick={() => setProfileMember(m)}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    >
                       <p className="text-xs font-bold" style={{ color: '#f0f8f4' }}>{m.name}{m.isMe ? ' (You)' : ''}</p>
-                    </div>
+                    </button>
                     <div className="flex items-center gap-2">
                       <span className="text-[9px] px-2 py-1 rounded-full font-bold"
                         style={{ background: m.role === 'leader' ? `${accentColor}22` : 'rgba(255,255,255,0.04)', color: m.role === 'leader' ? accentColor : 'rgba(232,240,236,0.3)' }}>
                         {m.role === 'leader' ? 'Leader' : 'Member'}
                       </span>
                       {selectedGroup.isLeader && !m.isMe && (
-                        <button onClick={() => removeMember(m.id)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
-                          style={{ background: 'rgba(239,68,68,0.07)', color: 'rgba(239,68,68,0.5)', border: '1px solid rgba(239,68,68,0.12)', fontSize: 10 }}>
-                          ✕
-                        </button>
+                        <>
+                          <button
+                            onClick={() => promoteMember(m.id, m.role)}
+                            title={m.role === 'leader' ? 'Demote to Member' : 'Promote to Leader'}
+                            className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
+                            style={{ background: `${accentColor}14`, color: accentColor, border: `1px solid ${accentColor}28`, fontSize: 10 }}>
+                            {m.role === 'leader' ? '↓' : '↑'}
+                          </button>
+                          <button onClick={() => removeMember(m.id)}
+                            className="w-6 h-6 rounded-lg flex items-center justify-center transition-all active:scale-95"
+                            style={{ background: 'rgba(239,68,68,0.07)', color: 'rgba(239,68,68,0.5)', border: '1px solid rgba(239,68,68,0.12)', fontSize: 10 }}>
+                            ✕
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -1531,6 +1568,22 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
         </p>
         <p className="text-[10px] font-bold mt-1" style={{ color: 'rgba(232,240,236,0.15)' }}>Matthew 18:20</p>
       </div>
+
+      {/* Member Profile Panel */}
+      {profileMember && selectedGroup && (
+        <MemberProfilePanel
+          member={{
+            userId: profileMember.userId,
+            name: profileMember.name,
+            color: profileMember.color,
+            role: profileMember.role,
+            joinedAt: profileMember.joinedAt,
+          }}
+          groupName={selectedGroup.name}
+          accentColor={accentColor}
+          onClose={() => setProfileMember(null)}
+        />
+      )}
     </div>
   );
 }

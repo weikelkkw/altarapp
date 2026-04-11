@@ -926,107 +926,126 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
             </div>
           )}
 
-          {quizQuestions.length > 0 && (
-            <div className="space-y-4">
-              {/* Progress */}
-              <div className="flex items-center gap-2">
-                <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: `${accentColor}18` }}>
-                  <div className="h-full rounded-full transition-all" style={{
-                    width: `${(Object.keys(quizAnswered).length / quizQuestions.length) * 100}%`,
-                    background: `linear-gradient(90deg, ${accentColor}, ${accentColor}bb)`,
-                  }} />
-                </div>
-                <p className="text-xs font-bold" style={{ color: `${accentColor}88` }}>
-                  {Object.keys(quizAnswered).length}/{quizQuestions.length}
-                </p>
-              </div>
+          {quizQuestions.length > 0 && (() => {
+            const q = quizQuestions[quizCurrent];
+            const answered = quizAnswered[quizCurrent] !== undefined;
+            const revealed = quizRevealed.has(quizCurrent);
+            const selected = quizAnswered[quizCurrent];
+            const isCorrect = selected === q.correct;
+            const isLastQuestion = quizCurrent === quizQuestions.length - 1;
+            const allAnswered = Object.keys(quizAnswered).length === quizQuestions.length;
 
-              {/* Question cards */}
-              {quizQuestions.map((q, qIdx) => {
-                const answered = quizAnswered[qIdx] !== undefined;
-                const revealed = quizRevealed.has(qIdx);
-                const selected = quizAnswered[qIdx];
-                const isCorrect = selected === q.correct;
-
-                return (
-                  <div key={qIdx} className="rounded-2xl overflow-hidden" style={{
-                    background: 'rgba(255,255,255,0.025)',
-                    border: `1px solid ${revealed ? (isCorrect ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)') : `${accentColor}18`}`,
-                  }}>
-                    <div className="px-5 py-4" style={{ borderBottom: `1px solid ${accentColor}12` }}>
-                      <div className="flex items-start gap-3">
-                        <span className="text-sm font-bold shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
-                          style={{ background: `${accentColor}0d`, color: accentColor }}>{qIdx + 1}</span>
-                        <p className="text-sm font-semibold leading-relaxed" style={{ color: "rgba(232,240,236,0.85)" }}>{q.question}</p>
-                      </div>
-                    </div>
-                    <div className="px-5 py-3 space-y-2">
-                      {q.options.map((opt, oIdx) => {
-                        const isSelected = selected === oIdx;
-                        const isRight = oIdx === q.correct;
-                        let optStyle: React.CSSProperties = {
-                          background: `${accentColor}0d`,
-                          border: `1px solid ${accentColor}18`,
-                          color: 'rgba(232,240,236,0.7)',
-                        };
-                        if (revealed && isRight) {
-                          optStyle = { background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80' };
-                        } else if (revealed && isSelected && !isRight) {
-                          optStyle = { background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171' };
-                        } else if (isSelected) {
-                          optStyle = { ...pillActive };
-                        }
-
-                        return (
-                          <button key={oIdx}
-                            onClick={() => {
-                              if (answered) return;
-                              setQuizAnswered(prev => ({ ...prev, [qIdx]: oIdx }));
-                              setQuizRevealed(prev => new Set([...prev, qIdx]));
-                            }}
-                            disabled={answered}
-                            className="w-full text-left px-4 py-3 rounded-xl text-sm transition-all disabled:cursor-default"
-                            style={optStyle}>
-                            <span className="font-bold mr-2">{String.fromCharCode(65 + oIdx)}.</span>
-                            {opt}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {revealed && (
-                      <div className="px-5 py-3" style={{ background: isCorrect ? 'rgba(74,222,128,0.04)' : 'rgba(248,113,113,0.04)', borderTop: `1px solid rgba(255,255,255,0.05)` }}>
-                        <p className="text-xs font-bold mb-1" style={{ color: isCorrect ? '#4ade80' : '#f87171' }}>
-                          {isCorrect ? '✓ Correct!' : '✗ Not quite'}
-                        </p>
-                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.5)' }}>{q.explanation}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Score summary */}
-              {Object.keys(quizAnswered).length === quizQuestions.length && (
-                <div className="rounded-2xl p-6 text-center" style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18` }}>
-                  <p className="text-3xl mb-2">
-                    {Object.values(quizAnswered).filter((a, i) => a === quizQuestions[i].correct).length === quizQuestions.length ? '🏆' : '📖'}
+            // Score screen
+            if (allAnswered && quizCurrent >= quizQuestions.length) {
+              const score = Object.values(quizAnswered).filter((a, i) => a === quizQuestions[i].correct).length;
+              const perfect = score === quizQuestions.length;
+              return (
+                <div className="rounded-2xl p-8 text-center" style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}25` }}>
+                  <p className="text-5xl mb-4">{perfect ? '🏆' : score >= quizQuestions.length / 2 ? '📖' : '💪'}</p>
+                  <p className="text-2xl font-black mb-2" style={{ color: accentColor, fontFamily: 'Georgia, serif' }}>
+                    {score} / {quizQuestions.length}
                   </p>
-                  <p className="text-lg font-bold mb-1" style={{ color: accentColor, fontFamily: 'Georgia, serif' }}>
-                    {Object.values(quizAnswered).filter((a, i) => a === quizQuestions[i].correct).length} / {quizQuestions.length}
+                  <p className="text-sm mb-6" style={{ color: 'rgba(232,240,236,0.5)', fontFamily: 'Georgia, serif' }}>
+                    {perfect ? 'Perfect score! You know this chapter well.' : score >= quizQuestions.length / 2 ? 'Great effort! Keep studying.' : 'Keep reading — you\'ll get it.'}
                   </p>
-                  <p className="text-xs mb-4" style={{ color: 'rgba(232,240,236,0.4)' }}>
-                    {Object.values(quizAnswered).filter((a, i) => a === quizQuestions[i].correct).length === quizQuestions.length
-                      ? 'Perfect score! You know this chapter well.'
-                      : 'Great effort! Review the explanations above to deepen your understanding.'}
-                  </p>
-                  <button onClick={generateQuiz} className="px-6 py-2.5 rounded-xl text-sm font-bold"
+                  <button onClick={generateQuiz} className="w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-95"
                     style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, color: '#0a1410' }}>
                     Try Again
                   </button>
                 </div>
-              )}
-            </div>
-          )}
+              );
+            }
+
+            return (
+              <div className="space-y-3">
+                {/* Progress bar */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: `${accentColor}18` }}>
+                    <div className="h-full rounded-full transition-all duration-300" style={{
+                      width: `${((quizCurrent + (answered ? 1 : 0)) / quizQuestions.length) * 100}%`,
+                      background: `linear-gradient(90deg, ${accentColor}, ${accentColor}bb)`,
+                    }} />
+                  </div>
+                  <p className="text-xs font-bold shrink-0" style={{ color: `${accentColor}88` }}>
+                    {quizCurrent + 1} of {quizQuestions.length}
+                  </p>
+                </div>
+
+                {/* Question card */}
+                <div className="rounded-2xl overflow-hidden" style={{
+                  background: 'rgba(255,255,255,0.025)',
+                  border: `1px solid ${revealed ? (isCorrect ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)') : `${accentColor}18`}`,
+                }}>
+                  <div className="px-5 py-5" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+                    <p className="text-base font-semibold leading-relaxed" style={{ color: 'rgba(232,240,236,0.9)', fontFamily: 'Georgia, serif' }}>
+                      {q.question}
+                    </p>
+                  </div>
+                  <div className="px-5 py-4 space-y-2">
+                    {q.options.map((opt, oIdx) => {
+                      const isSelected = selected === oIdx;
+                      const isRight = oIdx === q.correct;
+                      let optStyle: React.CSSProperties = {
+                        background: `${accentColor}0d`,
+                        border: `1px solid ${accentColor}18`,
+                        color: 'rgba(232,240,236,0.7)',
+                      };
+                      if (revealed && isRight) {
+                        optStyle = { background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.4)', color: '#4ade80' };
+                      } else if (revealed && isSelected && !isRight) {
+                        optStyle = { background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', color: '#f87171' };
+                      } else if (isSelected) {
+                        optStyle = { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, color: '#fff', boxShadow: `0 0 12px ${accentColor}44` };
+                      }
+                      return (
+                        <button key={oIdx}
+                          onClick={() => {
+                            if (answered) return;
+                            setQuizAnswered(prev => ({ ...prev, [quizCurrent]: oIdx }));
+                            setQuizRevealed(prev => new Set([...prev, quizCurrent]));
+                          }}
+                          disabled={answered}
+                          className="w-full text-left px-4 py-3.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98] disabled:cursor-default"
+                          style={optStyle}>
+                          <span className="font-bold mr-2">{String.fromCharCode(65 + oIdx)}.</span>
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Explanation — shown after answering */}
+                  {revealed && (
+                    <div className="px-5 py-4" style={{
+                      background: isCorrect ? 'rgba(74,222,128,0.04)' : 'rgba(248,113,113,0.04)',
+                      borderTop: `1px solid rgba(255,255,255,0.05)`,
+                    }}>
+                      <p className="text-xs font-black mb-1.5" style={{ color: isCorrect ? '#4ade80' : '#f87171' }}>
+                        {isCorrect ? '✓ Correct!' : '✗ Not quite'}
+                      </p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'rgba(232,240,236,0.55)', fontFamily: 'Georgia, serif' }}>{q.explanation}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Next / Finish button — only shows after answering */}
+                {answered && (
+                  <button
+                    onClick={() => {
+                      if (isLastQuestion) {
+                        setQuizCurrent(quizQuestions.length); // go to score screen
+                      } else {
+                        setQuizCurrent(c => c + 1);
+                      }
+                    }}
+                    className="w-full py-3.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all active:scale-95"
+                    style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#0a1410', boxShadow: `0 4px 16px ${accentColor}44` }}>
+                    {isLastQuestion ? 'See My Score →' : 'Next Question →'}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
           {!quizLoading && quizQuestions.length === 0 && (
             <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid rgba(255,255,255,0.05)` }}>
