@@ -852,7 +852,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 const active = tab === t.id;
                 return (
                   <button key={t.id} onClick={() => handleSetTab(t.id)}
-                    className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[56px]"
+                    className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px]"
                     style={active ? { background: `${theme.accent}18` } : {}}>
                     <span className="text-lg transition-transform" style={{
                       filter: active ? 'none' : 'grayscale(1) opacity(0.4)',
@@ -873,10 +873,6 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                 );
               })}
             </div>
-            {/* Truth & Grace tagline */}
-            <p className="text-center text-[9px] font-semibold uppercase tracking-[0.25em] pb-5 pt-0.5" style={{ color: `${theme.accent}44` }}>
-              Truth & Grace
-            </p>
           </div>
         </div>
       </nav>

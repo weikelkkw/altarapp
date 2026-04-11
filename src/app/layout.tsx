@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Montserrat } from 'next/font/google';
+import { Inter, Montserrat, Dancing_Script } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({
@@ -13,6 +13,13 @@ const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['600', '700', '800'],
   variable: '--font-montserrat',
+  display: 'swap',
+});
+
+const dancingScript = Dancing_Script({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-dancing',
   display: 'swap',
 });
 
@@ -94,7 +101,7 @@ const swScript = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${montserrat.variable} ${dancingScript.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: swScript }} />

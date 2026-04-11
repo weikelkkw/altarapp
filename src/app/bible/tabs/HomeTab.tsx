@@ -700,7 +700,7 @@ export default function HomeTab({
             <img src="/sun.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(251,191,36,0.6))', transition: 'transform 0.2s' }} />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#fbbf24', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Morning</p>
-              <p className="text-[8px] mt-0.5" style={{ color: 'rgba(251,191,36,0.6)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Start grounded</p>
+              <p className="text-sm mt-0.5" style={{ color: 'rgba(251,191,36,0.85)', fontFamily: 'var(--font-dancing), cursive', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>Rise in His presence</p>
             </div>
           </button>
           {/* Center divider */}
@@ -709,7 +709,7 @@ export default function HomeTab({
             <img src="/moon.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', mixBlendMode: 'screen', filter: 'drop-shadow(0 0 10px rgba(129,140,248,0.6))', transition: 'transform 0.2s' }} />
             <div>
               <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#818cf8', fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>Bedtime</p>
-              <p className="text-[8px] mt-0.5" style={{ color: 'rgba(129,140,248,0.6)', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>Rest in His Word</p>
+              <p className="text-sm mt-0.5" style={{ color: 'rgba(129,140,248,0.85)', fontFamily: 'var(--font-dancing), cursive', textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>Rest in His peace</p>
             </div>
           </button>
         </div>
