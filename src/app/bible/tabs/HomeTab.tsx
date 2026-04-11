@@ -426,9 +426,8 @@ export default function HomeTab({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         reference: `${month} ${day}`,
-        verseText: `Today is ${month} ${day}`,
+        verseText: `Share one fascinating historical fact related to the Bible or Christianity for ${month} ${day}. This could be a church history event, an archaeological discovery, a manuscript date, a saint's feast day, or a significant biblical event traditionally dated near this time. Keep it to 2-3 sentences. Be specific with dates and names. Do NOT make anything up — only share well-documented facts. Start directly with the fact — no greeting, no preamble.`,
         translation: '',
-        question: `Share one fascinating historical fact related to the Bible or Christianity for ${month} ${day}. This could be a church history event, an archaeological discovery, a manuscript date, a saint's feast day, or a significant biblical event traditionally dated near this time. Keep it to 2-3 sentences. Be specific with dates and names. Do NOT make anything up — only share well-documented facts.`,
       }),
     })
       .then(async res => {
