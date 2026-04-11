@@ -105,6 +105,9 @@ export default function AltarApp() {
   // Highlights & notes
   const [highlighted, setHighlighted] = useState<Set<string>>(new Set());
   const [highlightColors, setHighlightColors] = useState<Record<string, string>>({});
+  const [highlightTexts, setHighlightTexts] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('trace-highlight-texts') || '{}'); } catch { return {}; }
+  });
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('base');
 
@@ -531,9 +534,18 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
     } catch {}
   }, []);
 
-  const toggleHighlight = (vKey: string) => {
+  const toggleHighlight = (vKey: string, text?: string) => {
     const updated = new Set(highlighted);
-    updated.has(vKey) ? updated.delete(vKey) : updated.add(vKey);
+    if (updated.has(vKey)) {
+      updated.delete(vKey);
+    } else {
+      updated.add(vKey);
+      if (text) {
+        const updatedTexts = { ...highlightTexts, [vKey]: text };
+        setHighlightTexts(updatedTexts);
+        localStorage.setItem('trace-highlight-texts', JSON.stringify(updatedTexts));
+      }
+    }
     setHighlighted(updated);
     localStorage.setItem('trace-highlights', JSON.stringify([...updated]));
   };
@@ -802,6 +814,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
               compareLoading={compareLoading}
               highlighted={highlighted}
               highlightColors={highlightColors}
+              highlightTexts={highlightTexts}
               toggleHighlight={toggleHighlight}
               setHighlightColor={setHighlightColor}
               notes={notes}

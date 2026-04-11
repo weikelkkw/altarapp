@@ -1448,7 +1448,8 @@ interface Props {
   compareLoading: boolean;
   highlighted: Set<string>;
   highlightColors?: Record<string, string>;
-  toggleHighlight: (vKey: string) => void;
+  highlightTexts?: Record<string, string>;
+  toggleHighlight: (vKey: string, text?: string) => void;
   setHighlightColor?: (vKey: string, color: string) => void;
   notes: Record<string, string>;
   saveNote: (key: string, text: string) => void;
@@ -1470,11 +1471,13 @@ export default function ReadTab({
   bibles, biblesLoading, selectedBible, setSelectedBible,
   passage, loading, error,
   compareMode, setCompareMode, compareSet, setCompareSet, comparePassages, compareLoading,
-  highlighted, highlightColors = {}, toggleHighlight, setHighlightColor, notes, saveNote,
+  highlighted, highlightColors = {}, highlightTexts = {}, toggleHighlight, setHighlightColor, notes, saveNote,
   fontSize, accentColor, themeGroup = 'dark', ttsEnabled, ttsVoice, ttsRate, ttsMode,
   experienceLevel = 'beginner', jumpToVerse, onJumpHandled, onShareNote,
 }: Props) {
   const [deepStudyOpen, setDeepStudyOpen] = useState(false);
+  const [showHighlights, setShowHighlights] = useState(false);
+  const [highlightFilterColor, setHighlightFilterColor] = useState<string | null>(null);
   const [bookSearch, setBookSearch] = useState('');
   const [showBookList, setShowBookList] = useState(false);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
@@ -2021,7 +2024,7 @@ export default function ReadTab({
       if (last && last.verse === v.verse && now - last.time < 350) {
         lastTapRef.current = null;
         const willBeHighlighted = !highlighted.has(vKey);
-        toggleHighlight(vKey);
+        toggleHighlight(vKey, v.text);
         setColorPickerVerse(willBeHighlighted ? vKey : null);
         return;
       }
@@ -2412,7 +2415,7 @@ export default function ReadTab({
           )}
         </div>
 
-        {/* Row 3: Prev / Current / Next + Overview */}
+        {/* Row 3: Prev / Current / Next + Highlights */}
         <div className="px-4 py-2 flex items-center justify-between gap-2">
           <button onClick={() => navigate('prev')}
             className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 shrink-0"
@@ -2433,6 +2436,18 @@ export default function ReadTab({
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M5 2l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
+          </button>
+          <button
+            onClick={() => setShowHighlights(true)}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 shrink-0 relative"
+            style={{ background: highlighted.size > 0 ? `${accentColor}18` : `${accentColor}0d`, border: `1px solid ${accentColor}${highlighted.size > 0 ? '44' : '18'}`, color: highlighted.size > 0 ? accentColor : `${accentColor}55` }}
+            title="My Highlights">
+            <span style={{ fontSize: 14 }}>✦</span>
+            {highlighted.size > 0 && (
+              <span style={{ position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%', background: accentColor, color: '#000', fontSize: 8, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {highlighted.size > 99 ? '99' : highlighted.size}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -3389,6 +3404,150 @@ export default function ReadTab({
         </div>
       )}
 
+      {/* ── My Highlights Panel ──────────────────────────────────────────── */}
+      {showHighlights && (() => {
+        const HIGHLIGHT_COLORS = [
+          { color: '#f59e0b', label: 'Speaks to me' },
+          { color: '#22c55e', label: 'Peace / comfort' },
+          { color: '#818cf8', label: 'Revelation' },
+          { color: '#f87171', label: 'Warning / urgency' },
+          { color: '#e2e8f0', label: 'Promise / hope' },
+        ];
+
+        // Parse vKey → { book, chapter, verse }
+        const parseVKey = (vKey: string) => {
+          const parts = vKey.split('-');
+          const osis = parts[0];
+          const chapter = parseInt(parts[1], 10);
+          const verse = parseInt(parts[2], 10);
+          const book = BOOKS.find(b => b.osis === osis);
+          return { book, chapter, verse, osis };
+        };
+
+        const allHighlighted = [...highlighted];
+        const filtered = highlightFilterColor
+          ? allHighlighted.filter(vKey => highlightColors[vKey] === highlightFilterColor)
+          : allHighlighted;
+
+        // Group by color label for display
+        const grouped: { colorHex: string | null; label: string; keys: string[] }[] = [];
+        const withColor = filtered.filter(k => highlightColors[k]);
+        const noColor = filtered.filter(k => !highlightColors[k]);
+
+        HIGHLIGHT_COLORS.forEach(({ color, label }) => {
+          const keys = withColor.filter(k => highlightColors[k] === color);
+          if (keys.length > 0) grouped.push({ colorHex: color, label, keys });
+        });
+        if (noColor.length > 0) grouped.push({ colorHex: null, label: 'Highlighted', keys: noColor });
+
+        return (
+          <div className="fixed inset-0 z-[70] flex flex-col" style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-12 pb-4" style={{ borderBottom: `1px solid ${accentColor}18` }}>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: `${accentColor}66` }}>My Library</p>
+                <h2 className="text-xl font-black" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>My Highlights</h2>
+                <p className="text-[10px] mt-0.5" style={{ color: `${accentColor}55` }}>{highlighted.size} verse{highlighted.size !== 1 ? 's' : ''} saved</p>
+              </div>
+              <button onClick={() => { setShowHighlights(false); setHighlightFilterColor(null); }}
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: `${accentColor}12`, border: `1px solid ${accentColor}22`, color: `${accentColor}88` }}>
+                ✕
+              </button>
+            </div>
+
+            {/* Color filter tabs */}
+            <div className="flex gap-2 px-4 py-3 overflow-x-auto shrink-0" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+              <button
+                onClick={() => setHighlightFilterColor(null)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black shrink-0 transition-all"
+                style={!highlightFilterColor
+                  ? { background: accentColor, color: '#000' }
+                  : { background: `${accentColor}12`, color: `${accentColor}88`, border: `1px solid ${accentColor}22` }}>
+                All ({highlighted.size})
+              </button>
+              {HIGHLIGHT_COLORS.map(({ color, label }) => {
+                const count = allHighlighted.filter(k => highlightColors[k] === color).length;
+                if (count === 0) return null;
+                return (
+                  <button key={color}
+                    onClick={() => setHighlightFilterColor(highlightFilterColor === color ? null : color)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black shrink-0 transition-all"
+                    style={highlightFilterColor === color
+                      ? { background: color, color: color === '#e2e8f0' ? '#1e293b' : '#000' }
+                      : { background: `${color}18`, color, border: `1px solid ${color}33` }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
+                    {label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Verse list */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+              {filtered.length === 0 && (
+                <div className="text-center py-16">
+                  <p className="text-4xl mb-3">✦</p>
+                  <p className="text-sm font-bold" style={{ color: `${accentColor}66` }}>
+                    {highlighted.size === 0 ? 'No highlights yet' : 'No verses with this color'}
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: `${accentColor}33` }}>Double-tap any verse to highlight it</p>
+                </div>
+              )}
+              {grouped.map(({ colorHex, label, keys }) => (
+                <div key={colorHex || 'none'}>
+                  {/* Section header */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: colorHex || `${accentColor}44`, flexShrink: 0 }} />
+                    <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: colorHex || `${accentColor}66` }}>{label}</p>
+                    <div className="flex-1 h-px" style={{ background: (colorHex || accentColor) + '22' }} />
+                    <p className="text-[10px]" style={{ color: `${accentColor}44` }}>{keys.length}</p>
+                  </div>
+                  {/* Verse cards */}
+                  <div className="space-y-2">
+                    {keys.map(vKey => {
+                      const { book, chapter, verse } = parseVKey(vKey);
+                      const text = highlightTexts[vKey] || '';
+                      const hColor = highlightColors[vKey];
+                      return (
+                        <button key={vKey}
+                          onClick={() => {
+                            if (book) {
+                              setSelectedBook(book);
+                              setSelectedChapter(chapter);
+                            }
+                            setShowHighlights(false);
+                            setHighlightFilterColor(null);
+                          }}
+                          className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98]"
+                          style={{
+                            background: hColor ? `${hColor}10` : `${accentColor}08`,
+                            border: `1px solid ${hColor ? hColor + '30' : accentColor + '14'}`,
+                          }}>
+                          <div className="flex items-center gap-2 mb-2">
+                            {hColor && <div style={{ width: 8, height: 8, borderRadius: '50%', background: hColor, flexShrink: 0 }} />}
+                            <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: hColor || accentColor }}>
+                              {book ? `${book.name} ${chapter}:${verse}` : vKey}
+                            </p>
+                          </div>
+                          {text ? (
+                            <p className="text-sm leading-relaxed italic" style={{ color: 'rgba(232,240,236,0.75)', fontFamily: 'Georgia, serif' }}>
+                              &ldquo;{text}&rdquo;
+                            </p>
+                          ) : (
+                            <p className="text-xs" style={{ color: `${accentColor}44` }}>Tap to read</p>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {activeVerse && !loading && !showQuiz && (
         <div
           className="fixed bottom-0 left-0 right-0 z-[60]"
@@ -3422,8 +3581,8 @@ export default function ReadTab({
               </button>
             </div>
 
-            {/* Action buttons — row 1: TTS + Highlight + Note */}
-            <div className="flex gap-2 mb-2">
+            {/* Action buttons — Deep Study + Cross-Ref + Ask AI (+ Read if TTS on) */}
+            <div className="flex gap-2">
               {ttsEnabled && (
                 <button
                   onClick={() => { setActiveVerse(null); playTTS(activeVerse.verse); }}
@@ -3434,40 +3593,6 @@ export default function ReadTab({
                   <span>Read</span>
                 </button>
               )}
-              {(() => {
-                const vKey = `${selectedBook.osis}-${selectedChapter}-${activeVerse.verse}`;
-                const isHighlighted = highlighted.has(vKey);
-                const verseNoteKey = `${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`;
-                const hasNote = !!notes[verseNoteKey];
-                return (
-                  <>
-                    <button
-                      onClick={() => toggleHighlight(vKey)}
-                      className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold flex-1 justify-center transition-all active:scale-95"
-                      style={isHighlighted
-                        ? { background: 'rgba(212,168,83,0.18)', color: '#d4a853', border: '1px solid rgba(212,168,83,0.32)' }
-                        : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }}
-                    >
-                      <span>✦</span>
-                      <span>{isHighlighted ? 'Saved' : 'Highlight'}</span>
-                    </button>
-                    <button
-                      onClick={() => { setShowVerseNote(n => !n); if (!showVerseNote) setVerseNote(notes[verseNoteKey] || ''); }}
-                      className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold flex-1 justify-center transition-all active:scale-95"
-                      style={showVerseNote || hasNote
-                        ? { background: `${accentColor}22`, color: accentColor, border: `1px solid ${accentColor}44` }
-                        : { background: `${accentColor}0d`, color: tx2, border: `1px solid ${accentColor}1c` }}
-                    >
-                      <img src="/quill 2.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain',  }} />
-                      <span>{hasNote ? 'Note ✓' : 'Note'}</span>
-                    </button>
-                  </>
-                );
-              })()}
-            </div>
-
-            {/* Action buttons — row 2: Deep Study + Cross-Ref + Ask */}
-            <div className="flex gap-2">
               {([
                 { id: 'explain'  as const, label: 'Deep Study', icon: '📖' },
                 { id: 'crossref' as const, label: 'Cross-Ref',  icon: '🔗' },
