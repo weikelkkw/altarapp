@@ -646,7 +646,7 @@ export default function HomeTab({
                     <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: 'rgba(251,191,36,0.8)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Devotional</p>
                     <p className="text-[9px] mt-0.5" style={{ color: 'rgba(251,191,36,0.35)' }}>{devotionalRef || 'Daily Word'}</p>
                   </div>
-                  <img src="/read book.png" alt="" style={{ width: 32, height: 32, objectFit: 'contain', opacity: 0.7, flexShrink: 0 }} />
+                  <img src="/read book.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', opacity: 0.85, flexShrink: 0 }} />
                 </div>
                 {devotionalLoading && !devotional ? (
                   <p className="text-xs italic" style={{ color: 'rgba(251,191,36,0.4)' }}>Preparing your devotional…</p>

@@ -708,8 +708,8 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       </div>
 
                       {/* CTA */}
-                      <p className="text-center text-[9px] font-bold uppercase tracking-widest" style={{ marginTop: 12, color: 'rgba(96,165,250,0.35)' }}>
-                        Tap to experience →
+                      <p className="text-center text-[11px] font-black uppercase tracking-[0.2em]" style={{ marginTop: 14, color: 'rgba(96,165,250,0.7)', textShadow: '0 0 12px rgba(96,165,250,0.5), 0 0 28px rgba(96,165,250,0.2)', letterSpacing: '0.18em' }}>
+                        Tap to Experience →
                       </p>
                     </div>
                     {/* Bottom glow bar */}
