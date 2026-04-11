@@ -640,9 +640,13 @@ export default function HomeTab({
                   : { border: `2px solid ${accentColor}33` }}>
                 {dailyChecks[item.id] && <span className="text-[10px] text-white font-bold">✓</span>}
               </div>
-              <span className="text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
-                {(item as any).img ? <img src={(item as any).img} alt="" style={{ width: 24, height: 24, objectFit: 'contain', opacity: dailyChecks[item.id] ? 0.4 : 1 }} /> : item.icon} {item.label}
+              <span className="flex-1 text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none' }}>
+                {item.label}
               </span>
+              {(item as any).img
+                ? <img src={(item as any).img} alt="" style={{ width: 32, height: 32, objectFit: 'contain', opacity: dailyChecks[item.id] ? 0.25 : 0.9, flexShrink: 0 }} />
+                : <span className="text-base shrink-0">{item.icon}</span>
+              }
             </button>
           ))}
         </div>
@@ -1283,27 +1287,27 @@ export default function HomeTab({
                           const icon = catIcons[c.cat] || '•';
                           const isF = c.grade === 'F';
                           const isExpanded = expandedHealthCat === c.cat;
-                          const pct = c.score;
-                          const streakLabel = c.days > 0 ? `${c.days}/30 days` : '0/30 days';
+                          const pct = Math.round((c.days / 30) * 100);
                           return (
                             <button key={c.cat}
                               onClick={() => setExpandedHealthCat(isExpanded ? null : c.cat)}
-                              className="rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-95 text-left w-full"
+                              className="rounded-xl p-3.5 relative overflow-hidden transition-all active:scale-95 text-left w-full"
                               style={{
                                 background: `linear-gradient(135deg, rgba(0,0,0,0.88), rgba(0,0,0,0.78))`,
                                 border: `1px solid ${isExpanded ? color + '60' : color + '44'}`,
                                 boxShadow: `0 2px 12px rgba(0,0,0,0.5)`,
                                 opacity: isF ? 0.45 : 1,
                               }}>
-                              <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{icon}</span>}</div>
-                              <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-1">
-                                  {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-lg">{icon}</span>}
-                                  <p suppressHydrationWarning className="text-2xl font-black" style={{ color: '#fff' }}>{c.grade}</p>
-                                </div>
-                                <p suppressHydrationWarning className="text-[10px] font-bold" style={{ color }}>{c.cat}</p>
-                                <p suppressHydrationWarning className="text-[9px] mt-0.5" style={{ color: 'rgba(232,240,236,0.35)' }}>{streakLabel}</p>
+                              <div className="absolute -top-1 -right-1 text-3xl pointer-events-none select-none" style={{ opacity: 0.06 }}>{icon === 'star' ? <img src="/star.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : icon}</div>
+                              <div className="flex items-center gap-2 mb-2">
+                                {icon === 'star' ? <img src="/star.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} /> : <span className="text-xl">{icon}</span>}
+                                <p suppressHydrationWarning className="text-[11px] font-bold leading-tight" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{c.cat}</p>
                               </div>
+                              <p suppressHydrationWarning className="text-[9px] mb-2" style={{ color: 'rgba(232,240,236,0.4)' }}>{c.days} of 30 days active</p>
+                              <div className="rounded-full overflow-hidden h-1.5 mb-1" style={{ background: `${color}15` }}>
+                                <div suppressHydrationWarning className="h-full rounded-full transition-all" style={{ width: `${Math.max(pct, 3)}%`, background: `linear-gradient(90deg, ${color}88, ${color})` }} />
+                              </div>
+                              <p suppressHydrationWarning className="text-[9px] font-bold" style={{ color }}>Grade: {c.grade}</p>
                             </button>
                           );
                         })}

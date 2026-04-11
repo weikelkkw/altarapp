@@ -35,7 +35,7 @@ const STORY_CATEGORIES = [
   {
     label: 'Prayers & Teachings',
     stories: [
-      { label: "Lord's Prayer", query: "the Lord's Prayer — teach me about it and study it", icon: '🙏' },
+      { label: "Lord's Prayer", query: "the Lord's Prayer — teach me about it and study it", icon: '/Praying hands.png' },
       { label: 'Beatitudes', query: 'the Beatitudes from the Sermon on the Mount', icon: '⛰️' },
       { label: 'Armor of God', query: 'the Armor of God in Ephesians 6', icon: '🛡️' },
       { label: 'Love Chapter', query: '1 Corinthians 13 the love chapter', icon: '❤️' },
@@ -86,9 +86,9 @@ const SAMPLE_QUESTIONS = [
   { q: 'What is grace?', icon: '🕊' },
   { q: 'How do I know God is real?', icon: '🔍' },
   { q: 'What happens when we die?', icon: '☀️' },
-  { q: 'How should I pray?', icon: '🙏' },
+  { q: 'How should I pray?', icon: '/Praying hands.png' },
   { q: 'What does it mean to be saved?', icon: '❤️' },
-  { q: 'Is the Bible reliable?', icon: '📖' },
+  { q: 'Is the Bible reliable?', icon: '/read book.png' },
   { q: 'What is the Holy Spirit?', icon: '🔥' },
 ];
 
@@ -139,7 +139,7 @@ const TOPIC_CATEGORIES = [
     label: 'Spiritual Life',
     topics: [
       { label: 'Faith', query: 'My faith feels weak right now', icon: '✝' },
-      { label: 'Gratitude', query: 'I want to be more grateful', icon: '🙏' },
+      { label: 'Gratitude', query: 'I want to be more grateful', icon: '/Praying hands.png' },
       { label: 'Forgiveness', query: 'I need help forgiving someone', icon: '🕊' },
       { label: 'Strength', query: 'I need strength to get through a hard time', icon: '💪' },
     ],
@@ -159,7 +159,7 @@ function SectionLabel({ text, accentColor, icon }: { text: string; accentColor: 
   return (
     <div className="flex items-center gap-2.5 mb-3">
       <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-      {icon && <span className="text-base">{icon}</span>}
+      {icon && (icon.startsWith('/') ? <img src={icon} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} /> : <span className="text-base">{icon}</span>)}
       <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{text}</h2>
     </div>
   );
@@ -615,7 +615,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                   style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
                   <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
                   <div className="relative flex items-start gap-2">
-                    <span className="text-base mt-0.5 shrink-0">{sq.icon}</span>
+                    {sq.icon.startsWith('/') ? <img src={sq.icon} alt="" style={{ width: 18, height: 18, objectFit: 'contain', marginTop: 1, flexShrink: 0 }} /> : <span className="text-base mt-0.5 shrink-0">{sq.icon}</span>}
                     <span className="text-[11px] font-semibold leading-snug" style={{ color: 'rgba(232,240,236,0.75)' }}>{sq.q}</span>
                   </div>
                 </button>
@@ -626,7 +626,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
           {/* Story Categories */}
           {STORY_CATEGORIES.map((cat) => (
             <div key={cat.label}>
-              <SectionLabel text={cat.label} accentColor={accentColor} icon="📖" />
+              <SectionLabel text={cat.label} accentColor={accentColor} icon="/read book.png" />
               <div className="grid grid-cols-4 gap-1.5">
                 {cat.stories.map(story => (
                   <button key={story.label}
@@ -634,7 +634,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                     className="text-left rounded-xl p-2.5 transition-all active:scale-[0.97] group relative overflow-hidden flex flex-col items-center text-center gap-1"
                     style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
                     <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
-                    <span className="text-xl relative">{story.icon}</span>
+                    {story.icon.startsWith('/') ? <img src={story.icon} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-xl relative">{story.icon}</span>}
                     <span className="text-[9px] font-semibold leading-tight relative" style={{ color: 'rgba(232,240,236,0.7)' }}>{story.label}</span>
                   </button>
                 ))}
@@ -655,7 +655,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                     {/* Hover glow */}
                     <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
                     <div className="relative flex items-center gap-2.5">
-                      <span className="text-lg">{topic.icon}</span>
+                      {topic.icon.startsWith('/') ? <img src={topic.icon} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} /> : <span className="text-lg">{topic.icon}</span>}
                       <div>
                         <span className="text-xs font-semibold block" style={{ color: 'rgba(232,240,236,0.75)' }}>{topic.label}</span>
                         <span className="text-[9px] block mt-0.5" style={{ color: 'rgba(232,240,236,0.25)' }}>

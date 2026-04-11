@@ -30,9 +30,9 @@ type Tab = 'home' | 'read' | 'search' | 'study' | 'community';
 const TAB_CONFIG: { id: Tab; label: string; icon: string; img?: string }[] = [
   { id: 'home',      label: 'Home',   icon: '🏠', img: '/home.png' },
   { id: 'read',      label: 'Read',   icon: '📖', img: '/read book.png' },
-  { id: 'search',    label: 'Search', icon: '🔍' },
+  { id: 'search',    label: 'Search', icon: '🔍', img: '/magifying glass.png' },
   { id: 'study',     label: 'Study',  icon: '✦', img: '/star.png'  },
-  { id: 'community', label: 'Church', icon: '⛪' },
+  { id: 'community', label: 'Church', icon: '⛪', img: '/church.png' },
 ];
 
 function getOrCreateIdentity(): UserIdentity {
