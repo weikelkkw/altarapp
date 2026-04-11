@@ -858,8 +858,9 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
                       filter: active ? 'none' : 'grayscale(1) opacity(0.4)',
                       transform: active ? 'scale(1.15)' : 'scale(1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      mixBlendMode: t.img ? 'screen' : 'normal',
                     }}>
-                      {t.img ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain', mixBlendMode: 'screen' }} /> : t.icon}
+                      {t.img ? <img src={t.img} alt="" style={{ width: 52, height: 52, objectFit: 'contain' }} /> : t.icon}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
                       color: active ? theme.accent : 'rgba(232,240,236,0.25)',
