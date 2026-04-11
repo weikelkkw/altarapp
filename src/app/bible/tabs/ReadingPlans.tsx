@@ -1343,9 +1343,8 @@ export default function ReadingPlans({ accentColor, onNavigateToRead }: Props) {
                         const done = prog.completedDays.includes(day.day);
                         const isToday = day.day === todayDay && !done;
                         return (
-                          <button
+                          <div
                             key={day.day}
-                            onClick={() => toggleDay(prog.planId, day.day)}
                             title={day.label}
                             style={{
                               width: '100%', aspectRatio: '1', borderRadius: 8,
@@ -1353,12 +1352,11 @@ export default function ReadingPlans({ accentColor, onNavigateToRead }: Props) {
                               background: done ? accentColor : 'rgba(255,255,255,0.03)',
                               color: done ? '#000' : isToday ? accentColor : 'rgba(255,255,255,0.4)',
                               fontSize: 11, fontWeight: done ? 700 : 500,
-                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              transition: 'all 0.15s',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >
                             {done ? '\u2713' : day.day}
-                          </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -1379,19 +1377,18 @@ export default function ReadingPlans({ accentColor, onNavigateToRead }: Props) {
                               background: isToday ? `${accentColor}10` : 'transparent',
                             }}
                           >
-                            <button
-                              onClick={() => toggleDay(prog.planId, day.day)}
+                            <div
                               style={{
                                 width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                                border: done ? 'none' : '2px solid rgba(255,255,255,0.15)',
+                                border: done ? 'none' : '2px solid rgba(255,255,255,0.1)',
                                 background: done ? accentColor : 'transparent',
                                 color: done ? '#000' : 'transparent',
-                                fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                                fontSize: 12, fontWeight: 700,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                               }}
                             >
                               {done ? '\u2713' : ''}
-                            </button>
+                            </div>
                             <span style={{
                               flex: 1, fontSize: 13, color: done ? 'rgba(255,255,255,0.35)' : '#fff',
                               textDecoration: done ? 'line-through' : 'none',

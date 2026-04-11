@@ -3523,146 +3523,217 @@ export default function ReadTab({
 
       {/* ── Color Picker Bottom Sheet ─────────────────────────────────────── */}
       {colorPickerVerse && setHighlightColor && (
-        <div className="fixed inset-0 z-[65] flex flex-col justify-end" onClick={() => { setColorPickerVerse(null); setEditingColorIdx(null); }}>
+        <div className="fixed inset-0 z-[65] flex flex-col justify-end" onClick={() => { setColorPickerVerse(null); setEditingColorIdx(null); setPreviewColorIdx(null); }}>
           <div
             className="rounded-t-3xl"
             style={{ background: 'rgba(8,12,10,0.98)', backdropFilter: 'blur(24px)', border: `1px solid ${accentColor}22`, borderBottom: 'none' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="max-w-lg mx-auto px-5 pt-5" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))' }}>
-              {/* Header + dismiss */}
-              <div className="flex items-center justify-between mb-4">
+            <div className="max-w-lg mx-auto px-5 pt-5" style={{ paddingBottom: 'max(28px, env(safe-area-inset-bottom, 28px))' }}>
+
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: `${accentColor}44` }}>✦ Verse highlighted</p>
-                  <h3 className="text-base font-black" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>How does this hit you?</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: `${accentColor}55` }}>✦ Verse saved</p>
+                  <h3 className="text-lg font-black" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+                    {editingColorIdx !== null ? 'Customize Colors' : 'How does this hit you?'}
+                  </h3>
                 </div>
                 <button onClick={() => { setColorPickerVerse(null); setEditingColorIdx(null); setPreviewColorIdx(null); }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs"
-                  style={{ background: `${accentColor}12`, color: `${accentColor}66` }}>✕</button>
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{ background: `${accentColor}12`, color: `${accentColor}77` }}>✕</button>
               </div>
 
-              {/* Live preview label — shows meaning as you hover/press */}
-              {(() => {
-                const activeIdx = previewColorIdx ?? colorConfig.findIndex((c) => highlightColors[colorPickerVerse] === c.color);
-                const active = activeIdx >= 0 ? colorConfig[activeIdx] : null;
-                return (
-                  <div className="mb-5 rounded-2xl px-4 py-3 min-h-[52px] flex items-center gap-3 transition-all"
-                    style={{ background: active ? `${active.color}18` : `${accentColor}08`, border: `1px solid ${active ? active.color + '30' : accentColor + '12'}` }}>
-                    {active ? (
-                      <>
-                        <div style={{ width: 14, height: 14, borderRadius: '50%', background: active.color, flexShrink: 0, boxShadow: `0 0 10px ${active.color}88` }} />
-                        <p className="text-sm font-bold leading-tight" style={{ color: active.color }}>{active.label}</p>
-                      </>
-                    ) : (
-                      <p className="text-xs" style={{ color: `${accentColor}44` }}>Touch a color to see what it means</p>
-                    )}
-                  </div>
-                );
-              })()}
+              {editingColorIdx === null ? (
+                /* ── SELECT MODE ── */
+                <>
+                  {/* Live meaning preview */}
+                  {(() => {
+                    const activeIdx = previewColorIdx ?? colorConfig.findIndex((c) => highlightColors[colorPickerVerse] === c.color);
+                    const active = activeIdx >= 0 ? colorConfig[activeIdx] : null;
+                    return (
+                      <div className="mb-5 rounded-2xl px-4 py-3 flex items-center gap-3 min-h-[54px] transition-all"
+                        style={{ background: active ? `${active.color}18` : `${accentColor}08`, border: `1px solid ${active ? active.color + '35' : accentColor + '12'}`, transition: 'all 0.2s' }}>
+                        {active ? (
+                          <>
+                            <div style={{ width: 12, height: 12, borderRadius: '50%', background: active.color, flexShrink: 0, boxShadow: `0 0 12px ${active.color}99` }} />
+                            <p className="text-sm font-bold" style={{ color: active.color }}>{active.label}</p>
+                          </>
+                        ) : (
+                          <p className="text-xs" style={{ color: `${accentColor}44` }}>Tap a color to see its meaning</p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
-              {/* Color tiles */}
-              <div className="grid grid-cols-5 gap-3 mb-4">
-                {colorConfig.map(({ color, label }, idx) => {
-                  const isSelected = highlightColors[colorPickerVerse] === color;
-                  const isEditing = editingColorIdx === idx;
-                  const isPreviewing = previewColorIdx === idx;
-                  return (
-                    <div key={idx} className="flex flex-col items-center gap-1.5">
-                      {/* Color circle */}
-                      <div className="relative">
+                  {/* Color circles — large, clean, full label below */}
+                  <div className="grid grid-cols-5 gap-4 mb-5">
+                    {colorConfig.map(({ color, label }, idx) => {
+                      const isSelected = highlightColors[colorPickerVerse] === color;
+                      const isPreviewing = previewColorIdx === idx;
+                      return (
                         <button
+                          key={idx}
+                          className="flex flex-col items-center gap-2 py-1"
                           onMouseEnter={() => setPreviewColorIdx(idx)}
                           onMouseLeave={() => setPreviewColorIdx(null)}
                           onTouchStart={() => setPreviewColorIdx(idx)}
-                          onTouchEnd={() => setPreviewColorIdx(null)}
+                          onTouchEnd={() => { setPreviewColorIdx(null); }}
                           onClick={() => {
-                            if (isEditing) return;
                             setHighlightColor!(colorPickerVerse, color);
-                            setEditingColorIdx(null);
                             setPreviewColorIdx(null);
-                            setTimeout(() => setColorPickerVerse(null), 180);
+                            setTimeout(() => setColorPickerVerse(null), 160);
                           }}
-                          style={{
-                            width: 56, height: 56, borderRadius: '50%', background: color,
-                            border: isSelected ? '3px solid #fff' : isPreviewing ? `3px solid ${color}` : '3px solid transparent',
+                        >
+                          <div style={{
+                            width: 52, height: 52, borderRadius: '50%', background: color,
+                            border: isSelected ? '3px solid #fff' : '3px solid transparent',
                             boxShadow: isSelected
-                              ? `0 0 0 3px ${color}, 0 0 24px ${color}99`
+                              ? `0 0 0 3px ${color}, 0 0 22px ${color}aa`
                               : isPreviewing
-                                ? `0 0 0 2px ${color}66, 0 0 16px ${color}55`
-                                : `0 4px 12px rgba(0,0,0,0.5)`,
-                            transform: isSelected ? 'scale(1.18)' : isPreviewing ? 'scale(1.08)' : 'scale(1)',
-                            transition: 'all 0.15s', cursor: 'pointer',
+                                ? `0 0 0 2px ${color}88, 0 0 18px ${color}66`
+                                : `0 4px 14px rgba(0,0,0,0.5)`,
+                            transform: isSelected ? 'scale(1.15)' : isPreviewing ? 'scale(1.07)' : 'scale(1)',
+                            transition: 'all 0.15s',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            {isSelected && <span style={{ color: '#fff', fontSize: 18, fontWeight: 900, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>✓</span>}
+                          </div>
+                          <span className="text-center leading-tight font-semibold" style={{ fontSize: 10, color: isSelected ? color : isPreviewing ? color : `${accentColor}66`, maxWidth: 56, transition: 'color 0.15s', lineHeight: 1.3 }}>
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Customize link */}
+                  <button
+                    onClick={() => setEditingColorIdx(0)}
+                    className="w-full py-2.5 rounded-2xl text-xs font-bold text-center transition-all active:scale-98"
+                    style={{ background: `${accentColor}0c`, color: `${accentColor}77`, border: `1px solid ${accentColor}18` }}>
+                    ✎ Customize my colors
+                  </button>
+                </>
+              ) : (
+                /* ── EDIT MODE — tap to customize, no typing ── */
+                (() => {
+                  const MEANING_PRESETS = [
+                    '❤️ Love', '✨ Promise', '⚠️ Warning', '🙏 Prayer', '🕊 Peace',
+                    '🔥 Conviction', '🌿 Faith', '💡 Wisdom', '☀️ Joy', '🌅 Hope',
+                    '💪 Strength', '🤍 Comfort', '🎯 Challenge', '📖 Teaching', '🌱 Growth',
+                    '👑 Praise', '⚡ Power', '🏆 Victory', '💎 Treasure', '🔑 Key Verse',
+                  ];
+                  const editIdx = editingColorIdx ?? 0;
+                  const current = colorConfig[editIdx];
+                  return (
+                    <>
+                      {/* Color slot selector */}
+                      <div className="flex gap-2 mb-5">
+                        {colorConfig.map(({ color }, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setEditingColorIdx(idx)}
+                            className="flex-1 flex flex-col items-center gap-1.5"
+                          >
+                            <div style={{
+                              width: 44, height: 44, borderRadius: '50%', background: color,
+                              border: editIdx === idx ? '3px solid #fff' : '3px solid transparent',
+                              boxShadow: editIdx === idx ? `0 0 0 3px ${color}, 0 0 20px ${color}88` : `0 3px 10px rgba(0,0,0,0.5)`,
+                              transform: editIdx === idx ? 'scale(1.12)' : 'scale(1)',
+                              transition: 'all 0.15s',
+                            }} />
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Selected color editor */}
+                      <div className="rounded-2xl p-4 mb-4" style={{ background: `${current.color}10`, border: `1px solid ${current.color}30` }}>
+                        {/* Color swatch + current meaning */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <label className="shrink-0 cursor-pointer relative">
+                            <div style={{
+                              width: 52, height: 52, borderRadius: 16, background: current.color,
+                              boxShadow: `0 4px 20px ${current.color}77`, border: '2px solid rgba(255,255,255,0.15)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>tap</span>
+                            </div>
+                            <input
+                              ref={el => { colorInputRefs.current[editIdx] = el; }}
+                              type="color"
+                              value={current.color}
+                              onChange={e => updateColorConfig(editIdx, { color: e.target.value })}
+                              style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+                            />
+                          </label>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: `${accentColor}55` }}>Current meaning</p>
+                            <p className="text-base font-black" style={{ color: current.color }}>{current.label}</p>
+                          </div>
+                        </div>
+
+                        {/* Custom text input — big and easy */}
+                        <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: `${accentColor}44` }}>Write your own meaning</p>
+                        <input
+                          type="text"
+                          value={current.label}
+                          onChange={e => updateColorConfig(editIdx, { label: e.target.value })}
+                          maxLength={30}
+                          placeholder="e.g. This verse hit me hard…"
+                          autoCapitalize="sentences"
+                          autoCorrect="on"
+                          className="w-full rounded-2xl px-4 py-3.5 text-base font-semibold outline-none mb-4"
+                          style={{
+                            background: `${current.color}18`,
+                            border: `2px solid ${current.color}50`,
+                            color: current.color,
+                            fontSize: 16,
                           }}
                         />
-                        {/* Edit pencil */}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setEditingColorIdx(isEditing ? null : idx); setPreviewColorIdx(null); }}
-                          style={{
-                            position: 'absolute', bottom: -2, right: -2,
-                            width: 20, height: 20, borderRadius: '50%',
-                            background: 'rgba(0,0,0,0.85)', border: `1px solid ${accentColor}33`,
-                            color: `${accentColor}88`, fontSize: 10, display: 'flex',
-                            alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                          }}>
-                          ✎
-                        </button>
-                        {/* Hidden color input */}
-                        <input
-                          ref={el => { colorInputRefs.current[idx] = el; }}
-                          type="color"
-                          value={color}
-                          onChange={e => updateColorConfig(idx, { color: e.target.value })}
-                          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
-                        />
-                      </div>
-                      {/* Label — editable in edit mode, otherwise short name */}
-                      {isEditing ? (
-                        <div className="w-full flex flex-col gap-1 mt-1">
-                          <button
-                            onClick={() => colorInputRefs.current[idx]?.click()}
-                            className="text-[9px] font-bold rounded-lg py-1 px-1 text-center"
-                            style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}>
-                            Color
-                          </button>
-                          <input
-                            type="text"
-                            value={label}
-                            onChange={e => updateColorConfig(idx, { label: e.target.value })}
-                            maxLength={20}
-                            className="text-[9px] rounded-lg px-1.5 py-1 text-center outline-none w-full"
-                            style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${accentColor}22`, color: 'rgba(232,240,236,0.8)' }}
-                          />
-                        </div>
-                      ) : (
-                        <span className="text-[9px] font-bold text-center leading-tight" style={{ color: isSelected || isPreviewing ? color : `${accentColor}55`, maxWidth: 56, transition: 'color 0.15s' }}>
-                          {label.split(' ')[0]}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
 
-              {/* Edit mode controls */}
-              {editingColorIdx !== null && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setEditingColorIdx(null)}
-                    className="flex-1 text-center py-2 text-[10px] font-bold rounded-xl"
-                    style={{ background: `${accentColor}12`, color: accentColor, border: `1px solid ${accentColor}22` }}>
-                    Done editing
-                  </button>
-                  <button
-                    onClick={() => {
-                      setColorConfig(DEFAULT_COLOR_CONFIG);
-                      try { localStorage.setItem('trace-color-config', JSON.stringify(DEFAULT_COLOR_CONFIG)); } catch {}
-                      setEditingColorIdx(null);
-                    }}
-                    className="flex-1 text-center py-2 text-[10px] font-bold rounded-xl"
-                    style={{ color: `${accentColor}44`, background: `${accentColor}06`, border: `1px solid ${accentColor}12` }}>
-                    Reset defaults
-                  </button>
-                </div>
+                        {/* Preset meaning chips */}
+                        <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: `${accentColor}44` }}>Or pick a preset</p>
+                        <div className="flex flex-wrap gap-2">
+                          {MEANING_PRESETS.map(preset => {
+                            const isActive = current.label === preset;
+                            return (
+                              <button
+                                key={preset}
+                                onClick={() => updateColorConfig(editIdx, { label: preset })}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                                style={isActive
+                                  ? { background: current.color, color: '#fff', boxShadow: `0 2px 12px ${current.color}66` }
+                                  : { background: `${current.color}18`, color: current.color, border: `1px solid ${current.color}30` }
+                                }
+                              >
+                                {preset}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingColorIdx(null)}
+                          className="flex-1 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95"
+                          style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>
+                          Done
+                        </button>
+                        <button
+                          onClick={() => {
+                            setColorConfig(DEFAULT_COLOR_CONFIG);
+                            try { localStorage.setItem('trace-color-config', JSON.stringify(DEFAULT_COLOR_CONFIG)); } catch {}
+                          }}
+                          className="px-4 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95"
+                          style={{ background: `${accentColor}0c`, color: `${accentColor}55`, border: `1px solid ${accentColor}18` }}>
+                          Reset
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()
               )}
             </div>
           </div>
@@ -3760,19 +3831,33 @@ export default function ReadTab({
                   className="w-full rounded-xl px-3 py-2.5 text-sm outline-none resize-none"
                   style={{ background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)', border: `1px solid ${accentColor}33`, color: tx1 }}
                 />
-                <button
-                  onClick={() => {
-                    const verseNoteKey = `${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`;
-                    if (verseNote.trim()) {
-                      saveNote(verseNoteKey, verseNote.trim());
-                    }
-                    setShowVerseNote(false);
-                  }}
-                  className="mt-2 w-full py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}
-                >
-                  Save Note
-                </button>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => {
+                      const verseNoteKey = `${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`;
+                      if (verseNote.trim()) saveNote(verseNoteKey, verseNote.trim());
+                      setShowVerseNote(false);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                    style={{ background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}33` }}
+                  >
+                    Save Note
+                  </button>
+                  <button
+                    onClick={() => {
+                      const verseNoteKey = `${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`;
+                      if (verseNote.trim()) saveNote(verseNoteKey, verseNote.trim());
+                      setShowVerseNote(false);
+                      setAiMode('ask');
+                      setAskInput(verseNote.trim() || `Help me understand ${selectedBook.name} ${selectedChapter}:${activeVerse.verse}`);
+                      setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95"
+                    style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}
+                  >
+                    💬 Ask AI
+                  </button>
+                </div>
               </div>
             )}
           </div>

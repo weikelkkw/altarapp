@@ -658,12 +658,16 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
           const isActive = activeSection === section.id;
           return (
             <button key={section.id} onClick={() => setMode(section.id)}
-              className="flex flex-col items-center gap-1 py-3 rounded-xl text-center transition-all active:scale-95"
+              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl text-center transition-all active:scale-95"
               style={isActive
-                ? { background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}0d)`, border: `1.5px solid ${accentColor}55`, boxShadow: `0 0 10px ${accentColor}22` }
+                ? {
+                    background: `linear-gradient(135deg, ${accentColor}28, ${accentColor}10)`,
+                    border: `1.5px solid ${accentColor}55`,
+                    boxShadow: `0 0 14px ${accentColor}30, 0 0 0 1px ${accentColor}22 inset`,
+                  }
                 : { background: `${accentColor}06`, border: `1px solid ${accentColor}15` }
               }>
-              <span className="text-lg leading-none">{section.icon}</span>
+              <span className="text-xl leading-none">{section.icon}</span>
               <span className="text-[9px] font-bold uppercase tracking-wide leading-tight"
                 style={{ color: isActive ? accentColor : `${accentColor}55` }}>
                 {section.label}
@@ -675,17 +679,20 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
 
       {/* ── Sub-navigation (if section has sub-items) ── */}
       {subItems[activeSection] && subItems[activeSection].length > 1 && (
-        <div className="flex gap-2">
-          {subItems[activeSection].map(sub => (
-            <button key={sub.id} onClick={() => setMode(sub.id)}
-              className="flex-1 py-2 rounded-xl text-[11px] font-bold transition-all text-center"
-              style={mode === sub.id
-                ? { background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}33` }
-                : { background: 'rgba(255,255,255,0.02)', color: 'rgba(232,240,236,0.4)', border: `1px solid ${accentColor}0a` }
-              }>
-              {sub.icon} {sub.label}
-            </button>
-          ))}
+        <div>
+          <div style={{ height: 1, background: `${accentColor}12`, marginBottom: 8 }} />
+          <div className="flex gap-2">
+            {subItems[activeSection].map(sub => (
+              <button key={sub.id} onClick={() => setMode(sub.id)}
+                className="flex-1 py-2.5 rounded-xl text-[11px] font-bold transition-all text-center"
+                style={mode === sub.id
+                  ? { background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}40`, boxShadow: `0 0 8px ${accentColor}20` }
+                  : { background: 'rgba(255,255,255,0.02)', color: 'rgba(232,240,236,0.4)', border: `1px solid ${accentColor}0a` }
+                }>
+                {sub.icon} {sub.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -707,8 +714,8 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
           </div>
 
           <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}18` }}>
-            <div className="px-5 pt-4 pb-3" style={{ borderBottom: `1px solid 12` }}>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '88' }}>
+            <div className="px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+              <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}88` }}>
                 Choose a passage to study {studyDepth === 'deep' ? '(Deep Mode)' : '(Simple Mode)'}
               </p>
             </div>
@@ -717,7 +724,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
               {/* Translation pills */}
               <div className="flex items-center gap-1.5 flex-wrap">
                 {biblesLoading ? (
-                  <p className="text-xs" style={{ color: '55' }}>Loading…</p>
+                  <p className="text-xs" style={{ color: `${accentColor}55` }}>Loading…</p>
                 ) : (
                   popularBibles.slice(0, 6).map(b => (
                     <button key={b.id} onClick={() => setStudyBible(b)} title={b.name}
@@ -741,7 +748,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
                   {showBookList && (
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl max-h-64 flex flex-col overflow-hidden"
                       style={{ background: '#0a1410', border: `1px solid ${accentColor}18`, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
-                      <div className="p-2 shrink-0" style={{ borderBottom: `1px solid 12` }}>
+                      <div className="p-2 shrink-0" style={{ borderBottom: `1px solid ${accentColor}12` }}>
                         <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
                           className="w-full px-3 py-2 rounded-lg text-sm outline-none"
                           style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
@@ -771,17 +778,17 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
               {/* Verse grid */}
               {passageLoading ? (
                 <div className="flex justify-center py-4">
-                  <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: '33', borderTopColor: gold }} />
+                  <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: gold }} />
                 </div>
               ) : passage ? (
                 <div>
-                  <p className="text-xs mb-2" style={{ color: '66' }}>
+                  <p className="text-xs mb-2" style={{ color: `${accentColor}66` }}>
                     Tap a verse to study — {studyBook.name} {studyChapter}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {passage.verses.map(v => (
                       <button key={v.verse} onClick={() => explainVerse(v)}
-                        className="w-9 h-9 rounded-lg text-sm font-bold transition-all"
+                        className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
                         style={selectedVerse?.verse === v.verse
                           ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, color: '#0a1410', boxShadow: `0 0 12px ${accentColor}66` }
                           : { background: `${accentColor}0d`, color: `${accentColor}99`, border: `1px solid ${accentColor}18` }}>
@@ -799,25 +806,25 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
             <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}25` }}>
               {/* The verse */}
               <div className="px-6 py-5" style={{ background: `${accentColor}08`, borderBottom: `1px solid ${accentColor}18` }}>
-                <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: accentColor }}>
+                <p className="text-[10px] font-black uppercase tracking-[0.15em] mb-3" style={{ color: accentColor }}>
                   {studyBook.name} {studyChapter}:{selectedVerse.verse}
                 </p>
-                <p className="text-lg italic leading-relaxed" style={{ color: "rgba(232,240,236,0.85)", fontFamily: 'Georgia, serif' }}>
+                <p className="text-lg italic leading-loose" style={{ color: gold, fontFamily: 'Georgia, serif', textShadow: `0 0 20px ${accentColor}22` }}>
                   &ldquo;{selectedVerse.text}&rdquo;
                 </p>
-                <p className="text-xs mt-2" style={{ color: '66' }}>{studyBible?.abbreviationLocal}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest mt-3" style={{ color: `${accentColor}66` }}>{studyBible?.abbreviationLocal}</p>
               </div>
 
               {/* Explanation */}
               <div className="px-6 py-5">
                 {explaining && !explanation && (
                   <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: '33', borderTopColor: gold }} />
+                    <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: gold }} />
                     <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>Studying this verse…</p>
                   </div>
                 )}
                 {explanation && (
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(232,240,236,0.75)', fontFamily: 'Georgia, serif' }}>
+                  <div className="text-sm whitespace-pre-wrap" style={{ color: 'rgba(232,240,236,0.75)', fontFamily: 'Georgia, serif', lineHeight: 1.9 }}>
                     {cleanMarkdown(explanation)}
                     {explaining && <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse" style={{ background: gold, borderRadius: 1 }} />}
                   </div>
@@ -825,7 +832,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
               </div>
 
               {/* Ask a follow-up */}
-              <div className="px-5 py-4" style={{ borderTop: `1px solid 12` }}>
+              <div className="px-5 py-4" style={{ borderTop: `1px solid ${accentColor}12` }}>
                 <div className="flex gap-2">
                   <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} value={question} onChange={e => setQuestion(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && question.trim()) { explainVerse(selectedVerse, question); setQuestion(''); } }}
@@ -859,8 +866,8 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
         <>
           {/* Same navigator as AI study — reuse book/chapter picker */}
           <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}18` }}>
-            <div className="px-5 pt-4 pb-3" style={{ borderBottom: `1px solid 12` }}>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '88' }}>
+            <div className="px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+              <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}88` }}>
                 Test your knowledge
               </p>
             </div>
@@ -876,7 +883,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
                   {showBookList && (
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl max-h-64 flex flex-col overflow-hidden"
                       style={{ background: '#0a1410', border: `1px solid ${accentColor}18`, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
-                      <div className="p-2 shrink-0" style={{ borderBottom: `1px solid 12` }}>
+                      <div className="p-2 shrink-0" style={{ borderBottom: `1px solid ${accentColor}12` }}>
                         <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
                           className="w-full px-3 py-2 rounded-lg text-sm outline-none"
                           style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
@@ -914,7 +921,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
           {/* Quiz questions */}
           {quizLoading && (
             <div className="flex items-center justify-center gap-3 py-12">
-              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: '33', borderTopColor: gold }} />
+              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: gold }} />
               <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>Creating your quiz…</p>
             </div>
           )}
@@ -923,13 +930,13 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
             <div className="space-y-4">
               {/* Progress */}
               <div className="flex items-center gap-2">
-                <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: '18' }}>
+                <div className="flex-1 rounded-full h-1.5 overflow-hidden" style={{ background: `${accentColor}18` }}>
                   <div className="h-full rounded-full transition-all" style={{
                     width: `${(Object.keys(quizAnswered).length / quizQuestions.length) * 100}%`,
                     background: `linear-gradient(90deg, ${accentColor}, ${accentColor}bb)`,
                   }} />
                 </div>
-                <p className="text-xs font-bold" style={{ color: '88' }}>
+                <p className="text-xs font-bold" style={{ color: `${accentColor}88` }}>
                   {Object.keys(quizAnswered).length}/{quizQuestions.length}
                 </p>
               </div>
@@ -946,7 +953,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
                     background: 'rgba(255,255,255,0.025)',
                     border: `1px solid ${revealed ? (isCorrect ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)') : `${accentColor}18`}`,
                   }}>
-                    <div className="px-5 py-4" style={{ borderBottom: `1px solid 12` }}>
+                    <div className="px-5 py-4" style={{ borderBottom: `1px solid ${accentColor}12` }}>
                       <div className="flex items-start gap-3">
                         <span className="text-sm font-bold shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
                           style={{ background: `${accentColor}0d`, color: accentColor }}>{qIdx + 1}</span>
@@ -1000,7 +1007,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
 
               {/* Score summary */}
               {Object.keys(quizAnswered).length === quizQuestions.length && (
-                <div className="rounded-2xl p-6 text-center" style={{ background: '0d', border: `1px solid ${accentColor}18` }}>
+                <div className="rounded-2xl p-6 text-center" style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18` }}>
                   <p className="text-3xl mb-2">
                     {Object.values(quizAnswered).filter((a, i) => a === quizQuestions[i].correct).length === quizQuestions.length ? '🏆' : '📖'}
                   </p>
@@ -1195,7 +1202,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
             <div>
               <button onClick={() => { setApoBook(null); setApoPassage(null); setApoChapter(1); }}
                 className="flex items-center gap-2 text-sm font-semibold mb-4 transition-all"
-                style={{ color: '99' }}>
+                style={{ color: `${accentColor}99` }}>
                 ← Back to Ancient Texts
               </button>
               <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid rgba(192,132,252,0.2)` }}>
@@ -1253,146 +1260,6 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
         </>
       )}
     </>
-  );
-}
-
-// Placeholder wrappers — these will use the dedicated components once agents finish building them
-// For now they use the AI explain endpoint directly
-
-function WordStudyPlaceholder({ accentColor, bibleAbbr }: { accentColor: string; bibleAbbr: string }) {
-  const [word, setWord] = useState('');
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-  const quickWords = ['Grace', 'Faith', 'Love', 'Hope', 'Peace', 'Mercy', 'Righteousness', 'Covenant', 'Salvation', 'Redemption'];
-
-  const search = async (w: string) => {
-    setWord(w); setResult(''); setLoading(true);
-    try {
-      const res = await fetch('/api/altar/explain', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference: `Word Study: ${w}`, verseText: w, translation: bibleAbbr,
-          question: `Do a thorough word study on "${w}" as it appears in the Bible.\n\nCover:\n1. The original Hebrew word (if OT) with transliteration and root meaning\n2. The original Greek word (if NT) with transliteration and root meaning\n3. Key nuances and shades of meaning\n4. 5-6 important verses where this word appears, with brief context for each\n5. How the meaning develops from Old Testament to New Testament\n\nDo not use any markdown, asterisks, or headers. Use plain section labels like HEBREW:, GREEK:, KEY VERSES:, etc.` }),
-      });
-      const reader = res.body?.getReader(); if (!reader) return;
-      const decoder = new TextDecoder(); let text = '';
-      while (true) { const { done, value } = await reader.read(); if (done) break; text += decoder.decode(value, { stream: true }); setResult(text); }
-    } catch { setResult('Could not load. Check connection.'); } finally { setLoading(false); }
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} value={word} onChange={e => setWord(e.target.value)} onKeyDown={e => e.key === 'Enter' && word.trim() && search(word.trim())}
-          placeholder="Enter a word (e.g., grace, faith)…"
-          className="flex-1 rounded-xl px-4 py-3 text-sm outline-none"
-          style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}22`, color: '#f0f8f4' }} />
-        <button onClick={() => word.trim() && search(word.trim())} disabled={loading || !word.trim()}
-          className="px-4 py-3 rounded-xl text-sm font-bold disabled:opacity-40"
-          style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff' }}>Study</button>
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {quickWords.map(w => (
-          <button key={w} onClick={() => search(w)} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold"
-            style={{ background: `${accentColor}0d`, color: `${accentColor}88`, border: `1px solid ${accentColor}18` }}>{w}</button>
-        ))}
-      </div>
-      {loading && !result && (
-        <div className="flex items-center gap-3 py-8">
-          <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
-          <p className="text-sm" style={{ color: 'rgba(232,240,236,0.4)' }}>Studying this word…</p>
-        </div>
-      )}
-      {result && (
-        <div className="rounded-xl p-5 text-sm leading-relaxed whitespace-pre-wrap"
-          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15`, color: 'rgba(232,240,236,0.7)', fontFamily: 'Georgia, serif' }}>
-          {cleanMarkdown(result)}
-          {loading && <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse" style={{ background: accentColor, borderRadius: 1 }} />}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NamesOfGodPlaceholder({ accentColor }: { accentColor: string }) {
-  const [filter, setFilter] = useState('All');
-  const NAMES = [
-    { hebrew: 'Elohim', english: 'God / Creator', meaning: 'The all-powerful Creator. Used 2,600+ times. Emphasizes God\'s sovereignty and creative power.', ref: 'Genesis 1:1', cat: 'Power' },
-    { hebrew: 'Yahweh (YHWH)', english: 'LORD / I AM', meaning: 'The self-existent, eternal, covenant-keeping God. The most sacred name, revealed to Moses.', ref: 'Exodus 3:14', cat: 'Covenant' },
-    { hebrew: 'Adonai', english: 'Lord / Master', meaning: 'Acknowledges God as sovereign ruler and master over all.', ref: 'Psalm 8:1', cat: 'Authority' },
-    { hebrew: 'El Shaddai', english: 'God Almighty', meaning: 'The all-sufficient God who provides and sustains. Revealed to Abraham.', ref: 'Genesis 17:1', cat: 'Provision' },
-    { hebrew: 'El Elyon', english: 'God Most High', meaning: 'The supreme God above all other powers in heaven and earth.', ref: 'Genesis 14:18-20', cat: 'Power' },
-    { hebrew: 'El Roi', english: 'God Who Sees', meaning: 'The God who sees the oppressed and forgotten. Named by Hagar in the wilderness.', ref: 'Genesis 16:13', cat: 'Comfort' },
-    { hebrew: 'Yahweh Yireh', english: 'The LORD Will Provide', meaning: 'Named by Abraham on Mount Moriah after God provided the ram.', ref: 'Genesis 22:14', cat: 'Provision' },
-    { hebrew: 'Yahweh Rapha', english: 'The LORD Who Heals', meaning: 'God as healer of body, mind, and spirit.', ref: 'Exodus 15:26', cat: 'Healing' },
-    { hebrew: 'Yahweh Nissi', english: 'The LORD Our Banner', meaning: 'God as our victory and rallying point in battle.', ref: 'Exodus 17:15', cat: 'Protection' },
-    { hebrew: 'Yahweh Shalom', english: 'The LORD Is Peace', meaning: 'God as the source of wholeness and peace. Named by Gideon.', ref: 'Judges 6:24', cat: 'Peace' },
-    { hebrew: 'Yahweh Tsidkenu', english: 'The LORD Our Righteousness', meaning: 'God as the one who makes us righteous. Prophetic name for the Messiah.', ref: 'Jeremiah 23:6', cat: 'Covenant' },
-    { hebrew: 'Yahweh Rohi', english: 'The LORD My Shepherd', meaning: 'God as the caring, guiding, protecting shepherd. The most intimate compound name.', ref: 'Psalm 23:1', cat: 'Comfort' },
-    { hebrew: 'Yahweh Shammah', english: 'The LORD Is There', meaning: 'God\'s promise of eternal presence. He will never leave.', ref: 'Ezekiel 48:35', cat: 'Presence' },
-    { hebrew: 'Yahweh Sabaoth', english: 'LORD of Hosts', meaning: 'Commander of heavenly armies. Used 285 times.', ref: '1 Samuel 1:3', cat: 'Power' },
-    { hebrew: 'El Olam', english: 'The Everlasting God', meaning: 'The eternal, unchanging God. Beyond time, without beginning or end.', ref: 'Genesis 21:33', cat: 'Eternal' },
-    { hebrew: 'Abba', english: 'Father', meaning: 'The intimate, personal name for God as Father. Given to believers through the Spirit.', ref: 'Romans 8:15', cat: 'Intimacy' },
-  ];
-  const cats = ['All', ...Array.from(new Set(NAMES.map(n => n.cat)))];
-  const filtered = filter === 'All' ? NAMES : NAMES.filter(n => n.cat === filter);
-
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        {cats.map(c => (
-          <button key={c} onClick={() => setFilter(c)} className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
-            style={filter === c ? { background: `${accentColor}22`, color: accentColor } : { color: 'rgba(232,240,236,0.35)' }}>{c}</button>
-        ))}
-      </div>
-      {filtered.map(n => (
-        <div key={n.hebrew} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
-          <p className="text-lg font-bold mb-0.5" style={{ color: accentColor, fontFamily: 'Georgia, serif' }}>{n.hebrew}</p>
-          <p className="text-xs font-bold mb-2" style={{ color: 'rgba(232,240,236,0.7)' }}>{n.english}</p>
-          <p className="text-xs leading-relaxed mb-2" style={{ color: 'rgba(232,240,236,0.5)', fontFamily: 'Georgia, serif' }}>{n.meaning}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: `${accentColor}14`, color: `${accentColor}88` }}>{n.ref}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.3)' }}>{n.cat}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ReadingPlansPlaceholder({ accentColor, onNavigateToRead }: { accentColor: string; onNavigateToRead: (book: BookDef, chapter: number) => void }) {
-  const plans = [
-    { name: 'Gospel of John in 21 Days', desc: 'One chapter per day through the most beloved Gospel', days: 21, icon: '📖', cat: 'Beginner' },
-    { name: 'Psalms of Comfort', desc: '14 of the most comforting Psalms for hard seasons', days: 14, icon: '🕊', cat: 'Beginner' },
-    { name: 'Romans Deep Dive', desc: 'Paul\'s theological masterpiece, one chapter per day', days: 16, icon: '📝', cat: 'Intermediate' },
-    { name: 'Sermon on the Mount', desc: 'Jesus\' most famous teaching in Matthew 5-7', days: 7, icon: '⛰', cat: 'Beginner' },
-    { name: 'Proverbs for Wisdom', desc: 'One proverb per day — 31 chapters for 31 days', days: 31, icon: '🦉', cat: 'Daily' },
-    { name: 'Genesis: The Beginning', desc: 'Creation, the patriarchs, and God\'s covenant', days: 30, icon: '🌅', cat: 'Intermediate' },
-    { name: 'Life of Jesus', desc: 'Chronological journey through all four Gospels', days: 30, icon: '✝', cat: 'Deep' },
-    { name: 'Letters of Paul', desc: 'Key Pauline epistles — theology that shaped Christianity', days: 21, icon: '✉', cat: 'Deep' },
-  ];
-
-  return (
-    <div className="space-y-3">
-      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: `${accentColor}44` }}>Reading Plans</p>
-      <p className="text-xs" style={{ color: 'rgba(232,240,236,0.35)' }}>Structured plans to guide your reading journey</p>
-      <div className="grid grid-cols-1 gap-2">
-        {plans.map(p => (
-          <div key={p.name} className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
-            <div className="flex items-start gap-3">
-              <span className="text-xl">{p.icon}</span>
-              <div className="flex-1">
-                <p className="text-sm font-bold" style={{ color: '#f0f8f4' }}>{p.name}</p>
-                <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.4)' }}>{p.desc}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: `${accentColor}14`, color: `${accentColor}88` }}>{p.days} days</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.3)' }}>{p.cat}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
