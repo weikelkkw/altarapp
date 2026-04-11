@@ -579,7 +579,7 @@ export default function HomeTab({
           {/* Divider + Devotional */}
           {(devotional || devotionalLoading) && (
             <div className="mt-5 pt-5" style={{ borderTop: `1px solid ${accentColor}15` }}>
-              <div className="relative flex items-center justify-between mb-3" style={{ minHeight: 64 }}>
+              <div className="relative flex items-center justify-between mb-3" style={{ minHeight: 72 }}>
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
                     <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
@@ -587,7 +587,7 @@ export default function HomeTab({
                   </div>
                   <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>{devotionalRef || 'Daily Word'}</p>
                 </div>
-                <img src="/read book.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+                <img src="/read book.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
               </div>
               {devotionalLoading && !devotional ? (
                 <div className="flex items-center gap-2">
@@ -627,7 +627,7 @@ export default function HomeTab({
       {/* ── Daily Checklist ──────────────────────────────────────────── */}
       <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
         <div className="px-4 py-3" style={{ borderBottom: `1px solid ${accentColor}08` }}>
-          <div className="flex items-center justify-between" style={{ minHeight: 56 }}>
+          <div className="flex items-center justify-between" style={{ minHeight: 72 }}>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
@@ -670,7 +670,7 @@ export default function HomeTab({
       <GlowDivider accentColor={accentColor} dot />
 
       {/* ── Daily Encounters — Sunrise to Sunset fade ─────────────────── */}
-      <div className="relative flex items-center justify-between mb-2" style={{ minHeight: 56 }}>
+      <div className="relative flex items-center justify-between mb-2" style={{ minHeight: 72 }}>
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
@@ -678,7 +678,7 @@ export default function HomeTab({
           </div>
           <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Morning &amp; Bedtime with God</p>
         </div>
-        <img src="/star.png" alt="" style={{ width: 56, height: 56, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
+        <img src="/star.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain', opacity: 0.9, flexShrink: 0 }} />
       </div>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes staticTwinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 0.6; } }
@@ -1206,23 +1206,27 @@ export default function HomeTab({
 
             {/* Header with big progress ring */}
             <div className="px-5 pt-5 pb-4" style={{ position: 'relative', zIndex: 2 }}>
-              <div className="flex items-center gap-4 mb-5">
-                {/* Circular progress */}
-                <div className="relative w-16 h-16 shrink-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke={`${accentColor}15`} strokeWidth="3" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke={accentColor} strokeWidth="3" strokeLinecap="round"
-                      strokeDasharray={`${progressPct * 0.94} ${94 - progressPct * 0.94}`} />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-black" style={{ color: accentColor }}>{progressPct}%</span>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between mb-5" style={{ minHeight: 72 }}>
                 <div>
-                  <h2 className="text-sm font-black uppercase tracking-wider" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>My Bible Journey</h2>
-                  <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.35)' }} suppressHydrationWarning>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+                    <h2 className="text-sm font-black uppercase tracking-wider" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>My Bible Journey</h2>
+                  </div>
+                  <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.35)' }} suppressHydrationWarning>
                     {chaptersStudied} of {TOTAL_CHAPTERS} chapters · {unlocked.length} trophies
                   </p>
+                </div>
+                {/* Circular progress — right side, same position as praying hands */}
+                <div className="relative shrink-0" style={{ width: 80, height: 80 }}>
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke={`${accentColor}18`} strokeWidth="2.5" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round"
+                      strokeDasharray={`${progressPct * 0.94} ${94 - progressPct * 0.94}`} />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-base font-black leading-none" style={{ color: accentColor }}>{progressPct}%</span>
+                    <span className="text-[8px] mt-0.5" style={{ color: `${accentColor}66` }}>complete</span>
+                  </div>
                 </div>
               </div>
 
