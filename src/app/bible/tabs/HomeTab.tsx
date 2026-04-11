@@ -1187,7 +1187,7 @@ export default function HomeTab({
                   { val: chaptersWithNotes, label: 'Study Notes', desc: `${chaptersWithNotes === 0 ? 'Start writing' : chaptersWithNotes < 10 ? 'Keep studying' : 'Deep roots'}`, icon: '📜', color: '#60a5fa' },
                 ].map(s => (
                   <div key={s.label} className="rounded-2xl p-3.5 relative overflow-hidden"
-                    style={{ background: `linear-gradient(135deg, ${s.color}0c, ${s.color}04)`, border: `1px solid ${s.color}1a` }}>
+                    style={{ background: `linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.5))`, border: `1px solid ${s.color}33`, boxShadow: `0 2px 12px rgba(0,0,0,0.4)` }}>
                     <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{s.icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{s.icon}</span>}</div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 mb-1">
@@ -1290,8 +1290,9 @@ export default function HomeTab({
                               onClick={() => setExpandedHealthCat(isExpanded ? null : c.cat)}
                               className="rounded-2xl p-3.5 relative overflow-hidden transition-all active:scale-95 text-left w-full"
                               style={{
-                                background: `linear-gradient(135deg, ${color}0c, ${color}04)`,
-                                border: `1px solid ${isExpanded ? color + '60' : color + '1a'}`,
+                                background: `linear-gradient(135deg, rgba(0,0,0,0.65), rgba(0,0,0,0.5))`,
+                                border: `1px solid ${isExpanded ? color + '60' : color + '33'}`,
+                                boxShadow: `0 2px 12px rgba(0,0,0,0.4)`,
                                 opacity: isF ? 0.45 : 1,
                               }}>
                               <div className="absolute -top-2 -right-2 pointer-events-none select-none" style={{ opacity: 0.06 }}>{icon === 'star' ? <img src="/star.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain' }} /> : <span className="text-4xl">{icon}</span>}</div>
