@@ -67,6 +67,28 @@ function AuthPageInner() {
     );
   }
 
+  // Best-effort fire-and-forget — auth event logging must never block the
+  // user-facing flow or surface failure to the UI.
+  function logAuthEvent(type: 'login_success' | 'login_failure' | 'signup' | 'password_reset_requested', advisoryAuthId?: string) {
+    try {
+      fetch('/api/auth/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, advisoryAuthId }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
+  }
+
+  // Generic, enumeration-safe error string for any Supabase auth failure.
+  // Supabase's raw messages ("User already registered", "Email not confirmed",
+  // "Invalid login credentials") leak whether an account exists.
+  function safeAuthError(mode: 'signin' | 'signup', _err: unknown) {
+    return mode === 'signin'
+      ? 'Sign in failed. Check your email and password and try again.'
+      : 'Could not create your account. Please try again.';
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(''); setMessage('');
     if (!email.trim() || !password.trim()) { setError('Please enter your email and password.'); return; }
@@ -86,19 +108,32 @@ function AuthPageInner() {
     try {
       if (mode === 'signin') {
         const { data, error: err } = await sb.auth.signInWithPassword({ email: email.trim(), password });
-        if (err) throw err;
+        if (err) {
+          logAuthEvent('login_failure');
+          throw err;
+        }
         if (data.user) {
           await ensureProfile(sb, data.user.id, data.user.user_metadata?.name || email.split('@')[0]);
           try { localStorage.setItem('trace-onboarding-done', 'true'); localStorage.setItem(`trace-onboarding-done-${data.user.id}`, 'true'); } catch {}
+          logAuthEvent('login_success', data.user.id);
           router.push(nextUrl);
         }
       } else {
         const { data, error: err } = await sb.auth.signUp({ email: email.trim(), password, options: { data: { name: displayName.trim() } } });
         if (err) throw err;
-        if (data.session && data.user) { await ensureProfile(sb, data.user.id, displayName.trim()); router.push(nextUrl); }
-        else { setMessage('Check your email for a confirmation link, then sign in.'); setMode('signin'); }
+        if (data.session && data.user) {
+          await ensureProfile(sb, data.user.id, displayName.trim());
+          logAuthEvent('signup', data.user.id);
+          router.push(nextUrl);
+        } else {
+          // Show the same message regardless of whether the email is new or
+          // already registered — Supabase confirms enumeration prevention only
+          // when "Confirm email" is enabled in the Auth dashboard.
+          setMessage('If your email is new, a confirmation link is on its way. Otherwise, sign in below.');
+          setMode('signin');
+        }
       }
-    } catch (err: any) { setError(err?.message || 'Something went wrong. Please try again.'); }
+    } catch (err: any) { setError(safeAuthError(mode, err)); }
     finally { setLoading(false); }
   }
 
@@ -108,11 +143,16 @@ function AuthPageInner() {
     const sb = createClient(); if (!sb) return;
     setLoading(true);
     try {
-      const { error: err } = await sb.auth.resetPasswordForEmail(email.trim());
-      if (err) throw err;
-      setMessage('Password reset link sent. Check your email.');
-    } catch (err: any) { setError(err?.message || 'Could not send reset email.'); }
-    finally { setLoading(false); }
+      // Always show the same response whether the email exists or not —
+      // resetPasswordForEmail returning an error would itself leak existence,
+      // so we swallow it and show a uniform message.
+      await sb.auth.resetPasswordForEmail(email.trim());
+    } catch {}
+    finally {
+      logAuthEvent('password_reset_requested');
+      setMessage('If an account exists for that email, a reset link has been sent.');
+      setLoading(false);
+    }
   }
 
   if (checkingAuth) {

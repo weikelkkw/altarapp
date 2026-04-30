@@ -66,6 +66,16 @@ export function useAuth() {
   async function signOut() {
     const supabase = createClient();
     if (!supabase) return;
+    // Fire-and-forget audit event before the session is dropped so the API
+    // route can still verify the bearer token. Failures must not block sign-out.
+    try {
+      fetch('/api/auth/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'logout' }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
