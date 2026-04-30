@@ -1,0 +1,14 @@
+# CODEOWNERS — directs PR reviews to the right people.
+# Lines apply in order; later patterns override earlier ones.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/managing-repository-settings/about-code-owners
+
+* @weikelkkw
+
+# Security-sensitive surfaces require an explicit owner review.
+/src/lib/api/security.ts   @weikelkkw
+/src/lib/api/audit.ts      @weikelkkw
+/src/app/api/              @weikelkkw
+/supabase/migrations/      @weikelkkw
+/next.config.ts            @weikelkkw
+/vercel.json               @weikelkkw
+/.github/                  @weikelkkw
