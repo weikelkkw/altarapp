@@ -69,7 +69,11 @@ for the on-call runbook, and
 [`docs/BACKUP_AND_RECOVERY.md`](./docs/BACKUP_AND_RECOVERY.md) for the full
 disaster-recovery plan (asset register, RPO/RTO, scenario runbooks).
 Dependency posture and supply-chain controls live in
-[`docs/DEPENDENCIES.md`](./docs/DEPENDENCIES.md).
+[`docs/DEPENDENCIES.md`](./docs/DEPENDENCIES.md). The DNS / TLS / edge
+standard-of-record is in
+[`docs/DNS_AND_EDGE.md`](./docs/DNS_AND_EDGE.md), and the disposition
+of integrations not yet in scope (Twilio) is documented under
+[`docs/integrations/`](./docs/integrations/).
 
 ## Security
 

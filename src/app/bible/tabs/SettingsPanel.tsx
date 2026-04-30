@@ -305,6 +305,31 @@ export default function SettingsPanel({
   const TEXT_MUTED = 'rgba(232,240,236,0.38)';
   const TEXT_FAINT = 'rgba(232,240,236,0.18)';
 
+  // Per-section color palette so each block has its own identity. The hex is
+  // used at low opacity for backgrounds + at full strength for the leading
+  // accent rail and section icon.
+  const C = {
+    rose:    '#f472b6',
+    amber:   '#fbbf24',
+    emerald: '#10b981',
+    sky:     '#38bdf8',
+    violet:  '#a78bfa',
+    coral:   '#fb7185',
+    cyan:    '#22d3ee',
+    lime:    '#a3e635',
+    gold:    '#facc15',
+  } as const;
+
+  // Each top-level tab carries its own brand colour. The active pill, header
+  // tint, and DONE button pull from this map.
+  const TAB_COLORS: Record<'profile' | 'appearance' | 'voice' | 'account', string> = {
+    profile:    accentColor,   // user-chosen theme = profile/identity
+    appearance: C.emerald,
+    voice:      C.violet,
+    account:    C.gold,
+  };
+  const tabColor = TAB_COLORS[settingsTab];
+
   /* ── Reusable UI primitives ──────────────────────────────── */
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
@@ -326,25 +351,55 @@ export default function SettingsPanel({
     </button>
   );
 
-  const SectionDivider = ({ icon, title }: { icon: string; title: string }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '32px 0 16px' }}>
-      <div style={{ width: 4, height: 16, borderRadius: 2, background: accentColor, flexShrink: 0 }} />
-      <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: TEXT_MUTED, fontFamily: 'Montserrat, system-ui' }}>{title}</span>
-    </div>
-  );
+  const SectionDivider = ({ icon, title, color }: { icon: string; title: string; color?: string }) => {
+    const c = color || tabColor;
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        margin: '32px 0 14px',
+        padding: '8px 12px',
+        borderRadius: 14,
+        background: `linear-gradient(90deg, ${c}14 0%, transparent 60%)`,
+        position: 'relative',
+      }}>
+        <div style={{
+          width: 30, height: 30, borderRadius: 10,
+          background: `linear-gradient(135deg, ${c}30, ${c}10)`,
+          border: `1px solid ${c}30`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 14,
+          flexShrink: 0,
+        }}>{icon}</div>
+        <span style={{
+          fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
+          textTransform: 'uppercase' as const,
+          color: c,
+          fontFamily: 'Montserrat, system-ui',
+        }}>{title}</span>
+        <div style={{
+          flex: 1, height: 1,
+          background: `linear-gradient(90deg, ${c}33, transparent)`,
+        }} />
+      </div>
+    );
+  };
 
-  const PremiumCard = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-    <div style={{
-      background: 'rgba(255,255,255,0.025)',
-      border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: 20,
-      padding: '20px',
-      overflow: 'hidden',
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
+  const PremiumCard = ({ children, style, color }: { children: React.ReactNode; style?: React.CSSProperties; color?: string }) => {
+    const c = color || tabColor;
+    return (
+      <div style={{
+        background: `linear-gradient(180deg, ${c}06, rgba(255,255,255,0.02))`,
+        border: `1px solid ${c}1a`,
+        borderRadius: 20,
+        padding: '20px',
+        overflow: 'hidden',
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.18)`,
+        ...style,
+      }}>
+        {children}
+      </div>
+    );
+  };
 
   const FieldLabel = ({ text }: { text: string }) => (
     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: TEXT_MUTED, marginBottom: 8, fontFamily: 'Montserrat, system-ui' }}>{text}</div>
@@ -451,11 +506,11 @@ export default function SettingsPanel({
     </div>
   );
 
-  const tabs = [
-    { id: 'profile' as const, label: 'Profile' },
-    { id: 'appearance' as const, label: 'Look' },
-    { id: 'voice' as const, label: 'Voice' },
-    { id: 'account' as const, label: 'Account' },
+  const tabs: { id: 'profile' | 'appearance' | 'voice' | 'account'; label: string; icon: string }[] = [
+    { id: 'profile',    label: 'Profile',  icon: '👤' },
+    { id: 'appearance', label: 'Look',     icon: '🎨' },
+    { id: 'voice',      label: 'Voice',    icon: '🎙' },
+    { id: 'account',    label: 'Account',  icon: '🛡' },
   ];
 
   // ── Voice card render helper — compact horizontal row ──────
@@ -527,23 +582,49 @@ export default function SettingsPanel({
         {/* ── Sticky Header ── */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 10,
-          background: `linear-gradient(180deg, ${BG} 75%, transparent)`,
+          background: `linear-gradient(180deg, ${BG} 60%, ${BG}f0 85%, transparent)`,
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 4,
+          borderBottom: `1px solid ${tabColor}10`,
+          transition: 'border-color 0.3s',
         }}>
+          {/* Subtle tab-coloured glow at the top */}
+          <div style={{
+            position: 'absolute', inset: 'env(safe-area-inset-top, 0px) 0 auto 0', height: 110,
+            background: `radial-gradient(120% 100% at 50% -20%, ${tabColor}22 0%, transparent 60%)`,
+            pointerEvents: 'none',
+            transition: 'background 0.3s',
+          }} />
+
           {/* Title row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 14px' }}>
             <div>
-              <div style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 900, fontSize: 22, color: TEXT_PRIMARY, letterSpacing: '-0.02em' }}>Settings</div>
+              <div style={{
+                display: 'inline-block',
+                padding: '4px 10px', borderRadius: 999,
+                fontSize: 10, fontWeight: 800, letterSpacing: '0.14em',
+                textTransform: 'uppercase' as const,
+                background: `${tabColor}1a`, color: tabColor,
+                border: `1px solid ${tabColor}33`,
+                marginBottom: 8,
+                fontFamily: 'Montserrat, system-ui',
+                transition: 'all 0.3s',
+              }}>{tabs.find(t => t.id === settingsTab)?.label}</div>
+              <div style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 900, fontSize: 24, color: TEXT_PRIMARY, letterSpacing: '-0.02em' }}>Settings</div>
               <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 3, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Customize your experience</div>
             </div>
             <button
               onClick={onClose}
               style={{
-                height: 38, padding: '0 16px', borderRadius: 40,
-                background: `${accentColor}18`, border: `1px solid ${accentColor}40`, color: accentColor,
-                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                fontFamily: 'Montserrat, system-ui', fontWeight: 800, letterSpacing: '0.06em',
+                height: 40, padding: '0 18px', borderRadius: 999,
+                background: `linear-gradient(135deg, ${tabColor}28, ${tabColor}10)`,
+                border: `1px solid ${tabColor}55`,
+                color: tabColor,
+                fontSize: 12, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                fontFamily: 'Montserrat, system-ui', fontWeight: 800, letterSpacing: '0.08em',
+                boxShadow: `0 4px 14px ${tabColor}22`,
+                transition: 'all 0.2s',
               }}
               aria-label="Close settings">
               <span style={{ fontSize: 16, lineHeight: 1 }}>‹</span>
@@ -551,30 +632,45 @@ export default function SettingsPanel({
             </button>
           </div>
 
-          {/* Tab bar — pill container */}
-          <div style={{ display: 'flex', gap: 4, padding: '0 24px 16px', background: 'rgba(255,255,255,0.04)', borderRadius: 16, margin: '0 24px 16px', border: '1px solid rgba(255,255,255,0.07)' }}>
+          {/* Tab bar — premium pill container with per-tab colour */}
+          <div style={{
+            display: 'flex', gap: 6,
+            padding: 5,
+            background: 'rgba(255,255,255,0.035)',
+            borderRadius: 999,
+            margin: '0 20px 18px',
+            border: '1px solid rgba(255,255,255,0.06)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+            position: 'relative',
+          }}>
             {tabs.map(t => {
               const active = settingsTab === t.id;
+              const c = TAB_COLORS[t.id];
               return (
                 <button
                   key={t.id}
                   onClick={() => setSettingsTab(t.id)}
                   style={{
                     flex: 1,
-                    padding: '10px 8px',
-                    borderRadius: 12,
-                    border: active ? `1px solid ${accentColor}30` : 'none',
+                    padding: '10px 4px',
+                    borderRadius: 999,
+                    border: active ? `1px solid ${c}55` : '1px solid transparent',
                     cursor: 'pointer',
                     fontSize: 11,
-                    fontWeight: 700,
+                    fontWeight: 800,
                     fontFamily: 'Montserrat, system-ui',
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase' as const,
-                    transition: 'all 0.2s',
-                    background: active ? `linear-gradient(135deg, ${accentColor}28, ${accentColor}14)` : 'transparent',
-                    color: active ? accentColor : TEXT_MUTED,
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: active
+                      ? `linear-gradient(135deg, ${c}30, ${c}12)`
+                      : 'transparent',
+                    color: active ? c : TEXT_MUTED,
+                    boxShadow: active ? `0 4px 14px ${c}22, inset 0 1px 0 ${c}22` : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                   }}>
-                  {t.label}
+                  <span style={{ fontSize: 13, lineHeight: 1, opacity: active ? 1 : 0.5 }}>{t.icon}</span>
+                  <span style={{ display: active ? 'inline' : 'none' }}>{t.label}</span>
                 </button>
               );
             })}
@@ -737,7 +833,7 @@ export default function SettingsPanel({
               </div>
 
               {/* ── Experience Level ── */}
-              <SectionDivider icon="🌱" title="Experience Level" />
+              <SectionDivider icon="🌱" title="Experience Level" color={C.lime} />
               <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
                 {([
                   { id: 'beginner' as const, label: 'Beginner', icon: '🌱', desc: 'Simple & guided' },
@@ -767,8 +863,8 @@ export default function SettingsPanel({
               </div>
 
               {/* ── Your Story card ── */}
-              <SectionDivider icon="📖" title="Your Story" />
-              <PremiumCard>
+              <SectionDivider icon="📖" title="Your Story" color={C.rose} />
+              <PremiumCard color={C.rose}>
                 <PremiumTextarea
                   label="Short Bio"
                   value={id.bio || ''}
@@ -796,8 +892,8 @@ export default function SettingsPanel({
               </PremiumCard>
 
               {/* ── Personal Details card ── */}
-              <SectionDivider icon="🏠" title="Personal Details" />
-              <PremiumCard>
+              <SectionDivider icon="🏠" title="Personal Details" color={C.sky} />
+              <PremiumCard color={C.sky}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <PremiumInput label="Date of Birth" value={id.dateOfBirth} onChange={v => saveIdentity({ dateOfBirth: v })} type="date" />
                   <PremiumInput label="Location" value={id.location} onChange={v => saveIdentity({ location: v })} placeholder="City, State" />
@@ -810,8 +906,8 @@ export default function SettingsPanel({
               </PremiumCard>
 
               {/* ── Spiritual Life card ── */}
-              <SectionDivider icon="✝️" title="Spiritual Life" />
-              <PremiumCard>
+              <SectionDivider icon="✝️" title="Spiritual Life" color={C.violet} />
+              <PremiumCard color={C.violet}>
                 <PremiumInput label="Life Verse" value={id.lifeVerse} onChange={v => saveIdentity({ lifeVerse: v })} placeholder="The verse that defines your walk" />
                 <PremiumInput label="Ministry / Role" value={id.ministryRole} onChange={v => saveIdentity({ ministryRole: v })} placeholder="Youth Leader, Worship Team…" />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -823,8 +919,8 @@ export default function SettingsPanel({
               </PremiumCard>
 
               {/* ── Spiritual Gifts card ── */}
-              <SectionDivider icon="🎁" title="Spiritual Gifts" />
-              <PremiumCard>
+              <SectionDivider icon="🎁" title="Spiritual Gifts" color={C.amber} />
+              <PremiumCard color={C.amber}>
                 <div style={{ fontSize: 12, color: TEXT_MUTED, marginBottom: 16, lineHeight: '1.5' }}>Tap to select your gifts — they'll show on your profile.</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 8 }}>
                   {['Teaching', 'Prophecy', 'Service', 'Leadership', 'Mercy', 'Giving', 'Encouragement', 'Wisdom', 'Faith', 'Healing', 'Discernment', 'Hospitality', 'Evangelism', 'Pastoring'].map(gift => {
@@ -862,7 +958,7 @@ export default function SettingsPanel({
             <div>
 
               {/* ── Theme section ── */}
-              <SectionDivider icon="🎨" title="Your Theme" />
+              <SectionDivider icon="🎨" title="Your Theme" color={C.emerald} />
               {(themeGroups || [{ id: 'all', label: 'All Themes', icon: '🎨' }]).map(group => {
                 const groupThemes = Object.entries(themes).filter(([, t]) => (t as any).group === group.id || !themeGroups);
                 if (groupThemes.length === 0) return null;
@@ -919,7 +1015,7 @@ export default function SettingsPanel({
               })}
 
               {/* ── Font Size section ── */}
-              <SectionDivider icon="✏️" title="Reading Font Size" />
+              <SectionDivider icon="✏️" title="Reading Font Size" color={C.coral} />
               <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
                 {(['sm', 'base', 'lg', 'xl'] as const).map((s, i) => {
                   const sizes = [14, 16, 18, 22];
@@ -948,8 +1044,8 @@ export default function SettingsPanel({
               {/* ── Scripture Background toggle ── */}
               {setScriptureBackground !== undefined && (
                 <>
-                  <SectionDivider icon="🌄" title="Reading Experience" />
-                  <PremiumCard style={{ padding: '0 24px' }}>
+                  <SectionDivider icon="🌄" title="Reading Experience" color={C.cyan} />
+                  <PremiumCard color={C.cyan} style={{ padding: '0 24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px 0' }}>
                       <div style={{ width: 44, height: 44, borderRadius: 12, background: `${accentColor}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🌄</div>
                       <div style={{ flex: 1 }}>
@@ -999,7 +1095,7 @@ export default function SettingsPanel({
                   {/* ── Listening Mode ── */}
                   {setTtsMode && (
                     <>
-                      <SectionDivider icon="🎧" title="Listening Mode" />
+                      <SectionDivider icon="🎧" title="Listening Mode" color={C.violet} />
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
                         {([
                           { id: 'narrator' as const, label: 'My Narrator', icon: '🎧', desc: 'Your chosen voice reads everything' },
@@ -1040,7 +1136,7 @@ export default function SettingsPanel({
                   )}
 
                   {/* ── Male Voices ── */}
-                  <SectionDivider icon="🌊" title="Male Voices" />
+                  <SectionDivider icon="🌊" title="Male Voices" color={C.sky} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {([
                       { id: 'eleven:88cgASIFJ5iO94COdgBO', name: 'Bryan',   style: 'American · Steady',    emoji: '🌊' },
@@ -1065,7 +1161,7 @@ export default function SettingsPanel({
                   </div>
 
                   {/* ── Female Voices ── */}
-                  <SectionDivider icon="🌸" title="Female Voices" />
+                  <SectionDivider icon="🌸" title="Female Voices" color={C.rose} />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {([
                       { id: 'eleven:uTnyvloPM4RqXGSsx4Du', name: 'Ashley',    style: 'American · Bright',   emoji: '🌸' },
@@ -1087,8 +1183,8 @@ export default function SettingsPanel({
                   </div>
 
                   {/* ── Reading Speed ── */}
-                  <SectionDivider icon="⚡" title="Reading Speed" />
-                  <PremiumCard>
+                  <SectionDivider icon="⚡" title="Reading Speed" color={C.lime} />
+                  <PremiumCard color={C.lime}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 20 }}>
                       <div style={{ fontSize: 13, color: TEXT_MUTED }}>Playback Speed</div>
                       <div style={{ fontSize: 28, fontWeight: 800, color: accentColor, fontFamily: 'Montserrat, system-ui', letterSpacing: '-0.02em' }}>{draftTtsRate}×</div>
@@ -1186,8 +1282,8 @@ export default function SettingsPanel({
                     </PremiumCard>
 
                     {/* ── Privacy Rights — Export / Delete ── */}
-                    <SectionDivider icon="🔐" title="Your Data" />
-                    <PremiumCard style={{ marginBottom: 16 }}>
+                    <SectionDivider icon="🔐" title="Your Data" color={C.emerald} />
+                    <PremiumCard color={C.emerald} style={{ marginBottom: 16 }}>
                       {/* Export */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0' }}>
                         <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accentColor}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📦</div>
@@ -1357,8 +1453,8 @@ export default function SettingsPanel({
               </div>
 
               {/* ── App section ── */}
-              <SectionDivider icon="📱" title="App" />
-              <PremiumCard style={{ padding: '0 24px' }}>
+              <SectionDivider icon="📱" title="App" color={C.sky} />
+              <PremiumCard color={C.sky} style={{ padding: '0 24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 0' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accentColor}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📖</div>
                   <div style={{ flex: 1 }}>
@@ -1384,8 +1480,8 @@ export default function SettingsPanel({
               </PremiumCard>
 
               {/* ── About section ── */}
-              <SectionDivider icon="✦" title="About" />
-              <PremiumCard>
+              <SectionDivider icon="✦" title="About" color={C.gold} />
+              <PremiumCard color={C.gold}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
                   <div style={{
                     width: 52, height: 52, borderRadius: 14,
@@ -1419,28 +1515,29 @@ export default function SettingsPanel({
 
         </div>
 
-        {/* Floating Done pill — always reachable while scrolling (hidden when Save bar shows) */}
+        {/* Floating Done pill — premium, tab-coloured, always reachable */}
         {!hasChanges && !saved && (
           <button
             onClick={onClose}
             style={{
-              position: 'sticky', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-              alignSelf: 'flex-start', marginLeft: 16, marginRight: 'auto',
+              position: 'sticky', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 18px)',
+              alignSelf: 'flex-start', marginLeft: 18, marginRight: 'auto',
               zIndex: 15,
-              height: 42, padding: '0 18px', borderRadius: 40,
-              background: `${accentColor}28`,
-              border: `1px solid ${accentColor}55`,
-              color: accentColor,
-              fontSize: 13, fontWeight: 800, letterSpacing: '0.06em',
+              height: 46, padding: '0 22px', borderRadius: 999,
+              background: `linear-gradient(135deg, ${tabColor}38, ${tabColor}14)`,
+              border: `1px solid ${tabColor}66`,
+              color: tabColor,
+              fontSize: 12, fontWeight: 800, letterSpacing: '0.1em',
               fontFamily: 'Montserrat, system-ui',
               cursor: 'pointer',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              boxShadow: `0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px ${accentColor}22 inset`,
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              boxShadow: `0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px ${tabColor}33 inset, 0 0 24px ${tabColor}22`,
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
             aria-label="Close settings">
-            <span style={{ fontSize: 15, lineHeight: 1 }}>‹</span>
+            <span style={{ fontSize: 16, lineHeight: 1 }}>‹</span>
             <span>DONE</span>
           </button>
         )}
@@ -1471,9 +1568,9 @@ export default function SettingsPanel({
               border: 'none',
               transition: 'all 0.2s',
               ...(saved
-                ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', boxShadow: 'none' }
+                ? { background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.10))', color: '#22c55e', boxShadow: '0 6px 20px rgba(34,197,94,0.18)' }
                 : hasChanges
-                  ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#050908', boxShadow: `0 6px 20px ${accentColor}33` }
+                  ? { background: `linear-gradient(135deg, ${tabColor}, ${tabColor}cc)`, color: '#050908', boxShadow: `0 8px 24px ${tabColor}3a, 0 0 0 1px ${tabColor}55 inset` }
                   : { background: 'rgba(255,255,255,0.04)', color: TEXT_FAINT }
               ),
             }}>
