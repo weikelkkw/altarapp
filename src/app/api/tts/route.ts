@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth, rateLimit, rateLimitKeyFor, readJsonBody } from '@/lib/api/security';
 
 // User-selectable narrator voices — custom-built voices with global accents
 export const NARRATOR_VOICES = {
@@ -724,7 +725,19 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const body = await req.json();
+  const caller = await verifyAuth(req);
+  if (!caller) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // ElevenLabs is the most expensive call surface — keep this tight.
+  const limited = rateLimit({
+    key: rateLimitKeyFor(req, 'tts', caller),
+    max: 12,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  const body = await readJsonBody<any>(req, 256 * 1024);
+  if (body instanceof NextResponse) return body;
   const { voiceId, narratorVoiceId, bookIndex, chapter, mode } = body;
   const verses: { verse: number; text: string }[] | undefined = body.verses;
   const text: string | undefined = body.text;

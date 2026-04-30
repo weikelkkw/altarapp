@@ -1,6 +1,7 @@
 import 'server-only';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { verifyAuth, rateLimit, rateLimitKeyFor, readJsonBody } from '@/lib/api/security';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -15,7 +16,23 @@ Your tone is like a wise pastor who loves helping people understand Scripture â€
 Keep responses focused and conversational. Use brief formatting (short paragraphs, occasional bold for key terms) but don't over-format.`;
 
 export async function POST(req: NextRequest) {
-  const { messages, context } = await req.json();
+  const caller = await verifyAuth(req);
+  if (!caller) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const limited = rateLimit({
+    key: rateLimitKeyFor(req, 'altar:chat', caller),
+    max: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  const body = await readJsonBody<{ messages?: { role: string; content: string }[]; context?: { book: string; chapter: number; translation: string } }>(req, 32 * 1024);
+  if (body instanceof NextResponse) return body;
+  const { messages, context } = body;
+
+  if (!Array.isArray(messages) || messages.length === 0 || messages.length > 40) {
+    return NextResponse.json({ error: 'Invalid messages' }, { status: 400 });
+  }
 
   const contextNote = context
     ? `\n\n[The user is currently reading ${context.book} ${context.chapter} in the ${context.translation}.]`

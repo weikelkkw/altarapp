@@ -1,11 +1,27 @@
 import 'server-only';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { verifyAuth, rateLimit, rateLimitKeyFor, readJsonBody } from '@/lib/api/security';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { reference, verseText, translation, question, mode } = await req.json();
+  const caller = await verifyAuth(req);
+  if (!caller) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const limited = rateLimit({
+    key: rateLimitKeyFor(req, 'altar:explain', caller),
+    max: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  const body = await readJsonBody<{ reference?: string; verseText?: string; translation?: string; question?: string; mode?: string }>(req, 32 * 1024);
+  if (body instanceof NextResponse) return body;
+  const { reference, verseText, translation, question, mode } = body;
+  if (!reference || !verseText) {
+    return NextResponse.json({ error: 'Missing reference/verseText' }, { status: 400 });
+  }
 
   const prompt = question
     ? `A Bible student is reading ${reference} (${translation}) and has a question:\n\n"${verseText}"\n\nTheir question: ${question}\n\nAnswer thoughtfully and clearly, as a knowledgeable pastor or scholar would. Be warm, not academic.`

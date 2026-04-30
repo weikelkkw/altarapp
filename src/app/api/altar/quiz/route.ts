@@ -1,11 +1,27 @@
 import 'server-only';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { verifyAuth, rateLimit, rateLimitKeyFor, readJsonBody } from '@/lib/api/security';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { book, chapter, verseTexts, translation } = await req.json();
+  const caller = await verifyAuth(req);
+  if (!caller) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const limited = rateLimit({
+    key: rateLimitKeyFor(req, 'altar:quiz', caller),
+    max: 15,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  const body = await readJsonBody<{ book?: string; chapter?: number; verseTexts?: { verse: number; text: string }[]; translation?: string }>(req, 64 * 1024);
+  if (body instanceof NextResponse) return body;
+  const { book, chapter, verseTexts, translation } = body;
+  if (!book || !chapter || !Array.isArray(verseTexts) || verseTexts.length === 0) {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  }
 
   const passage = verseTexts.map((v: { verse: number; text: string }) =>
     `${v.verse}. ${v.text}`

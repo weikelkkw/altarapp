@@ -1,11 +1,27 @@
 import 'server-only';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { verifyAuth, rateLimit, rateLimitKeyFor, readJsonBody } from '@/lib/api/security';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { reference, verseText, translation } = await req.json();
+  const caller = await verifyAuth(req);
+  if (!caller) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const limited = rateLimit({
+    key: rateLimitKeyFor(req, 'altar:crossref', caller),
+    max: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  const body = await readJsonBody<{ reference?: string; verseText?: string; translation?: string }>(req, 16 * 1024);
+  if (body instanceof NextResponse) return body;
+  const { reference, verseText, translation } = body;
+  if (!reference || !verseText || !translation) {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+  }
 
   const prompt = `Given this Bible verse:
 
