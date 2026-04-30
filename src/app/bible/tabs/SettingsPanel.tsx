@@ -453,53 +453,55 @@ export default function SettingsPanel({
     { id: 'account' as const, label: 'Account' },
   ];
 
-  // ── Voice card render helper ────────────────────────────────
+  // ── Voice card render helper — compact horizontal row ──────
   const VoiceCard = ({ v }: { v: { id: string; name: string; style: string; emoji: string } }) => {
     const vid = v.id.replace('eleven:', '');
     const isSelected = draftTtsVoice === v.id;
     const isPreviewing = previewingVoiceId === vid;
     const isLoading = previewLoadingId === vid;
     return (
-      <div style={{
-        borderRadius: 18, padding: '18px 14px 14px',
-        background: isSelected ? `linear-gradient(135deg, ${accentColor}22, ${accentColor}0a)` : 'rgba(255,255,255,0.03)',
-        border: isSelected ? `1.5px solid ${accentColor}40` : `1px solid rgba(255,255,255,0.06)`,
-        boxShadow: isSelected ? `0 0 16px ${accentColor}20` : 'none',
-        transition: 'all 0.2s',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-        minHeight: 130,
-      }}>
+      <button
+        onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
+        style={{
+          width: '100%', textAlign: 'left' as const, cursor: 'pointer',
+          borderRadius: 14, padding: '10px 12px',
+          background: isSelected ? `linear-gradient(135deg, ${accentColor}22, ${accentColor}08)` : 'rgba(255,255,255,0.03)',
+          border: isSelected ? `1.5px solid ${accentColor}55` : `1px solid rgba(255,255,255,0.06)`,
+          boxShadow: isSelected ? `0 0 14px ${accentColor}1a` : 'none',
+          transition: 'all 0.15s',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
         <div style={{
-          width: 44, height: 44, borderRadius: '50%',
-          background: isSelected ? `${accentColor}18` : 'rgba(255,255,255,0.05)',
+          width: 36, height: 36, borderRadius: '50%',
+          background: isSelected ? `${accentColor}22` : 'rgba(255,255,255,0.05)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28, flexShrink: 0,
+          fontSize: 20, flexShrink: 0,
         }}>{v.emoji}</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: isSelected ? accentColor : TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui', textAlign: 'center' as const }}>{v.name}</div>
-        <div style={{ fontSize: 11, color: TEXT_MUTED, fontStyle: 'italic', textAlign: 'center' as const, lineHeight: '1.4' }}>{v.style}</div>
-        <div style={{ display: 'flex', gap: 6, marginTop: 'auto', width: '100%' }}>
-          <button
-            onClick={() => previewVoice(vid)}
-            style={{
-              flex: 1, padding: '7px 4px', borderRadius: 40, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer',
-              background: isPreviewing ? `${accentColor}30` : `${accentColor}0e`,
-              color: isPreviewing ? accentColor : `${accentColor}77`,
-              transition: 'all 0.15s',
-            }}>
-            {isLoading ? '...' : isPreviewing ? '■ Stop' : '▶ Preview'}
-          </button>
-          <button
-            onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
-            style={{
-              flex: 1, padding: '7px 4px', borderRadius: 40, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer',
-              background: isSelected ? accentColor : 'rgba(255,255,255,0.06)',
-              color: isSelected ? '#050908' : TEXT_MUTED,
-              transition: 'all 0.15s',
-            }}>
-            {isSelected ? '✓ Active' : 'Select'}
-          </button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: isSelected ? accentColor : TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui', lineHeight: 1.2 }}>{v.name}</div>
+          <div style={{ fontSize: 11, color: TEXT_MUTED, fontStyle: 'italic', lineHeight: 1.3, marginTop: 2 }}>{v.style}</div>
         </div>
-      </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); previewVoice(vid); }}
+          style={{
+            flexShrink: 0, width: 34, height: 34, borderRadius: '50%', border: 'none', cursor: 'pointer',
+            background: isPreviewing ? `${accentColor}30` : `${accentColor}10`,
+            color: isPreviewing ? accentColor : `${accentColor}99`,
+            fontSize: 13, fontWeight: 700, transition: 'all 0.15s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+          aria-label={isPreviewing ? 'Stop preview' : 'Preview voice'}>
+          {isLoading ? '…' : isPreviewing ? '■' : '▶'}
+        </button>
+        {isSelected && (
+          <div style={{
+            flexShrink: 0, width: 22, height: 22, borderRadius: '50%',
+            background: accentColor, color: '#050908',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 900,
+          }}>✓</div>
+        )}
+      </button>
     );
   };
 
@@ -521,10 +523,11 @@ export default function SettingsPanel({
         <div style={{
           position: 'sticky', top: 0, zIndex: 10,
           background: `linear-gradient(180deg, ${BG} 75%, transparent)`,
+          paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 4,
         }}>
           {/* Title row */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 24px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px' }}>
             <div>
               <div style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 900, fontSize: 22, color: TEXT_PRIMARY, letterSpacing: '-0.02em' }}>Settings</div>
               <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 3, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Customize your experience</div>
@@ -532,11 +535,15 @@ export default function SettingsPanel({
             <button
               onClick={onClose}
               style={{
-                height: 32, padding: '0 14px', borderRadius: 40, background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.09)', color: TEXT_MUTED,
-                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'Montserrat, system-ui', fontWeight: 700, letterSpacing: '0.02em',
-              }}>✕</button>
+                height: 38, padding: '0 16px', borderRadius: 40,
+                background: `${accentColor}18`, border: `1px solid ${accentColor}40`, color: accentColor,
+                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                fontFamily: 'Montserrat, system-ui', fontWeight: 800, letterSpacing: '0.06em',
+              }}
+              aria-label="Close settings">
+              <span style={{ fontSize: 16, lineHeight: 1 }}>‹</span>
+              <span>DONE</span>
+            </button>
           </div>
 
           {/* Tab bar — pill container */}
@@ -1029,7 +1036,7 @@ export default function SettingsPanel({
 
                   {/* ── Male Voices ── */}
                   <SectionDivider icon="🌊" title="Male Voices" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {([
                       { id: 'eleven:88cgASIFJ5iO94COdgBO', name: 'Bryan',   style: 'American · Steady',    emoji: '🌊' },
                       { id: 'eleven:10xsyNwkKUXCUZPaoXgm', name: 'Marcus',  style: 'Soul · Rich',          emoji: '🎙' },
@@ -1054,7 +1061,7 @@ export default function SettingsPanel({
 
                   {/* ── Female Voices ── */}
                   <SectionDivider icon="🌸" title="Female Voices" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {([
                       { id: 'eleven:uTnyvloPM4RqXGSsx4Du', name: 'Ashley',    style: 'American · Bright',   emoji: '🌸' },
                       { id: 'eleven:XXoNoVctCSPJPEz3bIKW', name: 'Grace',     style: 'Soul · Warm',         emoji: '🌙' },
@@ -1260,6 +1267,32 @@ export default function SettingsPanel({
           )}
 
         </div>
+
+        {/* Floating Done pill — always reachable while scrolling (hidden when Save bar shows) */}
+        {!hasChanges && !saved && (
+          <button
+            onClick={onClose}
+            style={{
+              position: 'sticky', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+              alignSelf: 'flex-start', marginLeft: 16, marginRight: 'auto',
+              zIndex: 15,
+              height: 42, padding: '0 18px', borderRadius: 40,
+              background: `${accentColor}28`,
+              border: `1px solid ${accentColor}55`,
+              color: accentColor,
+              fontSize: 13, fontWeight: 800, letterSpacing: '0.06em',
+              fontFamily: 'Montserrat, system-ui',
+              cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              boxShadow: `0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px ${accentColor}22 inset`,
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+            }}
+            aria-label="Close settings">
+            <span style={{ fontSize: 15, lineHeight: 1 }}>‹</span>
+            <span>DONE</span>
+          </button>
+        )}
 
         {/* ── Sticky Save Button — slides up when hasChanges ── */}
         <div style={{
