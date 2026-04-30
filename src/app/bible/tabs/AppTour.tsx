@@ -61,7 +61,7 @@ export default function AppTour({ accentColor, onDone }: Props) {
     }}>
       {/* Skip */}
       <button onClick={onDone} style={{
-        position: 'absolute', top: 20, right: 20,
+        position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', right: 20,
         background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
         color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 700,
         padding: '8px 16px', borderRadius: 10, cursor: 'pointer', letterSpacing: '0.08em',

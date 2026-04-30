@@ -357,7 +357,8 @@ export default function NotificationCenter({
       >
         {/* ── Header ──────────────────────────────────────────────────────────── */}
         <div style={{
-          padding: '18px 16px 14px',
+          padding: '0 16px 14px',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 18px)',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
           flexShrink: 0,
         }}>

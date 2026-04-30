@@ -233,7 +233,7 @@ export default function Onboarding({ onComplete }: Props) {
       {/* Back button */}
       {stepIndex > 0 && (
         <button onClick={goBack} style={{
-          position: 'absolute', top: 28, left: 16, zIndex: 20,
+          position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 16px)', left: 16, zIndex: 20,
           background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
           color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer',
           padding: '8px 16px', borderRadius: 10, fontWeight: 600,

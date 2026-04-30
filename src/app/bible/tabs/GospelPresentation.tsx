@@ -514,7 +514,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '16px 20px',
+          padding: '0 20px 16px',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
           position: 'relative',
           zIndex: 2,
         }}
@@ -961,7 +962,8 @@ export default function GospelPresentation({ open, onClose, accentColor, ttsEnab
           position: 'fixed', inset: 0, zIndex: 99999,
           background: 'linear-gradient(180deg, #04081a 0%, #0f1f4a 40%, #0a1535 100%)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '0 32px', overflow: 'auto',
+          padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 32px calc(env(safe-area-inset-bottom, 0px) + 16px)',
+          overflow: 'auto',
         }}>
           {/* Welcome Home background image */}
           <img src="/welcome-home.jpg" alt="" style={{

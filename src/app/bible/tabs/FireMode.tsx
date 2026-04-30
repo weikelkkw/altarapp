@@ -476,7 +476,7 @@ export default function FireMode({
       `}</style>
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
+      <div style={{ padding: '0 20px 0', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <button onClick={handleClose} style={{
             background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',

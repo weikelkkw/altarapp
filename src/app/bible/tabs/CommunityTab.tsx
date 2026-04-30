@@ -1619,7 +1619,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             <div style={{ padding: '8px 20px 24px', maxHeight: '85vh', overflowY: 'auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <h3 style={{ fontFamily: 'Montserrat, system-ui, sans-serif', fontSize: 16, fontWeight: 900, color: A, margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Create a Group</h3>
-                <button onClick={() => setCreateSheetOpen(false)} style={{ width: 30, height: 30, borderRadius: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.07)', border: 'none', color: 'rgba(232,240,236,0.5)', fontSize: 16, cursor: 'pointer' }}>×</button>
+                <button onClick={() => setCreateSheetOpen(false)} style={{ width: 44, height: 44, borderRadius: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.07)', border: 'none', color: 'rgba(232,240,236,0.5)', fontSize: 18, cursor: 'pointer' }} aria-label="Close">×</button>
               </div>
 
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: `${A}66`, marginBottom: 10 }}>Group Icon</p>
