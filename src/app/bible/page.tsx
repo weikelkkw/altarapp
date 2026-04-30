@@ -670,11 +670,10 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       )}
 
       {/* ── HEADER + CONTENT ──────────────────────────────────────────────── */}
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
 
-      {/* The Header lives inside the scroll container with sticky top-0 so it
-          stays pinned while the user scrolls the page content. */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-24" style={{}}>
+      {/* The Header lives OUTSIDE the scroll container so it can never scroll
+          off-screen. The scroll container takes the remaining flex space below. */}
       <Header
         tab={tab}
         selectedBook={selectedBook}
@@ -688,6 +687,7 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
         isSignedIn={!!user}
         userName={profile?.display_name}
       />
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-24" style={{}}>
         <AnimatePresence mode="popLayout">
         <motion.div
           key={tab}

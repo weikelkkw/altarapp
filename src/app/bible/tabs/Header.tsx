@@ -38,7 +38,7 @@ export default function Header({
     : TAB_SUBTITLES[tab];
 
   return (
-    <header className="sticky top-0 z-30 shrink-0 overflow-hidden select-none">
+    <header className="relative z-30 shrink-0 overflow-hidden select-none">
       <div className="absolute inset-0" style={{ background: headerBg }} />
       <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 60% 80% at 80% 40%, ${accentColor}14 0%, transparent 70%)` }} />
 
