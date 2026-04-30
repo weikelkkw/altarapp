@@ -25,6 +25,7 @@ function AuthPageInner() {
   const [displayName, setDisplayName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
   const [error, setError] = useState('');
@@ -80,6 +81,46 @@ function AuthPageInner() {
     } catch {}
   }
 
+  // Best-effort consent recording. Posts to /api/legal/accept after a successful
+  // signup so we have an immutable record of the version the user agreed to.
+  // The endpoint is also where we enforce COPPA: if the DOB indicates under-13,
+  // it deletes the auth user and returns 451 — we surface that as a hard error.
+  async function recordLegalAcceptance(dob: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res = await fetch('/api/legal/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateOfBirth: dob,
+          accepted: { terms: true, privacy: true },
+        }),
+        keepalive: true,
+      });
+      if (res.status === 451) {
+        const j = await res.json().catch(() => ({}));
+        return { ok: false, error: j.error || 'You must be at least 13 to use The Altar.' };
+      }
+      if (!res.ok) return { ok: false, error: 'Could not record acceptance. Please try again.' };
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Network error recording acceptance.' };
+    }
+  }
+
+  // Compute age from yyyy-mm-dd in the local timezone.
+  function ageFromDob(iso: string): number | null {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+    const [y, m, d] = iso.split('-').map(n => parseInt(n, 10));
+    if (!y || !m || !d) return null;
+    const dob = new Date(y, m - 1, d);
+    if (Number.isNaN(dob.getTime())) return null;
+    const now = new Date();
+    let age = now.getFullYear() - dob.getFullYear();
+    const md = now.getMonth() - dob.getMonth();
+    if (md < 0 || (md === 0 && now.getDate() < dob.getDate())) age--;
+    return age;
+  }
+
   // Generic, enumeration-safe error string for any Supabase auth failure.
   // Supabase's raw messages ("User already registered", "Email not confirmed",
   // "Invalid login credentials") leak whether an account exists.
@@ -100,6 +141,11 @@ function AuthPageInner() {
       if (!/[^A-Za-z0-9]/.test(password)) { setError('Password must include at least one special character (e.g. !, @, #, $).'); return; }
       if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
       if (!agreedTerms) { setError('Please agree to the Terms of Service and Privacy Policy.'); return; }
+      if (!dateOfBirth) { setError('Please enter your date of birth.'); return; }
+      const age = ageFromDob(dateOfBirth);
+      if (age == null) { setError('Please enter a valid date of birth.'); return; }
+      if (age < 13) { setError('You must be at least 13 years old to use The Altar.'); return; }
+      if (age > 120) { setError('Please enter a valid date of birth.'); return; }
     }
     const sb = createClient();
     if (!sb) { setError('Unable to connect. Please try again later.'); return; }
@@ -124,6 +170,16 @@ function AuthPageInner() {
         if (data.session && data.user) {
           await ensureProfile(sb, data.user.id, displayName.trim());
           logAuthEvent('signup', data.user.id);
+          // Record legal acceptance + run server-side COPPA check. If the
+          // server rejects (under-13), it has already deleted the auth user;
+          // we sign the local session out and surface the error.
+          const accept = await recordLegalAcceptance(dateOfBirth);
+          if (!accept.ok) {
+            try { await sb.auth.signOut(); } catch {}
+            setError(accept.error || 'Could not complete signup.');
+            setLoading(false);
+            return;
+          }
           router.push(nextUrl);
         } else {
           // Show the same message regardless of whether the email is new or
@@ -434,11 +490,26 @@ function AuthPageInner() {
               )}
 
               {mode === 'signup' && (
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Date of Birth</label>
+                  <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)}
+                    autoComplete="bday" max={new Date().toISOString().slice(0, 10)}
+                    style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', colorScheme: 'dark' }}
+                    onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = `${gold}20`; e.currentTarget.style.boxShadow = 'none'; }}
+                  />
+                  <p style={{ fontSize: 10, color: 'rgba(232,240,236,0.30)', marginTop: 6, lineHeight: 1.5 }}>
+                    You must be 13 or older to use The Altar. Used only to verify age — never displayed publicly.
+                  </p>
+                </div>
+              )}
+
+              {mode === 'signup' && (
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 22, cursor: 'pointer' }}>
                   <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="checkbox" checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)}
                     style={{ marginTop: 2, accentColor: gold, width: 16, height: 16 }} />
                   <span style={{ fontSize: 11, color: 'rgba(232,240,236,0.35)', lineHeight: 1.6 }}>
-                    I agree to the <Link href="/bible/terms" style={{ color: gold, fontWeight: 700, textDecoration: 'none' }}>Terms of Service</Link> and <Link href="/bible/privacy" style={{ color: gold, fontWeight: 700, textDecoration: 'none' }}>Privacy Policy</Link>
+                    I agree to the <Link href="/bible/terms" style={{ color: gold, fontWeight: 700, textDecoration: 'none' }}>Terms of Service</Link> and <Link href="/bible/privacy" style={{ color: gold, fontWeight: 700, textDecoration: 'none' }}>Privacy Policy</Link>. If I am under 18, I confirm I have my parent or guardian's permission.
                   </span>
                 </label>
               )}

@@ -86,6 +86,11 @@ export default function SettingsPanel({
   const [settingsTab, setSettingsTab] = useState<'profile' | 'appearance' | 'voice' | 'account'>('profile');
   const [passwordResetSent, setPasswordResetSent] = useState(false);
   const [passwordResetLoading, setPasswordResetLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteText, setDeleteText] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   // Reset drafts when panel opens
   useEffect(() => {
@@ -1180,6 +1185,146 @@ export default function SettingsPanel({
                       </div>
                     </PremiumCard>
 
+                    {/* ── Privacy Rights — Export / Delete ── */}
+                    <SectionDivider icon="🔐" title="Your Data" />
+                    <PremiumCard style={{ marginBottom: 16 }}>
+                      {/* Export */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: `${accentColor}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📦</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui' }}>Export My Data</div>
+                          <div style={{ fontSize: 11, color: TEXT_MUTED, marginTop: 2 }}>Download a JSON copy of everything we hold</div>
+                        </div>
+                        <button
+                          disabled={exportLoading}
+                          onClick={async () => {
+                            setExportLoading(true);
+                            try {
+                              const res = await fetch('/api/account/export', { method: 'GET' });
+                              if (!res.ok) throw new Error('Export failed');
+                              const blob = await res.blob();
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              const stamp = new Date().toISOString().slice(0, 10);
+                              a.download = `thealtar-export-${stamp}.json`;
+                              document.body.appendChild(a);
+                              a.click();
+                              a.remove();
+                              URL.revokeObjectURL(url);
+                            } catch {
+                              // Surface failure quietly — user can retry.
+                            } finally {
+                              setExportLoading(false);
+                            }
+                          }}
+                          style={{
+                            fontSize: 12, fontWeight: 700, color: accentColor,
+                            background: `${accentColor}15`, border: `1px solid ${accentColor}30`,
+                            borderRadius: 10, padding: '8px 16px', cursor: 'pointer',
+                            opacity: exportLoading ? 0.5 : 1,
+                          }}>
+                          {exportLoading ? '...' : 'Download'}
+                        </button>
+                      </div>
+
+                      {/* Delete */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(248,113,113,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>🗑️</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui' }}>Delete My Account</div>
+                          <div style={{ fontSize: 11, color: TEXT_MUTED, marginTop: 2 }}>Permanent. Removes profile, prayers, posts, notes, and all data.</div>
+                        </div>
+                        {!deleteConfirm ? (
+                          <button
+                            onClick={() => { setDeleteConfirm(true); setDeleteError(''); }}
+                            style={{
+                              fontSize: 12, fontWeight: 700, color: '#f87171',
+                              background: 'rgba(248,113,113,0.10)', border: '1px solid rgba(248,113,113,0.30)',
+                              borderRadius: 10, padding: '8px 16px', cursor: 'pointer',
+                            }}>
+                            Delete
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {deleteConfirm && (
+                        <div style={{ padding: '12px 0 16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ fontSize: 12, color: '#f87171', fontWeight: 700, marginBottom: 10 }}>
+                            This cannot be undone. Type <strong>DELETE</strong> to confirm.
+                          </div>
+                          <input
+                            type="text"
+                            value={deleteText}
+                            onChange={e => setDeleteText(e.target.value)}
+                            placeholder="Type DELETE"
+                            autoCapitalize="characters"
+                            style={{
+                              width: '100%', padding: '12px 14px', borderRadius: 10,
+                              fontSize: 13, fontWeight: 600,
+                              background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.30)',
+                              color: '#fff', outline: 'none', boxSizing: 'border-box', marginBottom: 10,
+                            }}
+                          />
+                          {deleteError && (
+                            <div style={{ fontSize: 11, color: '#f87171', marginBottom: 10 }}>{deleteError}</div>
+                          )}
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button
+                              onClick={() => { setDeleteConfirm(false); setDeleteText(''); setDeleteError(''); }}
+                              disabled={deleteLoading}
+                              style={{
+                                flex: 1, padding: '12px', borderRadius: 10,
+                                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                                color: TEXT_PRIMARY, fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                              }}>
+                              Cancel
+                            </button>
+                            <button
+                              disabled={deleteLoading || deleteText !== 'DELETE'}
+                              onClick={async () => {
+                                setDeleteLoading(true);
+                                setDeleteError('');
+                                try {
+                                  const res = await fetch('/api/account/delete', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ reason: 'user_initiated' }),
+                                  });
+                                  if (!res.ok) {
+                                    const j = await res.json().catch(() => ({}));
+                                    throw new Error(j.error || 'Deletion failed');
+                                  }
+                                  // Clear local session and redirect.
+                                  const sb = createClient();
+                                  if (sb) { try { await sb.auth.signOut(); } catch {} }
+                                  try {
+                                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                                      const k = localStorage.key(i);
+                                      if (k && k.startsWith('trace-')) localStorage.removeItem(k);
+                                    }
+                                  } catch {}
+                                  window.location.href = '/bible/auth?deleted=1';
+                                } catch (e: any) {
+                                  setDeleteError(e?.message || 'Deletion failed');
+                                  setDeleteLoading(false);
+                                }
+                              }}
+                              style={{
+                                flex: 1, padding: '12px', borderRadius: 10,
+                                background: deleteText === 'DELETE' ? 'rgba(248,113,113,0.20)' : 'rgba(248,113,113,0.06)',
+                                border: '1px solid rgba(248,113,113,0.40)',
+                                color: '#f87171', fontWeight: 800, fontSize: 13,
+                                cursor: deleteText === 'DELETE' && !deleteLoading ? 'pointer' : 'not-allowed',
+                                opacity: deleteText === 'DELETE' ? 1 : 0.5,
+                              }}>
+                              {deleteLoading ? 'Deleting…' : 'Delete Forever'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </PremiumCard>
+
                     {/* Sign Out — destructive, full width */}
                     <button
                       onClick={async () => { if (onSignOut) { await onSignOut(); onClose(); window.location.href = '/bible/auth?logout=1'; } }}
@@ -1259,7 +1404,13 @@ export default function SettingsPanel({
                 </div>
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16 }}>
                   <div style={{ fontSize: 11, color: TEXT_FAINT, marginBottom: 4 }}>Scripture via api.bible · AI powered by Claude</div>
-                  <div style={{ fontSize: 11, color: TEXT_FAINT }}>thealtarco.app</div>
+                  <div style={{ fontSize: 11, color: TEXT_FAINT, marginBottom: 10 }}>thealtarco.app</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11 }}>
+                    <a href="/bible/privacy" style={{ color: accentColor, textDecoration: 'none', fontWeight: 700 }}>Privacy</a>
+                    <a href="/bible/terms" style={{ color: accentColor, textDecoration: 'none', fontWeight: 700 }}>Terms</a>
+                    <a href="/bible/dmca" style={{ color: accentColor, textDecoration: 'none', fontWeight: 700 }}>DMCA</a>
+                    <a href="/bible/accessibility" style={{ color: accentColor, textDecoration: 'none', fontWeight: 700 }}>Accessibility</a>
+                  </div>
                 </div>
               </PremiumCard>
 

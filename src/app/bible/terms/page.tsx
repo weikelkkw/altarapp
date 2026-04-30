@@ -61,7 +61,7 @@ export default function TermsPage() {
         <div style={{ marginBottom: 48, paddingBottom: 32, borderBottom: `1px solid ${dim}` }}>
           <p style={{ fontSize: 10, fontWeight: 700, color: gold, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 14 }}>Legal</p>
           <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em', marginBottom: 12 }}>Terms of Service</h1>
-          <p style={{ fontSize: 13, color: muted }}>Effective date: April 10, 2026 &nbsp;·&nbsp; Last updated: April 10, 2026</p>
+          <p style={{ fontSize: 13, color: muted }}>Effective date: April 30, 2026 &nbsp;·&nbsp; Last updated: April 30, 2026 &nbsp;·&nbsp; Version 2026-04-30</p>
           <p style={{ fontSize: 13, color: muted, marginTop: 6 }}>
             Questions? Contact us at <span style={{ color: gold }}>legal@thealtarco.app</span>
           </p>
@@ -140,8 +140,18 @@ export default function TermsPage() {
         </Section>
 
         <Section title="9. Termination">
-          <P>You may delete your account at any time from the Settings tab. Upon deletion, your personal data will be removed within 30 days.</P>
+          <P>You may delete your account at any time from Settings → Account → Delete My Account. Deletion is immediate; backup retention is documented in our <Link href="/bible/privacy" style={{ color: gold, textDecoration: 'none', fontWeight: 700 }}>Privacy Policy</Link>.</P>
+          <P>You may also export a complete copy of your data at any time from Settings → Account → Export My Data, in machine-readable JSON format.</P>
           <P>We may suspend or terminate your access at any time, with or without notice, if we determine that you have violated these Terms. If we terminate your account in error, please contact us at <span style={{ color: gold }}>legal@thealtarco.app</span>.</P>
+        </Section>
+
+        <Section title="9a. Reporting Content & DMCA">
+          <P>If you encounter content on The Altar that violates these Terms — harassment, hate, explicit material, impersonation, or anything else against our community standards — you may report it through the in-app report option on each post or message. Reports go to our moderation queue and are reviewed by our team.</P>
+          <P>For copyright infringement notices and counter-notices under the Digital Millennium Copyright Act (17 U.S.C. § 512), see our <Link href="/bible/dmca" style={{ color: gold, textDecoration: 'none', fontWeight: 700 }}>DMCA Copyright Policy</Link>. Notices must be sent to our designated agent at <span style={{ color: gold }}>dmca@thealtarco.app</span>.</P>
+        </Section>
+
+        <Section title="9b. Accessibility">
+          <P>The Altar targets WCAG 2.1 Level AA conformance. Our current accessibility status, known gaps, and the channel for reporting barriers are documented in our <Link href="/bible/accessibility" style={{ color: gold, textDecoration: 'none', fontWeight: 700 }}>Accessibility Statement</Link>. To report an accessibility barrier, email <span style={{ color: gold }}>accessibility@thealtarco.app</span>.</P>
         </Section>
 
         <Section title="10. Disclaimers">
@@ -162,12 +172,17 @@ export default function TermsPage() {
           <P>If you have questions about these Terms, want to report a violation, or need to reach us for any legal matter:</P>
           <div style={{ background: dim, borderRadius: 12, padding: '16px 20px', fontSize: 13, color: muted, lineHeight: 1.8 }}>
             <strong style={{ color: '#fff' }}>The Altar</strong><br />
-            Email: <span style={{ color: gold }}>legal@thealtarco.app</span>
+            Legal: <span style={{ color: gold }}>legal@thealtarco.app</span><br />
+            Privacy: <span style={{ color: gold }}>privacy@thealtarco.app</span><br />
+            Copyright (DMCA): <span style={{ color: gold }}>dmca@thealtarco.app</span><br />
+            Accessibility: <span style={{ color: gold }}>accessibility@thealtarco.app</span>
           </div>
         </Section>
 
         <div style={{ borderTop: `1px solid ${dim}`, paddingTop: 32, textAlign: 'center' }}>
-          <Link href="/bible/privacy" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>Privacy Policy →</Link>
+          <Link href="/bible/privacy" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>Privacy →</Link>
+          <Link href="/bible/dmca" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>DMCA →</Link>
+          <Link href="/bible/accessibility" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>Accessibility →</Link>
           <Link href="/bible/auth" style={{ fontSize: 12, color: muted, textDecoration: 'none', fontWeight: 600 }}>Return to The Altar</Link>
         </div>
       </div>

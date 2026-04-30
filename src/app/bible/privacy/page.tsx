@@ -61,7 +61,7 @@ export default function PrivacyPage() {
         <div style={{ marginBottom: 48, paddingBottom: 32, borderBottom: `1px solid ${dim}` }}>
           <p style={{ fontSize: 10, fontWeight: 700, color: gold, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 14 }}>Legal</p>
           <h1 style={{ fontSize: 'clamp(28px, 6vw, 40px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.01em', marginBottom: 12 }}>Privacy Policy</h1>
-          <p style={{ fontSize: 13, color: muted }}>Effective date: April 10, 2026 &nbsp;·&nbsp; Last updated: April 10, 2026</p>
+          <p style={{ fontSize: 13, color: muted }}>Effective date: April 30, 2026 &nbsp;·&nbsp; Last updated: April 30, 2026 &nbsp;·&nbsp; Version 2026-04-30</p>
           <p style={{ fontSize: 13, color: muted, marginTop: 6 }}>
             Questions? Contact us at <span style={{ color: gold }}>privacy@thealtarco.app</span>
           </p>
@@ -101,7 +101,18 @@ export default function PrivacyPage() {
             'Send security alerts, such as password resets',
             'Ensure a safe, respectful community environment',
           ]} />
-          <P>We do <strong style={{ color: '#fff' }}>not</strong> sell your personal information. We do not use your data for advertising.</P>
+          <P>We do <strong style={{ color: '#fff' }}>not</strong> sell or share your personal information for advertising. We do not use your data to train third-party AI models. We do not run ad-tech, analytics, or marketing trackers.</P>
+        </Section>
+
+        <Section title="2a. Legal Basis for Processing (GDPR / UK GDPR)">
+          <P>For users in the European Economic Area, the United Kingdom, or Switzerland, we rely on the following legal bases under Article 6 of the GDPR:</P>
+          <UL items={[
+            'Contract — to create and operate your account, deliver community features, and provide support (Art. 6(1)(b))',
+            'Legitimate interests — to keep the service secure, prevent abuse, and improve The Altar, balanced against your rights (Art. 6(1)(f))',
+            'Consent — for any optional features you choose to enable, such as connecting Spotify; you may withdraw consent at any time (Art. 6(1)(a))',
+            'Legal obligation — to comply with applicable law, respond to lawful requests, and meet record-keeping requirements (Art. 6(1)(c))',
+          ]} />
+          <P>We do not engage in automated decision-making with legal or similarly significant effects. AI-assisted study tools generate text in response to your queries, but do not make decisions about you.</P>
         </Section>
 
         <Section title="3. Third-Party Services">
@@ -134,35 +145,55 @@ export default function PrivacyPage() {
         <Section title="7. Your Rights">
           <P>Depending on your location, you may have the following rights regarding your data:</P>
           <UL items={[
-            'Access — request a copy of the data we hold about you',
-            'Correction — ask us to correct inaccurate information',
-            'Deletion — request that we delete your account and personal data',
-            'Portability — request your data in a portable format',
-            'Opt-out — you may stop using the app and request account deletion at any time',
+            'Access — download a complete copy of your data from Settings → Account → Export My Data',
+            'Correction — edit your profile, posts, prayers, and notes inside the app at any time',
+            'Deletion — delete your account and personal data from Settings → Account → Delete My Account',
+            'Portability — your export is delivered as machine-readable JSON suitable for transfer to another service',
+            'Object / Restrict — write to us at privacy@thealtarco.app to object to or restrict any specific processing',
+            'Withdraw consent — disconnect optional integrations (e.g., Spotify) at any time from Settings',
+            'Opt-out of sale or sharing — we do not sell or share your personal information for advertising; there is nothing to opt out of',
+            'Lodge a complaint — EU/UK residents may complain to their local data-protection authority',
           ]} />
-          <P>To exercise any of these rights, contact us at <span style={{ color: gold }}>privacy@thealtarco.app</span>. We will respond within 30 days.</P>
-          <P>You can delete your account and data directly from the Settings tab inside the app.</P>
+          <P>To exercise any of these rights by email, contact <span style={{ color: gold }}>privacy@thealtarco.app</span>. We will respond within 30 days (or the shorter period required by your local law).</P>
+          <P>For California residents under the CCPA/CPRA: you have the right to know, the right to delete, the right to correct, and the right to limit use of sensitive personal information. We do not sell or share personal information as those terms are defined under California law.</P>
         </Section>
 
         <Section title="8. Cookies & Local Storage">
-          <P>The Altar uses browser local storage (not traditional cookies) to remember your preferences — such as your chosen theme, font size, Bible translation, and reading settings. This data lives only on your device and is never sent to our servers.</P>
-          <P>Authentication sessions are managed through Supabase's secure session tokens.</P>
+          <P>The Altar does not use third-party advertising, analytics, or marketing cookies. We do not run Google Analytics, Meta Pixel, or any cross-site tracking technology.</P>
+          <P>We use:</P>
+          <UL items={[
+            'Strictly-necessary first-party session cookies issued by Supabase to keep you signed in (HttpOnly, Secure, SameSite=Lax)',
+            'Browser local storage on your device for preferences such as theme, font size, default Bible translation, and reading settings — this data never leaves your device',
+          ]} />
+          <P>Because we set only strictly-necessary cookies and no advertising or analytics trackers, no cookie-consent banner is required under GDPR ePrivacy or CCPA. If we ever add optional cookies in the future, we will request your consent first.</P>
         </Section>
 
         <Section title="9. Changes to This Policy">
           <P>We may update this Privacy Policy from time to time. When we do, we will update the "Last updated" date at the top. If changes are material, we will notify you through the app. Continued use of The Altar after changes take effect constitutes your acceptance of the updated policy.</P>
         </Section>
 
-        <Section title="10. Contact Us">
+        <Section title="10. International Transfers">
+          <P>The Altar is operated from the United States, and Supabase hosts our database on AWS infrastructure. If you are outside the US, your information will be transferred to and processed in the United States. For transfers from the EU/UK, our processors (Supabase, Anthropic, ElevenLabs, Mapbox, Spotify) operate under Standard Contractual Clauses or equivalent transfer mechanisms.</P>
+        </Section>
+
+        <Section title="11. Data Controller">
+          <P>The Altar is operated as a project of its founder. For privacy and data-protection inquiries, write to <span style={{ color: gold }}>privacy@thealtarco.app</span>. We are working on appointing a designated EU representative; until then, EU/UK residents may also contact their local data-protection authority directly.</P>
+        </Section>
+
+        <Section title="12. Contact Us">
           <P>If you have any questions, concerns, or requests related to this Privacy Policy, please reach out:</P>
           <div style={{ background: dim, borderRadius: 12, padding: '16px 20px', fontSize: 13, color: muted, lineHeight: 1.8 }}>
             <strong style={{ color: '#fff' }}>The Altar</strong><br />
-            Email: <span style={{ color: gold }}>privacy@thealtarco.app</span>
+            Privacy: <span style={{ color: gold }}>privacy@thealtarco.app</span><br />
+            Accessibility: <span style={{ color: gold }}>accessibility@thealtarco.app</span><br />
+            Copyright (DMCA): <span style={{ color: gold }}>dmca@thealtarco.app</span>
           </div>
         </Section>
 
         <div style={{ borderTop: `1px solid ${dim}`, paddingTop: 32, textAlign: 'center' }}>
-          <Link href="/bible/terms" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>Terms of Service →</Link>
+          <Link href="/bible/terms" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>Terms →</Link>
+          <Link href="/bible/dmca" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>DMCA →</Link>
+          <Link href="/bible/accessibility" style={{ fontSize: 12, color: gold, textDecoration: 'none', fontWeight: 700, marginRight: 24 }}>Accessibility →</Link>
           <Link href="/bible/auth" style={{ fontSize: 12, color: muted, textDecoration: 'none', fontWeight: 600 }}>Return to The Altar</Link>
         </div>
       </div>
