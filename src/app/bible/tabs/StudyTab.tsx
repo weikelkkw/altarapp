@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, ReactNode } from 'react';
+import dynamic from 'next/dynamic';
 import {
   ApiBible, Passage, BookDef, ParsedVerse, T, BOOKS, POPULAR_ABBRS,
   stripHtml, parseVerseText, cleanMarkdown,
@@ -10,8 +11,11 @@ import GospelHarmony from './GospelHarmony';
 import NamesOfGod from './NamesOfGod';
 import ReadingPlans from './ReadingPlans';
 import TermsReference from './TermsReference';
-import BibleMaps from './BibleMaps';
 import ProphecyTimeline from './ProphecyTimeline';
+
+// BibleMaps pulls in mapbox-gl (~700 KB). Defer it until the user actually
+// opens the maps view so the rest of Study can render fast.
+const BibleMaps = dynamic(() => import('./BibleMaps'), { ssr: false });
 
 // ── Apocryphal / Deuterocanonical books ──────────────────────────────────────
 const BRENTON_ID = '65bfdebd704a8324-01';

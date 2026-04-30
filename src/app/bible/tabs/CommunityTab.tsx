@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserIdentity, BookDef, timeAgo } from '../types';
 import { createClient } from '@/lib/supabase/client';
-import BibleStudyMode from './BibleStudyMode';
 import MemberProfilePanel from './MemberProfilePanel';
+
+// BibleStudyMode is a heavy modal that only opens from one entry point inside
+// Community. Loading it lazily keeps it out of the chat-list initial bundle.
+const BibleStudyMode = dynamic(() => import('./BibleStudyMode'), { ssr: false });
 import MentionInput, { renderMessageWithMentions } from './MentionInput';
 import FindFriends from './FindFriends';
 import GroupEvents from './GroupEvents';

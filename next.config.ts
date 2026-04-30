@@ -17,8 +17,23 @@ try {
 const nextConfig: NextConfig = {
   output: "standalone",
   typescript: { ignoreBuildErrors: true },
+  // Don't expose framework. Small win, but cheap.
+  poweredByHeader: false,
+  // Tree-shake "barrel" imports from icon/animation libs so we don't ship the
+  // whole package when only a handful of names are used.
+  experimental: {
+    optimizePackageImports: [
+      "framer-motion",
+      "lucide-react",
+      "react-icons",
+    ],
+  },
   images: {
+    // We render bitmaps with raw <img> right now (next/image rollout is
+    // post-launch work); leave the optimizer disabled until that conversion
+    // happens so we don't end up double-billing or hiding broken paths.
     unoptimized: true,
+    formats: ["image/avif", "image/webp"],
   },
   async headers() {
     return [

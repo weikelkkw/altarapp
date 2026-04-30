@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -14,18 +15,22 @@ import SearchTab from './tabs/SearchTab';
 import StudyTab from './tabs/StudyTab';
 import CommunityTab from './tabs/CommunityTab';
 import NotificationsTab from './tabs/NotificationsTab';
-import NotificationCenter, { useUnreadCount } from './tabs/NotificationCenter';
+import { useUnreadCount } from './lib/useUnreadCount';
 import Header from './tabs/Header';
-import SettingsPanel from './tabs/SettingsPanel';
-import FireMode from './tabs/FireMode';
-import GospelPresentation from './tabs/GospelPresentation';
 import { IdentityWidget } from './tabs/IdentityBuilder';
-import TrophyRoom from './tabs/TrophyRoom';
-import AuthModal from './tabs/AuthModal';
-import Onboarding from './tabs/Onboarding';
-import AppTour from './tabs/AppTour';
 import { useAuth } from './lib/useAuth';
 import { createClient } from '@/lib/supabase/client';
+
+// These are only mounted when a panel/overlay is open. Pulling them into
+// dedicated chunks keeps them out of the initial bundle.
+const NotificationCenter = dynamic(() => import('./tabs/NotificationCenter'), { ssr: false });
+const SettingsPanel = dynamic(() => import('./tabs/SettingsPanel'), { ssr: false });
+const FireMode = dynamic(() => import('./tabs/FireMode'), { ssr: false });
+const GospelPresentation = dynamic(() => import('./tabs/GospelPresentation'), { ssr: false });
+const TrophyRoom = dynamic(() => import('./tabs/TrophyRoom'), { ssr: false });
+const AuthModal = dynamic(() => import('./tabs/AuthModal'), { ssr: false });
+const Onboarding = dynamic(() => import('./tabs/Onboarding'), { ssr: false });
+const AppTour = dynamic(() => import('./tabs/AppTour'), { ssr: false });
 
 type Tab = 'home' | 'read' | 'search' | 'study' | 'community';
 
