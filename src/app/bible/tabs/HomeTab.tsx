@@ -39,9 +39,9 @@ interface Props {
 function SectionLabel({ text, accentColor, icon }: { text: string; accentColor: string; icon?: string }) {
   return (
     <div className="flex items-center gap-2.5 mb-3">
-      <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
+      <div className="shrink-0" style={{ width: 4, height: 22, borderRadius: 4, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, boxShadow: `0 0 8px ${accentColor}66` }} />
       {icon && (icon === 'star-img' ? <img src="/star.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : icon === 'praying-hands' ? <img src="/Praying hands.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span className="text-base">{icon}</span>)}
-      <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>{text}</h2>
+      <h2 className="text-sm font-black uppercase tracking-[0.14em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900, letterSpacing: '0.14em' }}>{text}</h2>
     </div>
   );
 }
@@ -49,15 +49,9 @@ function SectionLabel({ text, accentColor, icon }: { text: string; accentColor: 
 function GlowDivider({ accentColor, dot = false }: { accentColor: string; dot?: boolean }) {
   return (
     <div className="relative my-5" style={{ height: 3 }}>
-      <div className="absolute inset-x-0 top-1/2 h-px" style={{ background: `linear-gradient(90deg, transparent 5%, ${accentColor}55 50%, transparent 95%)` }} />
-      <div className="absolute inset-x-0 top-1/2 h-px overflow-hidden">
-        <div style={{ height: '100%', width: '30%', background: `linear-gradient(90deg, transparent, ${accentColor}, ${accentColor}, transparent)`, animation: 'glowSweep 4s ease-in-out infinite', boxShadow: `0 0 10px ${accentColor}88, 0 0 20px ${accentColor}44` }} />
-      </div>
-      <div className="absolute inset-x-0 top-0 h-full overflow-hidden" style={{ filter: 'blur(3px)' }}>
-        <div style={{ height: '100%', width: '30%', background: `linear-gradient(90deg, transparent, ${accentColor}66, transparent)`, animation: 'glowSweep 4s ease-in-out infinite' }} />
-      </div>
+      <div className="absolute inset-x-0 top-1/2 h-px" style={{ background: `linear-gradient(90deg, transparent 10%, ${accentColor}30 50%, transparent 90%)` }} />
       {dot && (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: accentColor, boxShadow: `0 0 8px ${accentColor}88, 0 0 16px ${accentColor}44`, animation: 'dotPulseGlow 3s ease-in-out infinite' }} />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: `${accentColor}66`, boxShadow: `0 0 6px ${accentColor}55` }} />
       )}
     </div>
   );
@@ -301,6 +295,7 @@ export default function HomeTab({
       }),
     })
       .then(async res => {
+        if (!res.ok) return;
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
@@ -368,10 +363,14 @@ export default function HomeTab({
     } catch {}
     const cached = localStorage.getItem(devotionalCacheKey);
     if (cached) {
-      const data = JSON.parse(cached);
-      setDevotional(data.text);
-      setDevotionalRef(data.ref);
-      return;
+      try {
+        const data = JSON.parse(cached);
+        if (data?.text) {
+          setDevotional(data.text);
+          setDevotionalRef(data.ref || '');
+          return;
+        }
+      } catch { /* corrupt cache — regenerate */ }
     }
     setDevotionalLoading(true);
     const ref = dailyVerse.reference;
@@ -387,6 +386,7 @@ export default function HomeTab({
       }),
     })
       .then(async res => {
+        if (!res.ok) return;
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
@@ -426,11 +426,13 @@ export default function HomeTab({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         reference: `${month} ${day}`,
-        verseText: `Share one fascinating historical fact related to the Bible or Christianity for ${month} ${day}. This could be a church history event, an archaeological discovery, a manuscript date, a saint's feast day, or a significant biblical event traditionally dated near this time. Keep it to 2-3 sentences. Be specific with dates and names. Do NOT make anything up — only share well-documented facts. Start directly with the fact — no greeting, no preamble.`,
+        verseText: '',
         translation: '',
+        question: `Share one fascinating historical fact related to the Bible or Christianity for ${month} ${day}. This could be a church history event, an archaeological discovery, a manuscript date, a saint's feast day, or a significant biblical event traditionally dated near this time. Keep it to 2-3 sentences. Be specific with dates and names. Do NOT make anything up — only share well-documented facts. Do not start with "Great question" or any greeting — begin directly with the fact.`,
       }),
     })
       .then(async res => {
+        if (!res.ok) return;
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
@@ -577,6 +579,7 @@ export default function HomeTab({
                           body: JSON.stringify({ reference: 'Identity', verseText: identityStatement, translation: 'KJV',
                             question: `In 2-3 sentences, explain what it means that "${identityStatement}" according to Scripture. Give 2 supporting verse references. Be warm and personal. No markdown or asterisks.` }),
                         }).then(async r => {
+                          if (!r.ok) { setIdentityExplain('God declares this over you. Meditate on it today.'); return; }
                           const reader = r.body?.getReader(); if (!reader) return;
                           const d = new TextDecoder(); let t = '';
                           while (true) { const { done, value } = await reader.read(); if (done) break; t += d.decode(value, { stream: true }); setIdentityExplain(t); }
@@ -598,14 +601,16 @@ export default function HomeTab({
           <div className="relative" style={{ transform: 'rotate(0.8deg)', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.7))' }}>
             {/* Pushpin — accent */}
             <div className="absolute left-1/2 -top-3 -translate-x-1/2" style={{ width: 18, height: 18, borderRadius: '50%', background: `radial-gradient(circle at 38% 35%, ${accentColor}, ${accentColor}99)`, boxShadow: `0 2px 6px rgba(0,0,0,0.6), 0 0 10px ${accentColor}55`, zIndex: 10 }} />
-            <div className="rounded-lg px-5 pt-6 pb-4" style={{ background: 'linear-gradient(160deg, rgba(6,4,2,0.55), rgba(3,2,1,0.55))', border: `1px solid ${accentColor}28`, boxShadow: `inset 0 1px 0 ${accentColor}10, 0 2px 20px rgba(0,0,0,0.8)` }}>
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Your Word Today</p>
+            <div className="rounded-lg px-5 pt-6 pb-4 relative overflow-hidden" style={{ background: `linear-gradient(160deg, rgba(8,5,2,0.72), rgba(4,3,1,0.82))`, border: `1px solid ${accentColor}40`, borderTop: `3px solid ${accentColor}88`, boxShadow: `inset 0 1px 0 ${accentColor}20, 0 2px 20px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,0,0,0.6)` }}>
+              {/* Faded quotation mark watermark */}
+              <div className="absolute pointer-events-none select-none" style={{ top: 8, left: 10, fontSize: 96, lineHeight: 1, color: `${accentColor}09`, fontFamily: 'Georgia, serif', fontWeight: 900, zIndex: 0 }}>&ldquo;</div>
+              <p className="relative text-[9px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif', zIndex: 1 }}>Your Word Today</p>
               {dailyVerse?.verses[0] ? (
                 <>
-                  <p className="text-sm leading-relaxed mb-1 italic" style={{ color: '#f0e8d8', fontFamily: 'Georgia, serif' }}>
+                  <p className="relative text-base leading-relaxed mb-1 italic" style={{ color: '#f5ede0', fontFamily: 'Georgia, serif', fontWeight: 400, fontSize: 15, zIndex: 1 }}>
                     &ldquo;{dailyVerse.verses[0].text}&rdquo;
                   </p>
-                  <p className="text-xs font-bold mb-3" style={{ color: accentColor }}>{dailyVerse.reference}</p>
+                  <p className="relative text-xs font-bold mb-3" style={{ color: accentColor, zIndex: 1 }}>{dailyVerse.reference}</p>
                   <div className="flex items-center gap-2 flex-wrap">
                     {onStudyVerse && (
                       <button onClick={() => {
@@ -676,10 +681,10 @@ export default function HomeTab({
                         completeDailyCheck('devotional');
                       }}
                         disabled={devotionalCompleted}
-                        className="w-full py-2 rounded-lg text-xs font-bold transition-all"
+                        className="w-full py-2 text-xs font-bold transition-all"
                         style={devotionalCompleted
-                          ? { background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }
-                          : { background: 'linear-gradient(135deg, #b45309, #d97706)', color: '#fff', boxShadow: '0 2px 8px rgba(180,83,9,0.4)' }}>
+                          ? { background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 14 }
+                          : { background: 'linear-gradient(135deg, #b45309, #d97706)', color: '#fff', boxShadow: '0 2px 8px rgba(180,83,9,0.4)', borderRadius: 14 }}>
                         {devotionalCompleted ? '✓ Devotional Complete' : 'Mark as Read'}
                       </button>
                     )}
@@ -693,22 +698,26 @@ export default function HomeTab({
       </div>
 
       {/* ── Daily Checklist (dropdown) ────────────────────────────────── */}
-      <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15` }}>
-        <button className="w-full px-4 py-3" onClick={() => setWalkOpen(v => !v)}>
+      <div className="rounded-[24px] overflow-hidden" style={{
+        background: `linear-gradient(145deg, rgba(255,255,255,0.045) 0%, rgba(0,0,0,0.25) 100%)`,
+        border: `1px solid ${accentColor}28`,
+        boxShadow: `0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 ${accentColor}18`,
+      }}>
+        <button className="w-full px-5 py-4" onClick={() => setWalkOpen(v => !v)}>
           <div className="flex items-center justify-between" style={{ minHeight: 72 }}>
             <div className="text-left">
-              <div className="flex items-center gap-2 mb-0.5">
-                <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Today&apos;s Walk</h2>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="shrink-0" style={{ width: 4, height: 22, borderRadius: 4, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, boxShadow: `0 0 8px ${accentColor}66` }} />
+                <h2 className="text-sm font-black uppercase tracking-[0.14em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900 }}>Today&apos;s Walk</h2>
               </div>
-              <p className="text-[10px] pl-3" style={{ color: checksCompleted === dailyItems.length ? '#22c55e' : `${accentColor}55` }}>
+              <p className="text-[10px] pl-3 font-semibold" style={{ color: checksCompleted === dailyItems.length ? '#22c55e' : `${accentColor}66` }}>
                 {checksCompleted}/{dailyItems.length} complete · {walkOpen ? 'tap to close' : 'tap to open'}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all" style={{
-                background: walkOpen ? `${accentColor}22` : `${accentColor}10`,
-                border: `1px solid ${accentColor}${walkOpen ? '55' : '28'}`,
+              <div className="flex flex-col items-center justify-center px-3 py-2 rounded-[14px] transition-all" style={{
+                background: walkOpen ? `${accentColor}28` : `${accentColor}12`,
+                border: `1px solid ${accentColor}${walkOpen ? '60' : '30'}`,
                 minWidth: 52,
               }}>
                 <span className="text-base font-black transition-transform" style={{
@@ -727,29 +736,31 @@ export default function HomeTab({
         </button>
         {walkOpen && (
           <>
-            <div className="px-3 py-2" style={{ borderTop: `1px solid ${accentColor}08` }}>
+            <div className="px-4 py-3 space-y-2" style={{ borderTop: `1px solid ${accentColor}14` }}>
               {dailyItems.map(item => (
                 <button key={item.id} onClick={() => toggleCheck(item.id)}
-                  className="w-full flex items-center gap-3 py-2 px-2 rounded-lg transition-all"
-                  style={dailyChecks[item.id] ? { background: `${accentColor}08` } : {}}>
+                  className="w-full flex items-center gap-3 py-2.5 px-3 rounded-[16px] transition-all"
+                  style={dailyChecks[item.id]
+                    ? { background: `linear-gradient(135deg, ${accentColor}18, ${accentColor}0a)`, border: `1px solid ${accentColor}35`, boxShadow: `0 0 12px ${accentColor}18` }
+                    : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all"
                     style={dailyChecks[item.id]
-                      ? { background: accentColor, boxShadow: `0 0 8px ${accentColor}33` }
-                      : { border: `2px solid ${accentColor}33` }}>
-                    {dailyChecks[item.id] && <span className="text-[10px] text-white font-bold">✓</span>}
+                      ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, boxShadow: `0 0 10px ${accentColor}55, 0 0 20px ${accentColor}22` }
+                      : { border: `2px solid ${accentColor}40` }}>
+                    {dailyChecks[item.id] && <span className="text-[10px] text-white font-black">✓</span>}
                   </div>
-                  <span className="flex-1 text-xs" style={{ color: dailyChecks[item.id] ? 'rgba(232,240,236,0.4)' : 'rgba(232,240,236,0.7)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none' }}>
+                  <span className="flex-1 text-xs font-medium" style={{ color: dailyChecks[item.id] ? `${accentColor}88` : 'rgba(232,240,236,0.75)', textDecoration: dailyChecks[item.id] ? 'line-through' : 'none' }}>
                     {item.label}
                   </span>
                   {(item as any).img
-                    ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', mixBlendMode: 'screen', opacity: dailyChecks[item.id] ? 0.25 : 0.92, flexShrink: 0 }} />
+                    ? <img src={(item as any).img} alt="" style={{ width: 42, height: 42, objectFit: 'contain', mixBlendMode: 'screen', opacity: dailyChecks[item.id] ? 0.22 : 0.92, flexShrink: 0 }} />
                     : <span className="text-xl shrink-0">{item.icon}</span>
                   }
                 </button>
               ))}
             </div>
             {checksCompleted === dailyItems.length && (
-              <div className="px-4 py-2 text-center" style={{ borderTop: `1px solid ${accentColor}08` }}>
+              <div className="px-4 py-3 text-center" style={{ borderTop: `1px solid ${accentColor}14`, background: `linear-gradient(90deg, transparent, ${accentColor}08, transparent)` }}>
                 <p className="text-[10px] font-bold" style={{ color: '#22c55e' }}>🎉 All done today! God is pleased with your faithfulness.</p>
               </div>
             )}
@@ -763,8 +774,8 @@ export default function HomeTab({
       <div className="relative flex items-center justify-between mb-2" style={{ minHeight: 72 }}>
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-            <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Daily Encounters</h2>
+            <div className="shrink-0" style={{ width: 4, height: 22, borderRadius: 4, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, boxShadow: `0 0 8px ${accentColor}66` }} />
+            <h2 className="text-sm font-black uppercase tracking-[0.14em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900 }}>Daily Encounters</h2>
           </div>
           <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.3)' }}>Morning &amp; Bedtime with God</p>
         </div>
@@ -845,8 +856,8 @@ export default function HomeTab({
           <div className="relative flex items-center justify-between mb-4" style={{ minHeight: 72 }}>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Prayer Journal</h2>
+                <div className="shrink-0" style={{ width: 4, height: 22, borderRadius: 4, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, boxShadow: `0 0 8px ${accentColor}66` }} />
+                <h2 className="text-sm font-black uppercase tracking-[0.14em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900 }}>Prayer Journal</h2>
               </div>
               <div className="flex items-center gap-2 pl-3">
                 {activePrayers.length > 0 && <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#22c55e18', color: '#22c55e' }}>{activePrayers.length} active</span>}
@@ -942,8 +953,8 @@ export default function HomeTab({
                         className="px-3 py-2 rounded-lg text-xs" style={{ color: 'rgba(232,240,236,0.4)' }}>Cancel</button>
                       <button onClick={() => { addPrayer(); setShowPrayerForm(false); setNewPrayerCategory(''); completeDailyCheck('prayer'); }}
                         disabled={!newPrayer.trim()}
-                        className="px-5 py-2 rounded-xl text-xs font-bold disabled:opacity-30"
-                        style={{ background: accentColor, color: '#0a1410' }}>
+                        className="px-5 py-2 text-xs font-black disabled:opacity-30"
+                        style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#0a1410', borderRadius: 14, boxShadow: `0 2px 12px ${accentColor}44` }}>
                         Pray 🙏
                       </button>
                     </div>
@@ -999,13 +1010,20 @@ export default function HomeTab({
                 };
                 const catColor = categoryColors[p.category || 'Other'] || '#94a3b8';
 
+                const isAnswered = p.status === 'answered';
                 return (
-                  <div key={p.id} className="rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.42)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 0 0 1px rgba(0,0,0,0.9), 0 4px 20px rgba(0,0,0,0.6)' }}>
+                  <div key={p.id} className="rounded-[20px] overflow-hidden" style={{
+                    background: isAnswered
+                      ? 'linear-gradient(135deg, rgba(34,60,28,0.55), rgba(16,36,18,0.65))'
+                      : 'linear-gradient(135deg, rgba(8,8,12,0.75), rgba(4,4,8,0.85))',
+                    border: isAnswered ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(255,255,255,0.09)',
+                    boxShadow: isAnswered ? '0 0 0 1px rgba(0,0,0,0.8), 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(34,197,94,0.08)' : '0 0 0 1px rgba(0,0,0,0.9), 0 4px 20px rgba(0,0,0,0.6)',
+                  }}>
                     <div className="flex">
-                      {/* Left color bar */}
-                      <div className="w-1 shrink-0" style={{ background: statusColor }} />
+                      {/* Left color bar — thicker, more vibrant */}
+                      <div className="w-1 shrink-0" style={{ width: 4, background: `linear-gradient(180deg, ${statusColor}, ${statusColor}99)`, boxShadow: `0 0 8px ${statusColor}66` }} />
 
-                      <div className="flex-1 px-4 py-3">
+                      <div className="flex-1 px-5 py-4">
                         {/* Top row: category badge + date */}
                         <div className="flex items-center justify-between mb-2">
                           {p.category && (
@@ -1086,8 +1104,8 @@ export default function HomeTab({
                               </button>
                               <button
                                 onClick={() => markAnswered(p.id)}
-                                className="text-xs px-4 py-1.5 rounded-lg font-bold"
-                                style={{ background: accentColor, color: '#0a1410' }}
+                                className="text-xs px-4 py-1.5 font-bold"
+                                style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#0a1410', borderRadius: 14, boxShadow: `0 2px 8px ${accentColor}44` }}
                               >
                                 Mark Answered
                               </button>
@@ -1288,6 +1306,7 @@ export default function HomeTab({
 
         const journeyImgs = ['/bilbe journey pic 1.png', '/bible journey pic 2.png', '/bible journy pic 3.png'];
         return (
+          <>
           <div className="rounded-2xl overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.75)', border: `1px solid ${accentColor}20`, boxShadow: `0 8px 32px rgba(0,0,0,0.6)` }}>
             {/* Crossfading background images */}
             {journeyImgs.map((src, i) => (
@@ -1309,31 +1328,8 @@ export default function HomeTab({
             {/* Ambient glow */}
             <div className="absolute pointer-events-none" style={{ zIndex: 1, top: '-20%', right: '-10%', width: '50%', height: '50%', borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}08, transparent 70%)` }} />
 
-            {/* Header with big progress ring */}
+            {/* Stats section */}
             <div className="px-5 pt-5 pb-4" style={{ position: 'relative', zIndex: 2 }}>
-              <div className="flex items-center justify-between mb-5" style={{ minHeight: 72 }}>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                    <h2 className="text-sm font-black uppercase tracking-wider" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>My Bible Journey</h2>
-                  </div>
-                  <p className="text-[10px] pl-3" style={{ color: 'rgba(232,240,236,0.35)' }} suppressHydrationWarning>
-                    {chaptersStudied} of {TOTAL_CHAPTERS} chapters · {unlocked.length} trophies
-                  </p>
-                </div>
-                {/* Circular progress — right side, same position as praying hands */}
-                <div className="relative shrink-0" style={{ width: 80, height: 80 }}>
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke={`${accentColor}18`} strokeWidth="2.5" />
-                    <circle cx="18" cy="18" r="15" fill="none" stroke={accentColor} strokeWidth="2.5" strokeLinecap="round"
-                      strokeDasharray={`${progressPct * 0.94} ${94 - progressPct * 0.94}`} />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-base font-black leading-none" style={{ color: accentColor }}>{progressPct}%</span>
-                    <span className="text-[8px] mt-0.5" style={{ color: `${accentColor}66` }}>complete</span>
-                  </div>
-                </div>
-              </div>
 
               {/* Stats cards */}
               <div className="grid grid-cols-2 gap-2 mb-5">
@@ -1417,8 +1413,8 @@ export default function HomeTab({
               <div className="mb-4">
                 {/* Header */}
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                  <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Spiritual Health</h2>
+                  <div className="shrink-0" style={{ width: 4, height: 22, borderRadius: 4, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, boxShadow: `0 0 8px ${accentColor}66` }} />
+                  <h2 className="text-sm font-black uppercase tracking-[0.14em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900 }}>Spiritual Health</h2>
                   <div className="ml-auto flex items-center gap-1.5">
                     <span suppressHydrationWarning className="text-lg font-black" style={{ color: overallGradeColor, fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: `0 0 16px ${overallGradeColor}88` }}>{overallGrade}</span>
                     <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${overallGradeColor}18`, color: `${overallGradeColor}66` }}>Overall</span>
@@ -1534,8 +1530,8 @@ export default function HomeTab({
               {nextMilestones.length > 0 && (
                 <div className="mb-3">
                   <div className="flex items-center gap-2.5 mb-3">
-                    <div className="h-6 w-1 rounded-full" style={{ background: `linear-gradient(180deg, ${accentColor}, ${accentColor}44)` }} />
-                    <h2 className="text-sm font-black uppercase tracking-[0.12em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Next Milestones</h2>
+                    <div className="shrink-0" style={{ width: 4, height: 22, borderRadius: 4, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, boxShadow: `0 0 8px ${accentColor}66` }} />
+                    <h2 className="text-sm font-black uppercase tracking-[0.14em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900 }}>Next Milestones</h2>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {nextMilestones.map(m => {
@@ -1606,6 +1602,7 @@ export default function HomeTab({
               )}
             </div>
           </div>
+          </>
         );
       })()}
 
@@ -1613,7 +1610,7 @@ export default function HomeTab({
 
       {/* ── Continue Reading ─────────────────────────────────────────── */}
       <button onClick={onContinueReading} className="w-full text-left rounded-2xl p-5 transition-all active:scale-[0.99] relative overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, rgba(8,5,2,0.98), rgba(4,3,1,0.97))', border: `1px solid ${accentColor}40`, boxShadow: `0 0 0 1px ${accentColor}15, 0 4px 24px rgba(0,0,0,0.7), 0 0 32px ${accentColor}12` }}>
+        style={{ background: 'linear-gradient(160deg, #0d1a10 0%, #091209 60%, #060e07 100%)', border: `1.5px solid ${accentColor}50`, boxShadow: `0 0 0 1px ${accentColor}20, 0 6px 32px rgba(0,0,0,0.85), 0 0 40px ${accentColor}15` }}>
         {/* Glow pulse behind book */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle, ${accentColor}22, transparent 70%)`, filter: 'blur(8px)' }} />
         {/* Subtle top accent */}
@@ -1683,20 +1680,18 @@ export default function HomeTab({
       )}
 
       {/* ── This Week ──────────────────────────────────────────────────── */}
-      <div className="rounded-2xl p-4 relative overflow-hidden" style={{
-        background: 'linear-gradient(160deg, #0e0a04 0%, #080602 40%, #0c0804 70%, #060402 100%)',
-        border: `1px solid ${accentColor}30`,
-        boxShadow: `0 4px 32px rgba(0,0,0,0.8), 0 0 0 1px ${accentColor}10`,
+      <div className="rounded-2xl p-5 relative overflow-hidden" style={{
+        background: `linear-gradient(160deg, #101a12 0%, #0c1410 50%, #0a1209 100%)`,
+        border: `1.5px solid ${accentColor}45`,
+        boxShadow: `0 8px 40px rgba(0,0,0,0.9), 0 0 0 1px ${accentColor}18`,
       }}>
-        {/* Wood grain */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'repeating-linear-gradient(92deg, transparent, transparent 18px, rgba(255,255,255,0.008) 18px, rgba(255,255,255,0.008) 19px)', zIndex: 0 }} />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at top left, ${accentColor}09, transparent 60%)`, zIndex: 0 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at top left, ${accentColor}18, transparent 55%)`, zIndex: 0 }} />
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}cc`, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Week</p>
-            <p suppressHydrationWarning className="text-[9px]" style={{ color: 'rgba(232,240,236,0.25)' }}>{journeyDays} day{journeyDays === 1 ? '' : 's'} on your journey</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>This Week</p>
+            <p suppressHydrationWarning className="text-[10px] font-semibold" style={{ color: 'rgba(232,240,236,0.4)' }}>{journeyDays} day{journeyDays === 1 ? '' : 's'} on your journey</p>
           </div>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3">
             {([
               { icon: <img src="/read book.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />, label: 'Chapters Read', value: chaptersStudied },
               { icon: <img src="/Praying hands.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />, label: 'Prayers', value: totalPrayers },
@@ -1705,12 +1700,12 @@ export default function HomeTab({
               { icon: <img src="/sun.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', mixBlendMode: 'screen' as const }} />, label: 'Encounters', value: fireSessions },
               { icon: <span style={{ fontSize: 16, lineHeight: 1 }}>📜</span>, label: 'Notes', value: chaptersWithNotesGlobal },
             ]).map(row => (
-              <div key={row.label} className="flex items-center justify-between">
-                <span className="text-[10px] flex items-center" style={{ color: 'rgba(232,240,236,0.45)', gap: 6 }}>
+              <div key={row.label} className="flex items-center justify-between py-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <span className="text-[11px] flex items-center font-semibold" style={{ color: 'rgba(232,240,236,0.6)', gap: 8 }}>
                   <span style={{ width: 20, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{row.icon}</span>
                   {row.label}
                 </span>
-                <span className="text-[11px] font-black" style={{ color: '#fff' }}>{row.value}</span>
+                <span className="text-[14px] font-black" style={{ color: accentColor }}>{row.value}</span>
               </div>
             ))}
           </div>
@@ -1732,6 +1727,7 @@ export default function HomeTab({
             body: JSON.stringify({ reference: `${monthName} ${dayNum}`, verseText: historicalFact || `Today is ${monthName} ${dayNum}`, translation: '',
               question: `Based on this historical fact about ${monthName} ${dayNum}: "${historicalFact}"\n\nGive exactly 3 short points in this format:\n\nWHY IT MATTERS: (one sentence on why Christians should care)\nSCRIPTURE: (one related verse reference and a brief quote)\nSURPRISING: (one surprising detail most people don't know)\n\nKeep each to ONE sentence max. No markdown, no asterisks, no bullet points. Use the exact labels above.` }),
           }).then(async r => {
+            if (!r.ok) { setDeeperFact('Could not load more details.'); return; }
             const reader = r.body?.getReader(); if (!reader) return;
             const d = new TextDecoder(); let t = '';
             while (true) { const { done, value } = await reader.read(); if (done) break; t += d.decode(value, { stream: true }); setDeeperFact(t); }
@@ -1740,12 +1736,15 @@ export default function HomeTab({
 
         return (
           <div className="rounded-2xl overflow-hidden relative" style={{
-            background: 'linear-gradient(160deg, #0e0a04 0%, #080602 40%, #0c0804 70%, #060402 100%)',
             border: `1px solid ${accentColor}30`,
             boxShadow: `0 4px 32px rgba(0,0,0,0.8), 0 0 0 1px ${accentColor}10, inset 0 1px 0 ${accentColor}10`,
           }}>
+            {/* Background image */}
+            <div className="absolute inset-0" style={{ backgroundImage: 'url("/did-you-know.png")', backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }} />
+            {/* Dark overlay */}
+            <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.72)', zIndex: 1 }} />
             {/* Top accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, transparent 0%, ${accentColor}88 30%, ${accentColor} 60%, ${accentColor}44 85%, transparent 100%)` }} />
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, transparent 0%, ${accentColor}88 30%, ${accentColor} 60%, ${accentColor}44 85%, transparent 100%)`, zIndex: 2 }} />
             {/* Ambient glow */}
             <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse 70% 60% at 85% 10%, ${accentColor}08, transparent 65%)` }} />
             {/* Large decorative quote mark */}
@@ -1783,8 +1782,8 @@ export default function HomeTab({
                   {/* Buttons */}
                   <div className="flex items-center gap-2">
                     <button onClick={loadDeeper}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
-                      style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}12)`, color: accentColor, border: `1px solid ${accentColor}33`, boxShadow: `0 2px 12px ${accentColor}14` }}>
+                      className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-wider transition-all"
+                      style={{ background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}12)`, color: accentColor, border: `1px solid ${accentColor}33`, boxShadow: `0 2px 12px ${accentColor}14`, borderRadius: 14 }}>
                       {historyExpanded ? '▲ Close' : '✦ Go Deeper'}
                     </button>
                     <button onClick={() => navigator.clipboard?.writeText(`Did you know? (${monthName} ${dayNum})\n\n${historicalFact}`)}

@@ -335,7 +335,7 @@ function AuthPageInner() {
 
               <div style={{ marginBottom: 18 }}>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Email</label>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="email" value={email} onChange={e => setEmail(e.target.value)}
+                <input autoCorrect="off" autoCapitalize="none" spellCheck={false} type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com" autoComplete="email"
                   style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}
@@ -345,7 +345,7 @@ function AuthPageInner() {
 
               <div style={{ marginBottom: mode === 'signin' ? 10 : 18 }}>
                 <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Password</label>
-                <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="password" value={password} onChange={e => setPassword(e.target.value)}
+                <input autoCorrect="off" autoCapitalize="none" spellCheck={false} type="password" value={password} onChange={e => setPassword(e.target.value)}
                   placeholder={mode === 'signup' ? 'Min 8 chars, uppercase, number, symbol' : '••••••••'}
                   autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                   style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${gold}20`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
@@ -354,10 +354,26 @@ function AuthPageInner() {
                 />
               </div>
 
+              {mode === 'signup' && password && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', marginBottom: 12, padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: `1px solid ${gold}12` }}>
+                  {[
+                    { label: '8+ characters', ok: password.length >= 8 },
+                    { label: 'Uppercase letter', ok: /[A-Z]/.test(password) },
+                    { label: 'Number', ok: /[0-9]/.test(password) },
+                    { label: 'Special character', ok: /[^A-Za-z0-9]/.test(password) },
+                  ].map(({ label, ok }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: ok ? '#22c55e' : 'rgba(255,255,255,0.28)', fontWeight: ok ? 700 : 400 }}>
+                      <span style={{ fontSize: 11 }}>{ok ? '✓' : '○'}</span>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {mode === 'signup' && (
                 <div style={{ marginBottom: 18 }}>
                   <label style={{ display: 'block', fontSize: 10, fontWeight: 800, color: `${gold}66`, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.18em' }}>Confirm Password</label>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                  <input autoCorrect="off" autoCapitalize="none" spellCheck={false} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter your password" autoComplete="new-password"
                     style={{ width: '100%', padding: '14px 18px', borderRadius: 14, fontSize: 15, fontWeight: 600, background: 'rgba(255,255,255,0.03)', border: `1px solid ${confirmPassword && confirmPassword === password ? '#22c55e44' : gold + '20'}`, color: '#fff', caretColor: '#fff', WebkitTextFillColor: '#fff', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
                     onFocus={e => { e.currentTarget.style.borderColor = `${gold}55`; e.currentTarget.style.boxShadow = `0 0 20px ${gold}10`; }}

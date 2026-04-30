@@ -110,7 +110,7 @@ export default function GroupEvents({ groupId, profileId, isLeader, accentColor 
 
     const { data: allRsvps } = await supabase
       .from('trace_event_rsvps')
-      .select('event_id, profile_id, status')
+      .select('event_id, user_id, status')
       .in('event_id', ids);
 
     if (!allRsvps) return;
@@ -131,7 +131,7 @@ export default function GroupEvents({ groupId, profileId, isLeader, accentColor 
       else if (row.status === 'maybe') c.maybe++;
       else if (row.status === 'not_going') c.not_going++;
 
-      if (row.profile_id === profileId) {
+      if (row.user_id === profileId) {
         mine[row.event_id] = row.status as RsvpStatus;
       }
     }
@@ -158,8 +158,8 @@ export default function GroupEvents({ groupId, profileId, isLeader, accentColor 
     });
 
     const { error } = await supabase.from('trace_event_rsvps').upsert(
-      { event_id: eventId, profile_id: profileId, status },
-      { onConflict: 'event_id,profile_id' }
+      { event_id: eventId, user_id: profileId, status },
+      { onConflict: 'event_id,user_id' }
     );
 
     if (error) {

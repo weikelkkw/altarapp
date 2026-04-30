@@ -524,7 +524,7 @@ export default function NotificationsTab({ accentColor, authUser, highlighted, n
             🔔
           </div>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.35)', fontFamily: 'Montserrat, system-ui, sans-serif' }}>
-            {filter === 'all' ? 'All caught up' : `No ${filter} yet`}
+            {filter === 'all' ? 'All caught up' : ({ community: 'No community activity yet', achievements: 'No achievements yet', reminders: 'No reminders yet' } as Record<string, string>)[filter] ?? `No ${filter} yet`}
           </p>
           <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: 'Georgia, serif', maxWidth: 240, lineHeight: 1.6 }}>
             {filter === 'all'

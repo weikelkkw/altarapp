@@ -49,7 +49,7 @@ export function useDirectMessages(userId: string | null | undefined) {
         return;
       }
 
-      const convoIds = myConvos.map(c => c.conversation_id);
+      const convoIds = myConvos.map((c: { conversation_id: string }) => c.conversation_id);
 
       // Get conversation details
       const { data: convos } = await supabase
@@ -68,8 +68,8 @@ export function useDirectMessages(userId: string | null | undefined) {
 
       // Get the other user's IDs
       const otherUserIds = (allParticipants || [])
-        .filter(p => p.user_id !== userId)
-        .map(p => p.user_id);
+        .filter((p: { conversation_id: string; user_id: string }) => p.user_id !== userId)
+        .map((p: { conversation_id: string; user_id: string }) => p.user_id);
 
       // Fetch profiles for other users
       let profileMap: Record<string, { name: string; color: string; picture?: string }> = {};
@@ -96,17 +96,20 @@ export function useDirectMessages(userId: string | null | undefined) {
         .order('created_at', { ascending: true });
 
       // Assemble conversations
-      const assembled: Conversation[] = convos.map(convo => {
-        const otherParticipant = (allParticipants || []).find(
-          p => p.conversation_id === convo.id && p.user_id !== userId
+      type DbConvo = { id: string; updated_at: string };
+      type DbParticipant = { conversation_id: string; user_id: string };
+      type DbMessage = { id: string; conversation_id: string; sender_id: string; content: string; read: boolean; created_at: string };
+      const assembled: Conversation[] = (convos as DbConvo[]).map((convo: DbConvo) => {
+        const otherParticipant = (allParticipants as DbParticipant[] || []).find(
+          (p: DbParticipant) => p.conversation_id === convo.id && p.user_id !== userId
         );
         const otherProfile = otherParticipant
           ? profileMap[otherParticipant.user_id] || { name: 'User', color: '#6366f1' }
           : { name: 'User', color: '#6366f1' };
 
-        const messages: Message[] = (allMessages || [])
-          .filter(m => m.conversation_id === convo.id)
-          .map(m => ({
+        const messages: Message[] = (allMessages as DbMessage[] || [])
+          .filter((m: DbMessage) => m.conversation_id === convo.id)
+          .map((m: DbMessage) => ({
             id: m.id,
             conversationId: m.conversation_id,
             senderId: m.sender_id,

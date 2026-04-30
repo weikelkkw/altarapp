@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 
 interface Props {
@@ -187,19 +188,26 @@ export default function AuthModal({ open, onClose, onAuth, accentColor }: Props)
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/75 backdrop-blur-md"
         onClick={() => { resetForm(); onClose(); }}
       />
 
       {/* Modal card */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
         className="relative w-full max-w-md mx-4"
         style={{
           background: 'linear-gradient(170deg, #111a16 0%, #0d1512 60%, #0a110e 100%)',
-          borderRadius: 18,
-          border: `1px solid rgba(255,255,255,0.06)`,
-          boxShadow: `0 0 80px ${accentColor}12, 0 24px 60px rgba(0,0,0,0.5)`,
+          borderRadius: 22,
+          border: `1px solid ${accentColor}18`,
+          boxShadow: `0 0 80px ${accentColor}15, 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)`,
           overflow: 'hidden',
         }}
       >
@@ -483,7 +491,7 @@ export default function AuthModal({ open, onClose, onAuth, accentColor }: Props)
             Continue without account
           </button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

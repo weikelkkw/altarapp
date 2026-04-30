@@ -28,13 +28,13 @@ interface ReadingPlan {
 interface PlanProgress {
   id: string;
   plan_id: string;
-  profile_id: string;
+  user_id: string;
   chapter: number;
   completed_at: string;
 }
 
 interface MemberProgress {
-  profile_id: string;
+  user_id: string;
   name: string;
   color: string;
   completed_chapters: number[];
@@ -195,7 +195,7 @@ export default function GroupReadingPlan({
       .from('trace_plan_progress')
       .select('chapter')
       .eq('plan_id', planId)
-      .eq('profile_id', profileId);
+      .eq('user_id', profileId);
 
     if (mine) {
       setMyProgress(new Set(mine.map((r: { chapter: number }) => r.chapter)));
@@ -204,16 +204,16 @@ export default function GroupReadingPlan({
     // Member progress joined with profiles
     const { data: allProgress } = await supabase
       .from('trace_plan_progress')
-      .select('profile_id, chapter, trace_profiles(name, color)')
+      .select('user_id, chapter, trace_profiles(name, color)')
       .eq('plan_id', planId);
 
     if (allProgress) {
       const memberMap: Record<string, MemberProgress> = {};
       for (const row of allProgress as any[]) {
-        const pid = row.profile_id;
+        const pid = row.user_id;
         if (!memberMap[pid]) {
           memberMap[pid] = {
-            profile_id: pid,
+            user_id: pid,
             name: row.trace_profiles?.name ?? 'Member',
             color: row.trace_profiles?.color ?? '#555',
             completed_chapters: [],
@@ -247,7 +247,7 @@ export default function GroupReadingPlan({
 
       const { error } = await supabase.from('trace_plan_progress').insert({
         plan_id: plan.id,
-        profile_id: profileId,
+        user_id: profileId,
         chapter,
       });
 
@@ -262,10 +262,10 @@ export default function GroupReadingPlan({
       } else {
         // Update member progress optimistically
         setMemberProgress((prev) => {
-          const existing = prev.find((m) => m.profile_id === profileId);
+          const existing = prev.find((m) => m.user_id === profileId);
           if (existing) {
             return prev.map((m) =>
-              m.profile_id === profileId
+              m.user_id === profileId
                 ? { ...m, completed_chapters: [...m.completed_chapters, chapter] }
                 : m
             );
@@ -588,7 +588,7 @@ export default function GroupReadingPlan({
                   : 0;
               return (
                 <div
-                  key={m.profile_id}
+                  key={m.user_id}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -695,7 +695,7 @@ export default function GroupReadingPlan({
               const ratio = totalChapters > 0 ? completed / totalChapters : 0;
               return (
                 <div
-                  key={m.profile_id}
+                  key={m.user_id}
                   style={{ display: 'flex', alignItems: 'center', gap: 10 }}
                 >
                   <AvatarCircle name={m.name} color={m.color} size={32} />

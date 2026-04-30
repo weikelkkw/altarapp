@@ -32,14 +32,17 @@ Return as JSON array:
 Make it feel like a thoughtful Bible study, not a dry test. Only return the JSON array.`;
 
   const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: 'claude-haiku-4-5',
     max_tokens: 1500,
     messages: [{ role: 'user', content: prompt }],
   });
 
   const text = response.content[0].type === 'text' ? response.content[0].text : '';
   const jsonMatch = text.match(/\[[\s\S]*\]/);
-  const questions = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+  let questions: unknown[] = [];
+  if (jsonMatch) {
+    try { questions = JSON.parse(jsonMatch[0]); } catch { questions = []; }
+  }
 
   return Response.json(questions);
 }

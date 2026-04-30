@@ -50,19 +50,10 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-// PATCH — mark notification(s) as read
+// PATCH — mark notification(s) as read (caller can only update their own)
 export async function PATCH(req: NextRequest) {
-  let body: {
-    notificationId?: string;
-    markAllRead?: boolean;
-    userId?: string;
-  };
-
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
-  }
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const db = getAdminClient();
   if (!db) {
@@ -72,11 +63,29 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  if (body.markAllRead && body.userId) {
+  // Verify caller identity
+  const { data: { user } } = await db.auth.getUser(token);
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { data: profile } = await db.from('trace_profiles').select('id').eq('auth_id', user.id).single();
+  if (!profile) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const profileId = (profile as any).id;
+
+  let body: {
+    notificationId?: string;
+    markAllRead?: boolean;
+  };
+
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+  }
+
+  if (body.markAllRead) {
     const { error } = await db
       .from('trace_notifications')
       .update({ read: true })
-      .eq('user_id', body.userId)
+      .eq('user_id', profileId)
       .eq('read', false);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -87,14 +96,15 @@ export async function PATCH(req: NextRequest) {
     const { error } = await db
       .from('trace_notifications')
       .update({ read: true })
-      .eq('id', body.notificationId);
+      .eq('id', body.notificationId)
+      .eq('user_id', profileId); // Ensure ownership
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   }
 
   return NextResponse.json(
-    { error: 'Provide either notificationId or markAllRead + userId' },
+    { error: 'Provide either notificationId or markAllRead' },
     { status: 400 }
   );
 }

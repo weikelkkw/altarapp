@@ -52,7 +52,7 @@ export default function Header({
       </div>
 
       {/* Content */}
-      <div className="relative max-w-4xl mx-auto px-4 pt-5 pb-4">
+      <div className="relative max-w-4xl mx-auto px-4 pb-4" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}>
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="mb-1.5">

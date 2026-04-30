@@ -232,8 +232,8 @@ function ShelfRow({ id, title, subtitle, color, children, expanded, onToggle }: 
   id: string; title: string; subtitle: string; color: string; children: ReactNode; expanded: boolean; onToggle: () => void;
 }) {
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}20` }}>
-      <button className="w-full flex items-center justify-between px-4 py-4" onClick={onToggle} style={{ background: `${color}08` }}>
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(150deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)', border: `1px solid ${color}28`, boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+      <button className="w-full flex items-center justify-between px-4 py-4" onClick={onToggle} style={{ background: `linear-gradient(135deg, ${color}10, ${color}04)` }}>
         <div className="flex items-center gap-3">
           <div style={{ width: 4, height: 32, borderRadius: 99, background: `linear-gradient(180deg, ${color}, ${color}44)` }} />
           <div className="text-left">
@@ -566,6 +566,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
           question: q || (studyDepth === 'deep' ? deepPrompt : simplePrompt),
         }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const reader = res.body?.getReader();
       if (!reader) return;
       const decoder = new TextDecoder();
@@ -601,8 +602,9 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
           translation: studyBible.abbreviationLocal,
         }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const data = await res.json();
-      setQuizQuestions(data);
+      setQuizQuestions(Array.isArray(data) ? data : []);
     } catch {
       setQuizQuestions([]);
     } finally {
@@ -610,8 +612,8 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
     }
   }, [studyBible, studyBook, studyChapter, passage]);
 
-  const pillActive = { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, color: '#fff', boxShadow: `0 0 12px ${accentColor}44` };
-  const pillInactive = { background: `${accentColor}0d`, color: `${accentColor}55`, border: `1px solid ${accentColor}18` };
+  const pillActive = { background: `linear-gradient(135deg, ${accentColor}ee, ${accentColor}aa)`, color: '#fff', boxShadow: `0 0 14px ${accentColor}55, 0 2px 6px rgba(0,0,0,0.3)`, borderRadius: 12, border: `1px solid ${accentColor}cc` };
+  const pillInactive = { background: 'rgba(255,255,255,0.04)', color: 'rgba(232,240,236,0.45)', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 12 };
 
   const popularBibles = bibles.filter(b => b.group === 'popular');
 
@@ -653,23 +655,34 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
   return (
     <>
       {/* ── Section tile grid — 4 across, 2 rows ── */}
-      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+      <div className="grid gap-2.5" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         {studySections.map(section => {
           const isActive = activeSection === section.id;
           return (
             <button key={section.id} onClick={() => setMode(section.id)}
-              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl text-center transition-all active:scale-95"
+              className="flex flex-col items-center gap-2 pt-4 pb-3.5 rounded-2xl text-center transition-all active:scale-95"
               style={isActive
                 ? {
-                    background: `linear-gradient(135deg, ${accentColor}28, ${accentColor}10)`,
-                    border: `1.5px solid ${accentColor}55`,
-                    boxShadow: `0 0 14px ${accentColor}30, 0 0 0 1px ${accentColor}22 inset`,
+                    background: `linear-gradient(150deg, ${accentColor}40 0%, ${accentColor}18 60%, ${accentColor}08 100%)`,
+                    border: `1.5px solid ${accentColor}70`,
+                    boxShadow: `0 0 18px ${accentColor}38, 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 ${accentColor}25`,
                   }
-                : { background: `${accentColor}06`, border: `1px solid ${accentColor}15` }
+                : {
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)',
+                    border: `1px solid rgba(255,255,255,0.07)`,
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                  }
               }>
-              <span className="text-xl leading-none">{section.icon}</span>
-              <span className="text-[9px] font-bold uppercase tracking-wide leading-tight"
-                style={{ color: isActive ? accentColor : `${accentColor}55` }}>
+              <span style={{ fontSize: 22, lineHeight: 1, filter: isActive ? `drop-shadow(0 0 6px ${accentColor}88)` : 'none' }}>{section.icon}</span>
+              <span style={{
+                fontSize: 9,
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                lineHeight: 1.2,
+                color: isActive ? accentColor : 'rgba(232,240,236,0.38)',
+                fontFamily: 'Montserrat, system-ui, sans-serif',
+              }}>
                 {section.label}
               </span>
             </button>
@@ -679,20 +692,20 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
 
       {/* ── Sub-navigation (if section has sub-items) ── */}
       {subItems[activeSection] && subItems[activeSection].length > 1 && (
-        <div>
-          <div style={{ height: 1, background: `${accentColor}12`, marginBottom: 8 }} />
-          <div className="flex gap-2">
-            {subItems[activeSection].map(sub => (
-              <button key={sub.id} onClick={() => setMode(sub.id)}
-                className="flex-1 py-2.5 rounded-xl text-[11px] font-bold transition-all text-center"
-                style={mode === sub.id
-                  ? { background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}40`, boxShadow: `0 0 8px ${accentColor}20` }
-                  : { background: 'rgba(255,255,255,0.02)', color: 'rgba(232,240,236,0.4)', border: `1px solid ${accentColor}0a` }
-                }>
-                {sub.icon} {sub.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex gap-1.5 p-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14 }}>
+          {subItems[activeSection].map(sub => (
+            <button key={sub.id} onClick={() => setMode(sub.id)}
+              className="flex-1 py-2 text-[11px] font-bold transition-all text-center"
+              style={{
+                borderRadius: 10,
+                ...(mode === sub.id
+                  ? { background: `linear-gradient(135deg, ${accentColor}28, ${accentColor}12)`, color: accentColor, border: `1px solid ${accentColor}45`, boxShadow: `0 0 10px ${accentColor}22` }
+                  : { background: 'transparent', color: 'rgba(232,240,236,0.38)', border: '1px solid transparent' }
+                ),
+              }}>
+              {sub.icon} {sub.label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -700,22 +713,23 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
         <>
           {/* ── Independent Navigator ────────────────────────────────────────── */}
           {/* Depth toggle */}
-          <div className="flex items-center gap-2 rounded-xl p-1" style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18` }}>
+          <div className="flex items-center gap-1.5 p-1" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14 }}>
             <button onClick={() => setStudyDepth('simple')}
-              className="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-center"
-              style={studyDepth === 'simple' ? pillActive : { color: `${accentColor}66` }}>
+              className="flex-1 py-2 text-xs font-bold transition-all text-center"
+              style={{ borderRadius: 10, ...(studyDepth === 'simple' ? pillActive : { color: 'rgba(232,240,236,0.38)', border: '1px solid transparent' }) }}>
               Simple
             </button>
             <button onClick={() => setStudyDepth('deep')}
-              className="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-center"
-              style={studyDepth === 'deep' ? pillActive : { color: `${accentColor}66` }}>
+              className="flex-1 py-2 text-xs font-bold transition-all text-center"
+              style={{ borderRadius: 10, ...(studyDepth === 'deep' ? pillActive : { color: 'rgba(232,240,236,0.38)', border: '1px solid transparent' }) }}>
               Deep Study
             </button>
           </div>
 
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}18` }}>
-            <div className="px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${accentColor}12` }}>
-              <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}88` }}>
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)', border: `1px solid ${accentColor}22`, boxShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
+            <div className="px-5 pt-4 pb-3 flex items-center gap-2" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+              <div style={{ width: 3, height: 16, borderRadius: 99, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, flexShrink: 0 }} />
+              <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
                 Choose a passage to study {studyDepth === 'deep' ? '(Deep Mode)' : '(Simple Mode)'}
               </p>
             </div>
@@ -749,7 +763,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl max-h-64 flex flex-col overflow-hidden"
                       style={{ background: '#0a1410', border: `1px solid ${accentColor}18`, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
                       <div className="p-2 shrink-0" style={{ borderBottom: `1px solid ${accentColor}12` }}>
-                        <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
+                        <input autoCorrect="off" autoCapitalize="none" spellCheck={false} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
                           className="w-full px-3 py-2 rounded-lg text-sm outline-none"
                           style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
                       </div>
@@ -803,12 +817,15 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
 
           {/* Selected verse + explanation */}
           {selectedVerse && (
-            <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}25` }}>
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%)', border: `1px solid ${accentColor}30`, boxShadow: `0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px ${accentColor}10 inset` }}>
               {/* The verse */}
-              <div className="px-6 py-5" style={{ background: `${accentColor}08`, borderBottom: `1px solid ${accentColor}18` }}>
-                <p className="text-[10px] font-black uppercase tracking-[0.15em] mb-3" style={{ color: accentColor }}>
-                  {studyBook.name} {studyChapter}:{selectedVerse.verse}
-                </p>
+              <div className="px-6 py-5" style={{ background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}04)`, borderBottom: `1px solid ${accentColor}18` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div style={{ width: 3, height: 14, borderRadius: 99, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, flexShrink: 0 }} />
+                  <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+                    {studyBook.name} {studyChapter}:{selectedVerse.verse}
+                  </p>
+                </div>
                 <p className="text-lg italic leading-loose" style={{ color: gold, fontFamily: 'Georgia, serif', textShadow: `0 0 20px ${accentColor}22` }}>
                   &ldquo;{selectedVerse.text}&rdquo;
                 </p>
@@ -865,9 +882,10 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
       {mode === 'quiz' && (
         <>
           {/* Same navigator as AI study — reuse book/chapter picker */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${accentColor}18` }}>
-            <div className="px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${accentColor}12` }}>
-              <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}88` }}>
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)', border: `1px solid ${accentColor}22`, boxShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
+            <div className="px-5 pt-4 pb-3 flex items-center gap-2" style={{ borderBottom: `1px solid ${accentColor}12` }}>
+              <div style={{ width: 3, height: 16, borderRadius: 99, background: `linear-gradient(180deg, ${accentColor}, ${accentColor}55)`, flexShrink: 0 }} />
+              <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
                 Test your knowledge
               </p>
             </div>
@@ -884,7 +902,7 @@ Write as a knowledgeable but warm pastor. Be substantive. Do not use any markdow
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-xl max-h-64 flex flex-col overflow-hidden"
                       style={{ background: '#0a1410', border: `1px solid ${accentColor}18`, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}>
                       <div className="p-2 shrink-0" style={{ borderBottom: `1px solid ${accentColor}12` }}>
-                        <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
+                        <input autoCorrect="off" autoCapitalize="none" spellCheck={false} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
                           className="w-full px-3 py-2 rounded-lg text-sm outline-none"
                           style={{ background: `${accentColor}0d`, border: `1px solid ${accentColor}18`, color: '#f0f8f4' }} />
                       </div>
@@ -1416,24 +1434,31 @@ function SermonsSection({ accentColor }: { accentColor: string }) {
         <div className="space-y-2">
           {ALL_PREACHERS.map(p => (
             <button key={p.name} onClick={() => setSelectedPreacher(p)}
-              className="w-full text-left rounded-xl p-4 transition-all active:scale-[0.98]"
-              style={(p as { featured?: boolean }).featured
-                ? { background: `linear-gradient(135deg, ${accentColor}10, ${accentColor}06)`, border: `1px solid ${accentColor}30` }
-                : { background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}10` }}>
+              className="w-full text-left transition-all active:scale-[0.98] relative"
+              style={{
+                borderRadius: 18,
+                padding: '14px 16px',
+                ...((p as { featured?: boolean }).featured
+                  ? { background: `linear-gradient(135deg, ${accentColor}18, ${accentColor}08)`, border: `1px solid ${accentColor}38`, boxShadow: `0 0 16px ${accentColor}18` }
+                  : { background: 'linear-gradient(150deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)', border: `1px solid rgba(255,255,255,0.07)`, boxShadow: '0 1px 6px rgba(0,0,0,0.2)' }),
+              }}>
               <div className="flex items-center gap-3">
                 {(p as { featured?: boolean }).featured && (
                   <span className="absolute right-4 top-3 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded"
-                    style={{ background: `${accentColor}20`, color: accentColor }}>Home</span>
+                    style={{ background: `${accentColor}22`, color: accentColor, borderRadius: 6 }}>Home</span>
                 )}
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                  style={(p as { featured?: boolean }).featured
-                    ? { background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}10)`, border: `1px solid ${accentColor}35` }
-                    : { background: `${accentColor}10`, border: `1px solid ${accentColor}20` }}>
+                <div className="w-11 h-11 flex items-center justify-center shrink-0"
+                  style={{
+                    borderRadius: 14,
+                    ...((p as { featured?: boolean }).featured
+                      ? { background: `linear-gradient(135deg, ${accentColor}30, ${accentColor}12)`, border: `1px solid ${accentColor}40` }
+                      : { background: 'rgba(255,255,255,0.06)', border: `1px solid rgba(255,255,255,0.09)` }),
+                  }}>
                   <span style={{ fontSize: 16, color: accentColor }}>▶</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{p.name}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: `${accentColor}55` }}>{p.ministry}</p>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', lineHeight: 1.3 }}>{p.name}</p>
+                  <p style={{ fontSize: 10, marginTop: 2, color: 'rgba(232,240,236,0.4)' }}>{p.ministry}</p>
                 </div>
               </div>
             </button>
@@ -1456,16 +1481,16 @@ function SermonsSection({ accentColor }: { accentColor: string }) {
         <p className="text-[10px] ml-3" style={{ color: 'rgba(232,240,236,0.35)' }}>What are you looking for today?</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2.5">
         {SERMON_TOPICS.map(topic => (
           <button key={topic.id} onClick={() => setSelectedTopic(topic)}
-            className="text-left rounded-xl p-4 transition-all active:scale-[0.97] group relative overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
-            <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
+            className="text-left transition-all active:scale-[0.97] group relative overflow-hidden"
+            style={{ borderRadius: 18, padding: '16px 14px 14px', background: 'linear-gradient(150deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)', border: `1px solid rgba(255,255,255,0.08)`, boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+            <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}0a`, borderRadius: 18 }} />
             <div className="relative">
-              <span className="text-2xl block mb-2">{topic.icon}</span>
-              <p className="text-xs font-bold" style={{ color: 'rgba(232,240,236,0.75)' }}>{topic.label}</p>
-              <p className="text-[9px] mt-1" style={{ color: 'rgba(232,240,236,0.25)' }}>{topic.desc}</p>
+              <span style={{ fontSize: 26, display: 'block', marginBottom: 10, lineHeight: 1 }}>{topic.icon}</span>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(232,240,236,0.85)', fontFamily: 'Montserrat, system-ui, sans-serif', lineHeight: 1.3 }}>{topic.label}</p>
+              <p style={{ fontSize: 9, marginTop: 4, color: 'rgba(232,240,236,0.28)', lineHeight: 1.4 }}>{topic.desc}</p>
             </div>
           </button>
         ))}
@@ -1506,24 +1531,26 @@ function WorshipSection({ accentColor }: { accentColor: string }) {
       {WORSHIP_MOODS.map(mood => {
         const isOpen = expanded === mood.category;
         return (
-          <div key={mood.category} className="rounded-2xl overflow-hidden transition-all"
+          <div key={mood.category} className="overflow-hidden transition-all"
             style={{
-              background: isOpen ? 'rgba(29,185,84,0.06)' : 'rgba(255,255,255,0.02)',
-              border: `1px solid ${isOpen ? 'rgba(29,185,84,0.25)' : `${accentColor}14`}`,
+              borderRadius: 18,
+              background: isOpen ? 'linear-gradient(150deg, rgba(29,185,84,0.08), rgba(29,185,84,0.03))' : 'linear-gradient(150deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
+              border: `1px solid ${isOpen ? 'rgba(29,185,84,0.28)' : 'rgba(255,255,255,0.07)'}`,
+              boxShadow: isOpen ? '0 4px 20px rgba(29,185,84,0.12)' : '0 1px 6px rgba(0,0,0,0.2)',
             }}>
             {/* Tile header — always visible, tap to open/close */}
             <button
               onClick={() => setExpanded(isOpen ? null : mood.category)}
               className="w-full text-left px-4 py-3.5 flex items-center gap-4 transition-all active:scale-[0.99]">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xl"
-                style={{ background: isOpen ? 'rgba(29,185,84,0.15)' : `${accentColor}0a` }}>
+              <div className="w-11 h-11 flex items-center justify-center shrink-0"
+                style={{ borderRadius: 14, fontSize: 20, background: isOpen ? 'rgba(29,185,84,0.18)' : 'rgba(255,255,255,0.06)', border: isOpen ? '1px solid rgba(29,185,84,0.3)' : '1px solid rgba(255,255,255,0.08)' }}>
                 {mood.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-black" style={{ color: isOpen ? '#1DB954' : '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+                <p style={{ fontSize: 13, fontWeight: 800, color: isOpen ? '#1DB954' : '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', lineHeight: 1.3 }}>
                   {mood.category}
                 </p>
-                <p className="text-[10px] mt-0.5" style={{ color: 'rgba(232,240,236,0.35)' }}>{mood.desc}</p>
+                <p style={{ fontSize: 10, marginTop: 2, color: 'rgba(232,240,236,0.35)' }}>{mood.desc}</p>
               </div>
               <span className="text-xs transition-transform shrink-0" style={{ color: isOpen ? '#1DB954' : `${accentColor}55`, transform: isOpen ? 'rotate(180deg)' : 'none' }}>
                 ▼

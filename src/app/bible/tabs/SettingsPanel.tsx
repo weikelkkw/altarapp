@@ -157,7 +157,7 @@ export default function SettingsPanel({
             },
           }).eq('auth_id', authUser.id);
         }
-      } catch { /* silent — local save already done */ }
+      } catch (err) { console.error('[Settings] Supabase sync failed:', err); }
     }
   };
 
@@ -308,13 +308,14 @@ export default function SettingsPanel({
       style={{
         width: 52, height: 30, borderRadius: 15, position: 'relative',
         background: value ? accentColor : 'rgba(255,255,255,0.1)',
-        border: 'none', cursor: 'pointer', transition: 'background 0.25s',
+        border: 'none', cursor: 'pointer', transition: 'background 0.2s',
         flexShrink: 0,
+        boxShadow: value ? `0 0 10px ${accentColor}40` : 'none',
       }}
     >
       <div style={{
         position: 'absolute', top: 5, width: 20, height: 20, borderRadius: '50%',
-        background: '#fff', transition: 'left 0.25s', boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+        background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 6px rgba(0,0,0,0.4)',
         left: value ? 27 : 5,
       }} />
     </button>
@@ -322,18 +323,17 @@ export default function SettingsPanel({
 
   const SectionDivider = ({ icon, title }: { icon: string; title: string }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '32px 0 16px' }}>
-      <span style={{ fontSize: 18 }}>{icon}</span>
-      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: TEXT_MUTED, fontFamily: 'Montserrat, system-ui' }}>{title}</span>
-      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+      <div style={{ width: 4, height: 16, borderRadius: 2, background: accentColor, flexShrink: 0 }} />
+      <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: TEXT_MUTED, fontFamily: 'Montserrat, system-ui' }}>{title}</span>
     </div>
   );
 
   const PremiumCard = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
     <div style={{
-      background: CARD_BG,
-      border: `1px solid ${CARD_BORDER}`,
+      background: 'rgba(255,255,255,0.025)',
+      border: '1px solid rgba(255,255,255,0.06)',
       borderRadius: 20,
-      padding: '24px',
+      padding: '20px',
       overflow: 'hidden',
       ...style,
     }}>
@@ -462,21 +462,26 @@ export default function SettingsPanel({
     return (
       <div style={{
         borderRadius: 18, padding: '18px 14px 14px',
-        background: isSelected ? `${accentColor}14` : 'rgba(255,255,255,0.025)',
-        border: isSelected ? `1.5px solid ${accentColor}55` : `1px solid rgba(255,255,255,0.06)`,
-        boxShadow: isSelected ? `0 0 20px ${accentColor}18` : 'none',
+        background: isSelected ? `linear-gradient(135deg, ${accentColor}22, ${accentColor}0a)` : 'rgba(255,255,255,0.03)',
+        border: isSelected ? `1.5px solid ${accentColor}40` : `1px solid rgba(255,255,255,0.06)`,
+        boxShadow: isSelected ? `0 0 16px ${accentColor}20` : 'none',
         transition: 'all 0.2s',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
         minHeight: 130,
       }}>
-        <span style={{ fontSize: 24 }}>{v.emoji}</span>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: isSelected ? `${accentColor}18` : 'rgba(255,255,255,0.05)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 28, flexShrink: 0,
+        }}>{v.emoji}</div>
         <div style={{ fontSize: 14, fontWeight: 700, color: isSelected ? accentColor : TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui', textAlign: 'center' as const }}>{v.name}</div>
         <div style={{ fontSize: 11, color: TEXT_MUTED, fontStyle: 'italic', textAlign: 'center' as const, lineHeight: '1.4' }}>{v.style}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 'auto', width: '100%' }}>
           <button
             onClick={() => previewVoice(vid)}
             style={{
-              flex: 1, padding: '7px 4px', borderRadius: 10, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+              flex: 1, padding: '7px 4px', borderRadius: 40, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer',
               background: isPreviewing ? `${accentColor}30` : `${accentColor}0e`,
               color: isPreviewing ? accentColor : `${accentColor}77`,
               transition: 'all 0.15s',
@@ -486,7 +491,7 @@ export default function SettingsPanel({
           <button
             onClick={() => { setDraftTtsVoice(v.id); setTtsVoice(v.id); markChanged(); }}
             style={{
-              flex: 1, padding: '7px 4px', borderRadius: 10, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+              flex: 1, padding: '7px 4px', borderRadius: 40, border: 'none', fontSize: 10, fontWeight: 700, cursor: 'pointer',
               background: isSelected ? accentColor : 'rgba(255,255,255,0.06)',
               color: isSelected ? '#050908' : TEXT_MUTED,
               transition: 'all 0.15s',
@@ -521,20 +526,21 @@ export default function SettingsPanel({
           {/* Title row */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px 24px 20px' }}>
             <div>
-              <div style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 800, fontSize: 24, color: TEXT_PRIMARY, letterSpacing: '-0.03em' }}>Settings</div>
-              <div style={{ fontSize: 12, color: `${accentColor}50`, marginTop: 3, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Your Altar, your way</div>
+              <div style={{ fontFamily: 'Montserrat, system-ui', fontWeight: 900, fontSize: 22, color: TEXT_PRIMARY, letterSpacing: '-0.02em' }}>Settings</div>
+              <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 3, fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>Customize your experience</div>
             </div>
             <button
               onClick={onClose}
               style={{
-                width: 38, height: 38, borderRadius: 12, background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.07)', color: TEXT_MUTED,
-                fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                height: 32, padding: '0 14px', borderRadius: 40, background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.09)', color: TEXT_MUTED,
+                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Montserrat, system-ui', fontWeight: 700, letterSpacing: '0.02em',
               }}>✕</button>
           </div>
 
-          {/* Tab bar — floating pills */}
-          <div style={{ display: 'flex', gap: 6, padding: '0 24px 16px' }}>
+          {/* Tab bar — pill container */}
+          <div style={{ display: 'flex', gap: 4, padding: '0 24px 16px', background: 'rgba(255,255,255,0.04)', borderRadius: 16, margin: '0 24px 16px', border: '1px solid rgba(255,255,255,0.07)' }}>
             {tabs.map(t => {
               const active = settingsTab === t.id;
               return (
@@ -544,17 +550,17 @@ export default function SettingsPanel({
                   style={{
                     flex: 1,
                     padding: '10px 8px',
-                    borderRadius: 40,
-                    border: 'none',
+                    borderRadius: 12,
+                    border: active ? `1px solid ${accentColor}30` : 'none',
                     cursor: 'pointer',
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 700,
                     fontFamily: 'Montserrat, system-ui',
-                    letterSpacing: '0.04em',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase' as const,
                     transition: 'all 0.2s',
-                    background: active ? accentColor : 'transparent',
-                    color: active ? '#050908' : TEXT_MUTED,
-                    boxShadow: active ? `0 4px 16px ${accentColor}30` : 'none',
+                    background: active ? `linear-gradient(135deg, ${accentColor}28, ${accentColor}14)` : 'transparent',
+                    color: active ? accentColor : TEXT_MUTED,
                   }}>
                   {t.label}
                 </button>
@@ -577,7 +583,7 @@ export default function SettingsPanel({
                 width: 'calc(100% + 48px)',
                 marginLeft: -24,
                 height: 160,
-                background: `linear-gradient(135deg, ${id.color}55 0%, ${id.color}22 50%, ${BG} 100%)`,
+                background: `linear-gradient(135deg, ${accentColor}40 0%, ${id.color}28 40%, ${BG} 100%)`,
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -598,8 +604,8 @@ export default function SettingsPanel({
                         alt="Profile"
                         style={{
                           width: 88, height: 88, borderRadius: '50%', objectFit: 'cover',
-                          border: `3px solid ${BG}`,
-                          boxShadow: `0 0 0 2px ${id.color}55, 0 12px 32px rgba(0,0,0,0.5)`,
+                          border: `2.5px solid ${accentColor}40`,
+                          boxShadow: `0 0 20px ${accentColor}25, 0 12px 32px rgba(0,0,0,0.5)`,
                         }}
                       />
                     ) : (
@@ -608,8 +614,8 @@ export default function SettingsPanel({
                         background: `linear-gradient(135deg, ${id.color}, ${id.color}88)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 34, fontWeight: 900, color: '#fff',
-                        border: `3px solid ${BG}`,
-                        boxShadow: `0 0 0 2px ${id.color}55, 0 12px 32px ${id.color}30`,
+                        border: `2.5px solid ${accentColor}40`,
+                        boxShadow: `0 0 20px ${accentColor}25, 0 12px 32px ${id.color}30`,
                       }}>
                         {(id.name[0] || '?').toUpperCase()}
                       </div>
@@ -656,12 +662,12 @@ export default function SettingsPanel({
                     onClick={() => { setEditName(id.name); setNameEditing(true); }}
                     style={{ cursor: 'pointer', marginBottom: 4 }}
                   >
-                    <span style={{ fontSize: 22, fontWeight: 800, color: TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui', letterSpacing: '-0.02em' }}>{id.name}</span>
+                    <span style={{ fontSize: 20, fontWeight: 900, color: TEXT_PRIMARY, fontFamily: 'Montserrat, system-ui', letterSpacing: '-0.02em' }}>{id.name}</span>
                     <span style={{ fontSize: 13, color: TEXT_MUTED, marginLeft: 8 }}>✏️</span>
                   </div>
                 )}
                 {id.username && (
-                  <div style={{ fontSize: 14, color: accentColor, fontFamily: 'Montserrat, system-ui', fontWeight: 600 }}>@{id.username}</div>
+                  <div style={{ fontSize: 12, color: accentColor, fontFamily: 'Montserrat, system-ui', fontWeight: 600 }}>@{id.username}</div>
                 )}
                 {id.profilePicture ? (
                   <button
@@ -866,20 +872,30 @@ export default function SettingsPanel({
                             style={{
                               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                               padding: '10px 8px', borderRadius: 16,
-                              border: isActive ? `1.5px solid ${t.accent}55` : '1px solid rgba(255,255,255,0.06)',
+                              border: isActive ? `2px solid ${t.accent}60` : '1px solid rgba(255,255,255,0.06)',
                               background: isActive ? `${t.accent}14` : CARD_BG,
                               cursor: 'pointer', minWidth: 72,
-                              boxShadow: isActive ? `0 4px 20px ${t.accent}33` : 'none',
+                              boxShadow: isActive ? `0 0 16px ${t.accent}40, 0 4px 20px ${t.accent}22` : 'none',
                               transition: 'all 0.2s',
                             }}>
-                            {/* Mini preview */}
+                            {/* Mini preview swatch */}
                             <div style={{
-                              width: 48, height: 32, borderRadius: 8,
+                              width: 56, height: 40, borderRadius: 10,
                               background: '#080c0a',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              overflow: 'hidden',
                               border: `1px solid rgba(255,255,255,0.06)`,
+                              position: 'relative',
                             }}>
-                              <div style={{ width: 12, height: 12, borderRadius: '50%', background: t.accent, boxShadow: isActive ? `0 0 8px ${t.accent}88` : 'none' }} />
+                              <div style={{
+                                position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%',
+                                background: `linear-gradient(90deg, ${t.accent}88, ${t.accent}33)`,
+                              }} />
+                              <div style={{
+                                position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)',
+                                width: 10, height: 10, borderRadius: '50%',
+                                background: t.accent,
+                                boxShadow: isActive ? `0 0 8px ${t.accent}cc` : 'none',
+                              }} />
                             </div>
                             <span style={{ fontSize: 10, fontWeight: 700, color: isActive ? t.accent : TEXT_MUTED, fontFamily: 'Montserrat, system-ui', whiteSpace: 'nowrap' as const }}>{t.label}</span>
                           </button>
@@ -1021,6 +1037,18 @@ export default function SettingsPanel({
                       { id: 'eleven:957hysTL5aGCO5cymg1G', name: 'Declan',  style: 'Irish · Lyrical',     emoji: '🕊' },
                       { id: 'eleven:UoBLa8QEkrOO2RHnuag7', name: 'Caleb',   style: 'Jamaican · Warm',     emoji: '🌴' },
                       { id: 'eleven:uOVt3U9VZ1ymfF4QwI65', name: 'Ezra',    style: 'Ethiopian · Ancient', emoji: '✦' },
+                      { id: 'eleven:wAGzRVkxKEs8La0lmdrE', name: 'Sully',   style: 'Mature · Deep',       emoji: '🗿' },
+                      { id: 'eleven:pqHfZKP75CvOlQylNhV4', name: 'Bill',    style: 'Wise & Balanced',     emoji: '⚖️' },
+                      { id: 'eleven:onwK4e9ZLuTAKqWW03F9', name: 'Daniel',  style: 'Broadcaster · Steady',emoji: '📻' },
+                      { id: 'eleven:CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',   style: 'Laid-Back · Resonant',emoji: '🌅' },
+                      { id: 'eleven:IKne3meq5aSn9XLyUdCD', name: 'Charlie', style: 'Deep · Confident',    emoji: '🦁' },
+                      { id: 'eleven:jvcMcno3QtjOzGtfpjoI', name: 'David',   style: 'Documentary · Deep',  emoji: '🎬' },
+                      { id: 'eleven:JoYo65swyP8hH6fVMeTO', name: 'Sage',    style: 'Wizardly · Storyteller', emoji: '🧙' },
+                      { id: 'eleven:HAvvFKatz0uu0Fv55Riy', name: 'Matthew', style: 'Ancient Sage',        emoji: '📿' },
+                      { id: 'eleven:cjVigY5qzO86Huf0OWal', name: 'Eric',    style: 'Smooth · Trustworthy',emoji: '🤝' },
+                      { id: 'eleven:EOVAuWqgSZN2Oel78Psj', name: 'Aidan',   style: 'Modern · Engaging',   emoji: '⚡' },
+                      { id: 'eleven:pNInz6obpgDQGcFmaJgB', name: 'Adam',    style: 'Dominant · Firm',     emoji: '🏛' },
+                      { id: 'eleven:a4CnuaYbALRvW39mDitg', name: 'Dan',     style: 'Captivating · Inviting', emoji: '🔥' },
                     ]).map(v => <VoiceCard key={v.id} v={v} />)}
                   </div>
 
@@ -1034,6 +1062,15 @@ export default function SettingsPanel({
                       { id: 'eleven:US3Nq8hRtUadsih8oFTK', name: 'Zoe',       style: 'Australian · Clear',  emoji: '🌿' },
                       { id: 'eleven:z7U1SjrEq4fDDDriOQEN', name: 'Katherine', style: 'Powerful & Bold',     emoji: '📖' },
                       { id: 'eleven:Nyip1VgoS6bg9Vl30y8v', name: 'Verity',    style: 'Calm & Meditative',   emoji: '✨' },
+                      { id: 'eleven:OYTbf65OHHFELVut7v2H', name: 'Hope',      style: 'Natural · Calm',      emoji: '🌷' },
+                      { id: 'eleven:pFZP5JQG7iQjIQuC4Bku', name: 'Lily',      style: 'Velvety · Expressive',emoji: '🌹' },
+                      { id: 'eleven:Xb7hH8MSUJpSbSDYk0k2', name: 'Alice',     style: 'Clear · Engaging',    emoji: '💎' },
+                      { id: 'eleven:FUfBrNit0NNZAwb58KWH', name: 'Angela',    style: 'Warm · Friendly',     emoji: '🌻' },
+                      { id: 'eleven:cgSgspJ2msm6clMCkdW9', name: 'Jessica',   style: 'Playful · Bright',    emoji: '🎀' },
+                      { id: 'eleven:FGY2WhTYpPnrIDTdsKH5', name: 'Laura',     style: 'Quirky · Energetic',  emoji: '🌟' },
+                      { id: 'eleven:eaNNqnkhfRYVtX7U7VLj', name: 'Clara',     style: 'Emotional · Dramatic',emoji: '🎭' },
+                      { id: 'eleven:bD9maNcCuQQS75DGuteM', name: 'Sadie',     style: 'Calm · Expressive',   emoji: '🌾' },
+                      { id: 'eleven:2qfp6zPuviqeCOZIE9RZ', name: 'Trinity',   style: 'Calm Affirmation',    emoji: '☁️' },
                     ]).map(v => <VoiceCard key={v.id} v={v} />)}
                   </div>
 
@@ -1237,11 +1274,12 @@ export default function SettingsPanel({
             disabled={(!hasChanges && !saved) || saving}
             style={{
               display: 'block',
-              width: '100%',
+              width: 'calc(100% - 48px)',
+              margin: '0 24px 24px',
               height: 56,
-              borderRadius: 0,
+              borderRadius: 16,
               fontWeight: 800,
-              fontSize: 16,
+              fontSize: 14,
               letterSpacing: '0.06em',
               textTransform: 'uppercase' as const,
               fontFamily: 'Montserrat, system-ui',
@@ -1249,9 +1287,9 @@ export default function SettingsPanel({
               border: 'none',
               transition: 'all 0.2s',
               ...(saved
-                ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e' }
+                ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', boxShadow: 'none' }
                 : hasChanges
-                  ? { background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}cc 100%)`, color: '#050908', boxShadow: `0 -4px 24px ${accentColor}25` }
+                  ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#050908', boxShadow: `0 6px 20px ${accentColor}33` }
                   : { background: 'rgba(255,255,255,0.04)', color: TEXT_FAINT }
               ),
             }}>

@@ -292,6 +292,7 @@ Do not use markdown, bullet points, bold, or headers. Plain flowing text only.`,
           }),
         });
 
+        if (!res.ok) throw new Error(`API error ${res.status}`);
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
@@ -352,6 +353,7 @@ Do not use any markdown, asterisks, or extra formatting. Use the exact keys abov
           }),
         });
 
+        if (!res.ok) throw new Error(`API error ${res.status}`);
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
@@ -405,6 +407,7 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
         }),
       });
 
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const reader = res.body?.getReader();
       if (!reader) return;
       const decoder = new TextDecoder();
@@ -496,13 +499,15 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
           {/* Header */}
           <div className="flex items-center gap-3 px-5 pt-safe-top pt-6 pb-4 flex-shrink-0" style={{ borderBottom: `1px solid ${accentColor}15` }}>
             <button onClick={() => setStudyOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(232,240,236,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              className="flex items-center gap-2 transition-all active:scale-95"
+              style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(232,240,236,0.7)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 20, padding: '7px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.03em' }}>
               ← Back
             </button>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: `${accentColor}66` }}>Deep Study</p>
-              <p className="text-sm font-black truncate" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif' }}>{studyLabel}</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+                <span style={{ fontSize: 11 }}>✦</span> Deep Study
+              </p>
+              <p className="font-black truncate" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900, fontSize: 14 }}>{studyLabel}</p>
             </div>
             {studyLoading && (
               <div className="w-5 h-5 rounded-full border-2 animate-spin flex-shrink-0" style={{ borderColor: `${accentColor}33`, borderTopColor: accentColor }} />
@@ -535,21 +540,20 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
       )}
 
       {/* ── Search Header ── */}
-      <div className="rounded-2xl overflow-hidden relative" style={{ background: `linear-gradient(145deg, ${accentColor}12, rgba(0,0,0,0.2))`, border: `1px solid ${accentColor}20` }}>
+      <div className="rounded-3xl overflow-hidden relative" style={{ background: `linear-gradient(160deg, ${accentColor}18 0%, rgba(0,0,0,0) 60%)`, border: `1px solid ${accentColor}20`, minHeight: 100 }}>
         {/* Decorative glow */}
         <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-20 blur-3xl" style={{ background: accentColor }} />
-        <div className="relative px-5 pt-5 pb-4">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: `${accentColor}20` }}>
-              <span className="text-sm">🔍</span>
-            </div>
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-widest" style={{ color: accentColor, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Search Scripture</h2>
-              <p className="text-[9px]" style={{ color: 'rgba(232,240,236,0.3)' }}>Ask a question, find stories, search verses, or look up a reference</p>
-            </div>
+        <div className="relative px-5 pt-6 pb-5">
+          {/* Hero heading */}
+          <div className="text-center mb-5">
+            <h2 className="text-xl font-black tracking-tight leading-tight" style={{ color: '#f0f8f4', fontFamily: 'Montserrat, system-ui, sans-serif', fontWeight: 900 }}>Search Scripture</h2>
+            <p className="text-xs italic mt-1" style={{ color: 'rgba(232,240,236,0.4)', fontFamily: 'Georgia, serif' }}>Ask a question, find stories, or look up a verse</p>
           </div>
-          <div className="flex gap-2 items-end">
-            <VoiceInput accentColor={accentColor} onResult={(text) => { setQuery(text); handleSearch(text); }} />
+          <div className="flex gap-2 items-center">
+            {/* Voice button with subtle accent background */}
+            <div style={{ background: `${accentColor}18`, borderRadius: 14, padding: 2 }}>
+              <VoiceInput accentColor={accentColor} onResult={(text) => { setQuery(text); handleSearch(text); }} />
+            </div>
             <div className="flex-1 relative">
               <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true}
                 ref={inputRef}
@@ -557,8 +561,8 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSearch()}
                 placeholder="Ask anything, search a story, or type a verse…"
-                className="w-full rounded-xl px-4 py-3.5 text-sm outline-none pr-10"
-                style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${accentColor}25`, color: '#f0f8f4' }}
+                className="w-full outline-none pr-10"
+                style={{ background: 'rgba(0,0,0,0.35)', border: `1px solid ${accentColor}28`, color: '#f0f8f4', borderRadius: 20, padding: '14px 18px', fontSize: 14 }}
               />
               {query && (
                 <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
@@ -566,17 +570,18 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                 </button>
               )}
             </div>
+            {/* Filled accent-color circle search button */}
             <button
               onClick={() => handleSearch()}
               disabled={aiLoading || refLoading || !query.trim()}
-              className="px-5 py-3.5 rounded-xl text-sm font-bold disabled:opacity-30 shrink-0 transition-all active:scale-95"
-              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`, color: '#fff', boxShadow: `0 4px 15px ${accentColor}30` }}
+              className="disabled:opacity-30 shrink-0 transition-all active:scale-95 flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 4px 18px ${accentColor}40`, width: 48, height: 48, borderRadius: '50%' }}
             >
               {aiLoading || refLoading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-full border-2 animate-spin" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
-                </span>
-              ) : 'Search'}
+                <span className="w-4 h-4 rounded-full border-2 animate-spin block" style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+              ) : (
+                <span style={{ fontSize: 18, lineHeight: 1 }}>→</span>
+              )}
             </button>
           </div>
         </div>
@@ -611,12 +616,14 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
               {SAMPLE_QUESTIONS.map(sq => (
                 <button key={sq.q}
                   onClick={() => { setQuery(sq.q); handleSearch(sq.q); }}
-                  className="text-left rounded-xl p-3 transition-all active:scale-[0.97] group relative overflow-hidden"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
-                  <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
+                  className="text-left p-3 transition-all active:scale-[0.97] group relative overflow-hidden"
+                  style={{ background: `linear-gradient(135deg, ${accentColor}0a, rgba(255,255,255,0.02))`, border: `1px solid ${accentColor}15`, borderRadius: 18 }}>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}10`, borderRadius: 18 }} />
                   <div className="relative flex items-start gap-2">
-                    {sq.icon.startsWith('/') ? <img src={sq.icon} alt="" style={{ width: 18, height: 18, objectFit: 'contain', marginTop: 1, flexShrink: 0 }} /> : <span className="text-base mt-0.5 shrink-0">{sq.icon}</span>}
-                    <span className="text-[11px] font-semibold leading-snug" style={{ color: 'rgba(232,240,236,0.75)' }}>{sq.q}</span>
+                    <span className="flex items-center justify-center shrink-0" style={{ background: `${accentColor}18`, borderRadius: 8, width: 28, height: 28, fontSize: 14 }}>
+                      {sq.icon.startsWith('/') ? <img src={sq.icon} alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} /> : sq.icon}
+                    </span>
+                    <span className="text-[12px] font-semibold leading-snug mt-0.5" style={{ color: 'rgba(232,240,236,0.8)', fontWeight: 600 }}>{sq.q}</span>
                   </div>
                 </button>
               ))}
@@ -631,11 +638,13 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                 {cat.stories.map(story => (
                   <button key={story.label}
                     onClick={() => { setQuery(story.query); handleSearch(story.query); }}
-                    className="text-left rounded-xl p-2.5 transition-all active:scale-[0.97] group relative overflow-hidden flex flex-col items-center text-center gap-1"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
-                    <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
-                    {story.icon.startsWith('/') ? <img src={story.icon} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> : <span className="text-2xl relative">{story.icon}</span>}
-                    <span className="text-[9px] font-semibold leading-tight relative" style={{ color: 'rgba(232,240,236,0.7)' }}>{story.label}</span>
+                    className="text-left transition-all active:scale-[0.97] group relative overflow-hidden flex flex-col items-center text-center gap-1.5"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12`, borderRadius: 16, padding: '12px 8px' }}>
+                    <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08`, borderRadius: 16 }} />
+                    <span className="flex items-center justify-center relative" style={{ background: `${accentColor}14`, borderRadius: '50%', width: 40, height: 40, fontSize: 20 }}>
+                      {story.icon.startsWith('/') ? <img src={story.icon} alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} /> : story.icon}
+                    </span>
+                    <span className="text-[11px] leading-tight relative" style={{ color: 'rgba(232,240,236,0.8)', fontWeight: 700 }}>{story.label}</span>
                   </button>
                 ))}
               </div>
@@ -650,15 +659,17 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                 {cat.topics.map(topic => (
                   <button key={topic.label}
                     onClick={() => { setQuery(topic.query); handleSearch(topic.query); }}
-                    className="text-left rounded-xl p-3.5 transition-all active:scale-[0.97] group relative overflow-hidden"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}12` }}>
+                    className="text-left transition-all active:scale-[0.97] group relative overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${accentColor}15`, borderRadius: 14, padding: '14px 14px 14px 0' }}>
+                    {/* Left accent stripe */}
+                    <div className="absolute left-0 top-0 bottom-0" style={{ width: 3, background: `linear-gradient(180deg, ${accentColor}99, ${accentColor}22)`, borderRadius: '14px 0 0 14px' }} />
                     {/* Hover glow */}
-                    <div className="absolute inset-0 opacity-0 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08` }} />
-                    <div className="relative flex items-center gap-2.5">
-                      {topic.icon.startsWith('/') ? <img src={topic.icon} alt="" style={{ width: 30, height: 30, objectFit: 'contain' }} /> : <span className="text-xl">{topic.icon}</span>}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity" style={{ background: `${accentColor}08`, borderRadius: 14 }} />
+                    <div className="relative flex items-center gap-2.5 pl-4">
+                      {topic.icon.startsWith('/') ? <img src={topic.icon} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} /> : <span style={{ fontSize: 20 }}>{topic.icon}</span>}
                       <div>
-                        <span className="text-xs font-semibold block" style={{ color: 'rgba(232,240,236,0.75)' }}>{topic.label}</span>
-                        <span className="text-[9px] block mt-0.5" style={{ color: 'rgba(232,240,236,0.25)' }}>
+                        <span className="block" style={{ color: 'rgba(232,240,236,0.88)', fontWeight: 700, fontSize: 13 }}>{topic.label}</span>
+                        <span className="block mt-0.5" style={{ color: 'rgba(232,240,236,0.28)', fontSize: 10 }}>
                           {topic.query.length > 28 ? topic.query.slice(0, 28) + '…' : topic.query}
                         </span>
                       </div>
@@ -1002,23 +1013,27 @@ Do not use any markdown formatting, asterisks, or headers. Just plain text.`,
                   const isSaved = savedVerses.has(v.reference);
                   return (
                     <div key={i}
-                      className="rounded-xl overflow-hidden transition-all"
+                      className="overflow-hidden transition-all relative"
                       style={{
                         background: isExpanded ? `linear-gradient(145deg, ${accentColor}0a, rgba(0,0,0,0.15))` : 'rgba(255,255,255,0.02)',
                         border: `1px solid ${isExpanded ? accentColor + '25' : accentColor + '10'}`,
+                        borderRadius: 14,
                       }}>
+                      {/* Left accent bar */}
+                      <div className="absolute left-0 top-0 bottom-0" style={{ width: 4, background: accentColor, borderRadius: '14px 0 0 14px', opacity: isExpanded ? 1 : 0.45 }} />
                       {/* Verse header */}
                       <button
-                        className="w-full px-5 py-4 text-left"
+                        className="w-full py-4 text-left"
+                        style={{ paddingLeft: 20, paddingRight: 20 }}
                         onClick={() => setExpandedVerse(isExpanded ? null : i)}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${accentColor}18`, color: accentColor }}>{i + 1}</span>
-                              <p className="text-xs font-bold" style={{ color: accentColor }}>{v.reference}</p>
+                              <p className="text-xs" style={{ color: accentColor, fontWeight: 800 }}>{v.reference}</p>
                             </div>
-                            <p className="text-sm leading-relaxed" style={{ color: 'rgba(232,240,236,0.75)', fontFamily: 'Georgia, serif' }}>
+                            <p className="leading-relaxed" style={{ color: 'rgba(232,240,236,0.8)', fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.7 }}>
                               &ldquo;{v.text}&rdquo;
                             </p>
                           </div>

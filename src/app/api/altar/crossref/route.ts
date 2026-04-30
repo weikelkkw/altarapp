@@ -22,7 +22,7 @@ Return as JSON array:
 Only return the JSON array, no other text.`;
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 800,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -30,7 +30,10 @@ Only return the JSON array, no other text.`;
   const text = response.content[0].type === 'text' ? response.content[0].text : '';
   // Extract JSON from response
   const jsonMatch = text.match(/\[[\s\S]*\]/);
-  const refs = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+  let refs: unknown[] = [];
+  if (jsonMatch) {
+    try { refs = JSON.parse(jsonMatch[0]); } catch { refs = []; }
+  }
 
   return Response.json(refs);
 }

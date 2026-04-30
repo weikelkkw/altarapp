@@ -3,12 +3,24 @@ import { NextRequest } from 'next/server';
 // User-selectable narrator voices — custom-built voices with global accents
 export const NARRATOR_VOICES = {
   male: [
-    { id: '88cgASIFJ5iO94COdgBO', name: 'Bryan',   style: 'American · Steady' },
-    { id: '10xsyNwkKUXCUZPaoXgm', name: 'Marcus',  style: 'Soul · Rich' },
-    { id: '6r6oh5UtSHSD2htZsxdz', name: 'Oliver',  style: 'British · Refined' },
-    { id: '957hysTL5aGCO5cymg1G', name: 'Declan',  style: 'Irish · Lyrical' },
-    { id: 'UoBLa8QEkrOO2RHnuag7', name: 'Caleb',   style: 'Jamaican · Warm' },
-    { id: 'uOVt3U9VZ1ymfF4QwI65', name: 'Ezra',    style: 'Ethiopian · Ancient' },
+    { id: '88cgASIFJ5iO94COdgBO', name: 'Bryan',    style: 'American · Steady' },
+    { id: '10xsyNwkKUXCUZPaoXgm', name: 'Marcus',   style: 'Soul · Rich' },
+    { id: '6r6oh5UtSHSD2htZsxdz', name: 'Oliver',   style: 'British · Refined' },
+    { id: '957hysTL5aGCO5cymg1G', name: 'Declan',   style: 'Irish · Lyrical' },
+    { id: 'UoBLa8QEkrOO2RHnuag7', name: 'Caleb',    style: 'Jamaican · Warm' },
+    { id: 'uOVt3U9VZ1ymfF4QwI65', name: 'Ezra',     style: 'Ethiopian · Ancient' },
+    { id: 'wAGzRVkxKEs8La0lmdrE', name: 'Sully',    style: 'Mature · Deep' },
+    { id: 'pqHfZKP75CvOlQylNhV4', name: 'Bill',     style: 'Wise & Balanced' },
+    { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',   style: 'Broadcaster · Steady' },
+    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',    style: 'Laid-Back · Resonant' },
+    { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie',  style: 'Deep · Confident' },
+    { id: 'jvcMcno3QtjOzGtfpjoI', name: 'David',    style: 'Documentary · Deep' },
+    { id: 'JoYo65swyP8hH6fVMeTO', name: 'Sage',     style: 'Wizardly · Storyteller' },
+    { id: 'HAvvFKatz0uu0Fv55Riy', name: 'Matthew',  style: 'Ancient Sage' },
+    { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric',     style: 'Smooth · Trustworthy' },
+    { id: 'EOVAuWqgSZN2Oel78Psj', name: 'Aidan',    style: 'Modern · Engaging' },
+    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam',     style: 'Dominant · Firm' },
+    { id: 'a4CnuaYbALRvW39mDitg', name: 'Dan',      style: 'Captivating · Inviting' },
   ],
   female: [
     { id: 'uTnyvloPM4RqXGSsx4Du', name: 'Ashley',    style: 'American · Bright' },
@@ -17,11 +29,20 @@ export const NARRATOR_VOICES = {
     { id: 'US3Nq8hRtUadsih8oFTK', name: 'Zoe',       style: 'Australian · Clear' },
     { id: 'z7U1SjrEq4fDDDriOQEN', name: 'Katherine', style: 'Powerful & Commanding' },
     { id: 'Nyip1VgoS6bg9Vl30y8v', name: 'Verity',    style: 'Calm & Meditative' },
+    { id: 'OYTbf65OHHFELVut7v2H', name: 'Hope',      style: 'Natural · Calm' },
+    { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily',      style: 'Velvety · Expressive' },
+    { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice',     style: 'Clear · Engaging' },
+    { id: 'FUfBrNit0NNZAwb58KWH', name: 'Angela',    style: 'Warm · Friendly' },
+    { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica',   style: 'Playful · Bright' },
+    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',     style: 'Quirky · Energetic' },
+    { id: 'eaNNqnkhfRYVtX7U7VLj', name: 'Clara',     style: 'Emotional · Dramatic' },
+    { id: 'bD9maNcCuQQS75DGuteM', name: 'Sadie',     style: 'Calm · Expressive' },
+    { id: '2qfp6zPuviqeCOZIE9RZ', name: 'Trinity',   style: 'Calm Affirmation' },
   ],
 } as const;
 
 // Default narrator fallback
-export const DEFAULT_NARRATOR_ID = NARRATOR_VOICES.male[0].id; // Declan
+export const DEFAULT_NARRATOR_ID = NARRATOR_VOICES.male[0].id; // Bryan
 
 // Pool of cycling voices for unnamed/minor characters
 export const VOICE_POOL = [
@@ -777,7 +798,10 @@ export async function POST(req: NextRequest) {
         ? getChapterSpeakerVoice(bookIndex, chapter)
         : null;
 
-      const verseVoices: { text: string; voiceId: string }[] = [];
+      // Track which verse contributed each segment so we can attribute audio bytes
+      // back to verses for accurate highlight sync on the client.
+      type VV = { text: string; voiceId: string; verse: number };
+      const verseVoices: VV[] = [];
       for (let i = 0; i < verses.length; i++) {
         const v = verses[i];
         const narratorVoice = getCraftedVerseNarrator(i);
@@ -821,26 +845,37 @@ export async function POST(req: NextRequest) {
           }
 
           const segs = segmentVerse(sub, charVoiceId, narratorVoice, isCarry);
-          verseVoices.push(...segs);
+          for (const s of segs) verseVoices.push({ ...s, verse: v.verse });
         }
       }
 
-      // Group consecutive verses that share the same voice to minimize API calls
-      const groups: { voiceId: string; texts: string[] }[] = [];
+      // Group consecutive segments that share the same voice to minimize API calls.
+      // Keep per-segment metadata so we can attribute bytes back to verses.
+      type Group = { voiceId: string; segs: VV[] };
+      const groups: Group[] = [];
       for (const vv of verseVoices) {
         const last = groups[groups.length - 1];
         if (last && last.voiceId === vv.voiceId) {
-          last.texts.push(vv.text);
+          last.segs.push(vv);
         } else {
-          groups.push({ voiceId: vv.voiceId, texts: [vv.text] });
+          groups.push({ voiceId: vv.voiceId, segs: [vv] });
         }
       }
 
-      // Call ElevenLabs once per group, concatenate the MP3 buffers
+      // Call ElevenLabs once per group, track each call's audio bytes and
+      // distribute them back across the verses that contributed text.
       const buffers: ArrayBuffer[] = [];
+      const verseBytes = new Map<number, number>();
       for (const group of groups) {
-        const buf = await callElevenLabs(apiKey, group.voiceId, group.texts.join(' '));
-        if (buf) buffers.push(buf);
+        const groupText = group.segs.map(s => s.text).join(' ');
+        const buf = await callElevenLabs(apiKey, group.voiceId, groupText);
+        if (!buf) continue;
+        buffers.push(buf);
+        const totalChars = group.segs.reduce((sum, s) => sum + s.text.length, 0) || 1;
+        for (const s of group.segs) {
+          const share = (s.text.length / totalChars) * buf.byteLength;
+          verseBytes.set(s.verse, (verseBytes.get(s.verse) ?? 0) + share);
+        }
       }
 
       if (buffers.length === 0) {
@@ -849,16 +884,32 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const totalLength = buffers.reduce((sum, b) => sum + b.byteLength, 0);
-      const combined = new Uint8Array(totalLength);
-      let offset = 0;
+      // Build verse timing array preserving the order of input verses
+      const verseTimings = verses
+        .map(v => ({ verse: v.verse, bytes: Math.round(verseBytes.get(v.verse) ?? 0) }))
+        .filter(t => t.bytes > 0);
+      const totalBytes = verseTimings.reduce((sum, t) => sum + t.bytes, 0);
+
+      // Response format: [uint32 LE: metadata length][JSON metadata][MP3 audio bytes]
+      // Client reads the prefix, parses metadata, then decodes the rest as audio.
+      const metadata = JSON.stringify({ verseTimings, totalBytes });
+      const metaBytes = new TextEncoder().encode(metadata);
+      const audioLen = buffers.reduce((sum, b) => sum + b.byteLength, 0);
+      const out = new Uint8Array(4 + metaBytes.byteLength + audioLen);
+      new DataView(out.buffer).setUint32(0, metaBytes.byteLength, true);
+      out.set(metaBytes, 4);
+      let offset = 4 + metaBytes.byteLength;
       for (const buf of buffers) {
-        combined.set(new Uint8Array(buf), offset);
+        out.set(new Uint8Array(buf), offset);
         offset += buf.byteLength;
       }
 
-      return new Response(combined.buffer, {
-        headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' },
+      return new Response(out.buffer, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Cache-Control': 'no-store',
+          'X-Tts-Format': 'v2',
+        },
       });
     }
 

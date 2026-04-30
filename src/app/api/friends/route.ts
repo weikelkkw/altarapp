@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       .eq('id', requesterId)
       .single();
 
-    await db.from('trace_notifications').insert({
+    const { error: notifErr } = await db.from('trace_notifications').insert({
       user_id:    body.toUserId,
       type:       'friend_request',
       title:      'New friend request',
@@ -113,7 +113,8 @@ export async function POST(req: NextRequest) {
       read:       false,
       created_at: new Date().toISOString(),
     });
-  } catch {}
+    if (notifErr) console.warn('friend_request notification failed:', notifErr.message);
+  } catch (e) { console.warn('friend_request notification error:', e); }
 
   return NextResponse.json({ success: true });
 }
@@ -166,7 +167,7 @@ export async function PATCH(req: NextRequest) {
         .eq('id', addresseeProfileId)
         .single();
 
-      await db.from('trace_notifications').insert({
+      const { error: notifErr } = await db.from('trace_notifications').insert({
         user_id:    (friendship as any).requester_id,
         type:       'friend_accepted',
         title:      'Friend request accepted',
@@ -175,7 +176,8 @@ export async function PATCH(req: NextRequest) {
         read:       false,
         created_at: new Date().toISOString(),
       });
-    } catch {}
+      if (notifErr) console.warn('friend_accepted notification failed:', notifErr.message);
+    } catch (e) { console.warn('friend_accepted notification error:', e); }
   } else {
     const { error } = await db
       .from('trace_friendships')

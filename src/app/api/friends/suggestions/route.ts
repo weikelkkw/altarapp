@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   const { data: memberships } = await db
     .from('trace_group_members')
     .select('group_id')
-    .eq('profile_id', profileId)
+    .eq('user_id', profileId)
     .eq('status', 'approved');
 
   const groupIds: string[] = (memberships ?? []).map((m: any) => m.group_id);
@@ -51,15 +51,15 @@ export async function GET(req: NextRequest) {
   // Get all other approved members in those groups
   const { data: sharedMembers } = await db
     .from('trace_group_members')
-    .select('profile_id')
+    .select('user_id')
     .in('group_id', groupIds)
     .eq('status', 'approved')
-    .neq('profile_id', profileId);
+    .neq('user_id', profileId);
 
   // Collect unique candidate profile ids not already in excludedIds
   const candidateIds = [...new Set<string>(
     (sharedMembers ?? [])
-      .map((m: any) => m.profile_id as string)
+      .map((m: any) => m.user_id as string)
       .filter((id) => !excludedIds.has(id))
   )];
 

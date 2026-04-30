@@ -1882,6 +1882,7 @@ Keep it warm, clear, and pastoral. No markdown or asterisks.`,
               };
               const visibleGroups = RELIGION_GROUPS.map(group => ({
                 label: group.label,
+                overview: group.overview,
                 religions: group.names
                   .map(name => filtered.find(r => r.name === name))
                   .filter((r): r is typeof RELIGIONS[0] => !!r),

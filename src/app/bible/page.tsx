@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   ApiBible, Passage, PassageSection, AltarNote, UserIdentity, BookDef,
@@ -685,8 +686,16 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       />
 
       {/* ── CONTENT ────────────────────────────────────────────────────────── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20" style={{}}>
-        <div className="max-w-4xl mx-auto px-5 py-4 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-24" style={{}}>
+        <AnimatePresence mode="popLayout">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+          className="max-w-4xl mx-auto px-5 py-4 space-y-4"
+        >
 
           {tab === 'home' && (
             <>
@@ -891,7 +900,8 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
             />
           )}
 
-        </div>
+        </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* SVG filter: strips white/bright pixels to transparent for church icon */}
@@ -904,42 +914,73 @@ TEXT: [The exact verse text from ${selectedBible.abbreviationLocal}]`,
       </svg>
 
       {/* ── BOTTOM NAV ─────────────────────────────────────────────────────── */}
-      <nav className="fixed bottom-0 inset-x-0 z-50" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(8,15,12,0.97) 20%)' }} />
-        <div className="relative max-w-4xl mx-auto">
-          <div style={{ borderTop: `1px solid ${theme.accent}22` }}>
-            <div className="flex items-center justify-around px-2 pt-2 pb-1">
-              {TAB_CONFIG.map(t => {
-                const active = tab === t.id;
-                return (
-                  <button key={t.id} onClick={() => handleSetTab(t.id)}
-                    className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px]"
-                    style={active ? { background: `${theme.accent}18` } : {}}>
-                    <span style={{ transform: active ? 'scale(1.15)' : 'scale(1)', display: 'block', mixBlendMode: 'screen' }}>
-                      {t.img ? (
-                        <img src={t.img} alt={t.label} style={{
-                          width: 52, height: 52, objectFit: 'contain', display: 'block',
-                          opacity: active ? 1 : 0.45,
-                        }} />
-                      ) : (
-                        <span className="text-lg" style={{ opacity: active ? 1 : 0.4 }}>{t.icon}</span>
-                      )}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider transition-all" style={{
-                      color: active ? theme.accent : 'rgba(232,240,236,0.25)',
-                    }}>
-                      {t.label}
-                    </span>
-                    {active && (
-                      <div className="w-4 h-0.5 rounded-full mt-0.5" style={{ background: `linear-gradient(90deg, ${theme.accent}, ${theme.accent}aa)` }} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <div className="fixed bottom-0 inset-x-0 z-50 flex justify-center pb-3 pointer-events-none">
+        <motion.nav
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.15 }}
+          className="flex items-end gap-1 px-2 py-1.5 pointer-events-auto"
+          style={{
+            background: 'rgba(8,12,10,0.92)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+            borderRadius: 24,
+            border: `1px solid ${theme.accent}20`,
+            boxShadow: `0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04), 0 0 40px ${theme.accent}10`,
+          }}
+        >
+          {TAB_CONFIG.map(t => {
+            const active = tab === t.id;
+            return (
+              <motion.button
+                key={t.id}
+                onClick={() => handleSetTab(t.id)}
+                animate={{ scale: active ? 1.08 : 1, y: active ? -4 : 0 }}
+                whileTap={{ scale: 0.93 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+                className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl min-w-[56px]"
+                style={{
+                  background: active ? `linear-gradient(135deg, ${theme.accent}28, ${theme.accent}12)` : 'transparent',
+                  border: active ? `1px solid ${theme.accent}30` : '1px solid transparent',
+                  boxShadow: active ? `0 4px 16px ${theme.accent}22` : 'none',
+                }}
+              >
+                <span style={{ display: 'block', mixBlendMode: 'screen' }}>
+                  {t.img ? (
+                    <img src={t.img} alt={t.label} style={{
+                      width: active ? 44 : 38, height: active ? 44 : 38,
+                      objectFit: 'contain', display: 'block',
+                      opacity: active ? 1 : 0.38,
+                      transition: 'all 0.2s',
+                    }} />
+                  ) : (
+                    <span style={{ fontSize: active ? 22 : 18, opacity: active ? 1 : 0.38, transition: 'all 0.2s' }}>{t.icon}</span>
+                  )}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-wider" style={{
+                  color: active ? theme.accent : 'rgba(232,240,236,0.22)',
+                  transition: 'color 0.2s',
+                }}>
+                  {t.label}
+                </span>
+                <AnimatePresence>
+                  {active && (
+                    <motion.div
+                      layoutId="tab-indicator"
+                      initial={{ opacity: 0, scaleX: 0 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      exit={{ opacity: 0, scaleX: 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
+                      style={{ background: `linear-gradient(90deg, ${theme.accent}, ${theme.accent}88)` }}
+                    />
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          })}
+        </motion.nav>
+      </div>
 
       {/* ── Fire Mode ──────────────────────────────────────────────────────── */}
       <FireMode

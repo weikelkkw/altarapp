@@ -1422,6 +1422,102 @@ const BOOK_DEEP_STUDY: Record<string, BookStudy> = {
   },
 };
 
+// ── Book background images (thematic Unsplash photos, one per book) ──────────
+const Q = '?auto=format&fit=crop&w=1200&q=80';
+const B = 'https://images.unsplash.com/photo-';
+const IMG = {
+  cosmos:   B + '1419242902214-272b3f66ee7a' + Q, // milky way / creation
+  desert:   B + '1509316785289-025f5b846b35' + Q, // sand dunes / wilderness
+  mountain: B + '1506905925346-21bda4d32df4' + Q, // mountain peaks / sunrise
+  fields:   B + '1500382017468-9049fed747ef' + Q, // golden wheat fields
+  storm:    B + '1534088568595-a066f410bcda' + Q, // dark storm clouds
+  stars:    B + '1446776811953-b23d57bd21aa' + Q, // night sky / starfield
+  sunrise:  B + '1506905925346-21bda4d32df4' + Q, // sunrise over range
+  ocean:    B + '1505118380757-91f5f5632de0' + Q, // deep ocean waves
+  fire:     B + '1529257414772-1960b7bea4eb' + Q, // fire / embers
+  garden:   B + '1465146344425-f00d5f5c8f07' + Q, // lush garden blooms
+  forest:   B + '1518495973542-4542c06a5843' + Q, // sunlight through forest
+  lake:     B + '1508739773434-c26b3d09e071' + Q, // calm lake / Galilee
+};
+
+const BOOK_IMAGES: Record<string, string> = {
+  // Pentateuch
+  Genesis:            IMG.cosmos,
+  Exodus:             IMG.desert,
+  Leviticus:          IMG.mountain,
+  Numbers:            IMG.desert,
+  Deuteronomy:        IMG.mountain,
+  // History OT
+  Joshua:             IMG.mountain,
+  Judges:             IMG.storm,
+  Ruth:               IMG.fields,
+  '1 Samuel':         IMG.fields,
+  '2 Samuel':         IMG.fields,
+  '1 Kings':          IMG.sunrise,
+  '2 Kings':          IMG.fire,
+  '1 Chronicles':     IMG.sunrise,
+  '2 Chronicles':     IMG.sunrise,
+  Ezra:               IMG.forest,
+  Nehemiah:           IMG.mountain,
+  Esther:             IMG.garden,
+  // Poetry / Wisdom
+  Job:                IMG.storm,
+  Psalms:             IMG.stars,
+  Proverbs:           IMG.sunrise,
+  Ecclesiastes:       IMG.sunrise,
+  'Song of Solomon':  IMG.garden,
+  // Major Prophets
+  Isaiah:             IMG.sunrise,
+  Jeremiah:           IMG.fire,
+  Lamentations:       IMG.fire,
+  Ezekiel:            IMG.storm,
+  Daniel:             IMG.stars,
+  // Minor Prophets
+  Hosea:              IMG.forest,
+  Joel:               IMG.fire,
+  Amos:               IMG.fields,
+  Obadiah:            IMG.mountain,
+  Jonah:              IMG.ocean,
+  Micah:              IMG.mountain,
+  Nahum:              IMG.storm,
+  Habakkuk:           IMG.storm,
+  Zephaniah:          IMG.storm,
+  Haggai:             IMG.sunrise,
+  Zechariah:          IMG.stars,
+  Malachi:            IMG.sunrise,
+  // Gospels & Acts
+  Matthew:            IMG.lake,
+  Mark:               IMG.lake,
+  Luke:               IMG.lake,
+  John:               IMG.lake,
+  Acts:               IMG.fire,
+  // Pauline Epistles
+  Romans:             IMG.forest,
+  '1 Corinthians':    IMG.sunrise,
+  '2 Corinthians':    IMG.sunrise,
+  Galatians:          IMG.forest,
+  Ephesians:          IMG.stars,
+  Philippians:        IMG.sunrise,
+  Colossians:         IMG.cosmos,
+  '1 Thessalonians':  IMG.stars,
+  '2 Thessalonians':  IMG.storm,
+  '1 Timothy':        IMG.forest,
+  '2 Timothy':        IMG.forest,
+  Titus:              IMG.sunrise,
+  Philemon:           IMG.garden,
+  // General Epistles
+  Hebrews:            IMG.mountain,
+  James:              IMG.ocean,
+  '1 Peter':          IMG.ocean,
+  '2 Peter':          IMG.storm,
+  '1 John':           IMG.lake,
+  '2 John':           IMG.garden,
+  '3 John':           IMG.garden,
+  Jude:               IMG.storm,
+  // Apocalypse
+  Revelation:         IMG.cosmos,
+};
+
 interface CrossRef {
   ref: string;
   quote: string;
@@ -1505,6 +1601,7 @@ export default function ReadTab({
   };
   const [bookSearch, setBookSearch] = useState('');
   const [showBookList, setShowBookList] = useState(false);
+  const [previewBook, setPreviewBook] = useState<BookDef | null>(null);
   const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [showVersePicker, setShowVersePicker] = useState(false);
   const [showTranslationPicker, setShowTranslationPicker] = useState(false);
@@ -1595,8 +1692,12 @@ export default function ReadTab({
     }
     if (verses.length === 0) return;
 
-    // Build cumulative char breakpoints for scroll tracking (0..1)
-    const verseBreakpoints: { verse: number; start: number; end: number }[] = [];
+    // Per-verse fraction of total audio. Initial estimate uses character count
+    // (rough but keeps tracking working if metadata is unavailable). Replaced
+    // with byte-weighted boundaries from the server response below — bytes
+    // correlate to actual speech duration far better than characters,
+    // especially in crafted mode where voices alternate per verse.
+    let verseBreakpoints: { verse: number; start: number; end: number }[] = [];
     let cumChars = 0;
     for (const v of verses) {
       const start = cumChars / totalChars;
@@ -1604,6 +1705,7 @@ export default function ReadTab({
       verseBreakpoints.push({ verse: v.verse, start, end: cumChars / totalChars });
     }
 
+    let lastTrackedVerse = -1;
     const startScrollTracking = (getDuration: () => number, getCurrentTime: () => number) => {
       if (ttsScrollRef.current) clearInterval(ttsScrollRef.current);
       ttsScrollRef.current = setInterval(() => {
@@ -1612,12 +1714,13 @@ export default function ReadTab({
         const progress = getCurrentTime() / duration;
         const active = verseBreakpoints.find(b => progress >= b.start && progress < b.end)
           ?? verseBreakpoints[verseBreakpoints.length - 1];
-        if (active) {
+        if (active && active.verse !== lastTrackedVerse) {
+          lastTrackedVerse = active.verse;
           setCurrentTTSVerse(active.verse);
           const el = document.querySelector(`[data-verse="${active.verse}"]`);
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-      }, 800);
+      }, 120);
     };
 
     const narratorVoiceId = ttsVoice ? ttsVoice.replace('eleven:', '') : '88cgASIFJ5iO94COdgBO';
@@ -1633,10 +1736,32 @@ export default function ReadTab({
       signal: abort.signal,
     })
       .then(r => { if (!r.ok) throw new Error('TTS failed'); return r.arrayBuffer(); })
-      .then(async (arrayBuffer) => {
+      .then(async (rawBuffer) => {
         ttsAbortRef.current = null;
         setTtsLoading(false);
-        if (arrayBuffer.byteLength < 100) return;
+        if (rawBuffer.byteLength < 100) return;
+
+        // Parse length-prefixed metadata header (v2 format):
+        //   [uint32 LE: meta length][JSON meta][MP3 audio]
+        // Falls back to raw audio if the prefix isn't present (older servers).
+        let arrayBuffer: ArrayBuffer = rawBuffer;
+        try {
+          const metaLen = new DataView(rawBuffer).getUint32(0, true);
+          if (metaLen > 0 && metaLen < 65536 && metaLen + 4 < rawBuffer.byteLength) {
+            const metaJson = new TextDecoder().decode(rawBuffer.slice(4, 4 + metaLen));
+            const meta = JSON.parse(metaJson) as { verseTimings?: { verse: number; bytes: number }[]; totalBytes?: number };
+            if (meta.verseTimings?.length && meta.totalBytes && meta.totalBytes > 0) {
+              const total = meta.totalBytes;
+              let cum = 0;
+              verseBreakpoints = meta.verseTimings.map(({ verse, bytes }) => {
+                const start = cum / total;
+                cum += bytes;
+                return { verse, start, end: cum / total };
+              });
+              arrayBuffer = rawBuffer.slice(4 + metaLen);
+            }
+          }
+        } catch { /* malformed prefix — fall through to raw audio */ }
 
         const ctx = audioCtxRef.current;
 
@@ -1904,6 +2029,7 @@ export default function ReadTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reference: ref, verseText: activeVerse.text, translation: selectedBible.abbreviationLocal }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const reader = res.body?.getReader();
       if (!reader) return;
       const decoder = new TextDecoder();
@@ -1931,6 +2057,7 @@ export default function ReadTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reference: ref, verseText: chapterText, translation: selectedBible.abbreviationLocal, mode: 'chapter' }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const reader = res.body?.getReader();
       if (!reader) return;
       const decoder = new TextDecoder();
@@ -1964,6 +2091,7 @@ export default function ReadTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reference: ref, verseText, translation: selectedBible.abbreviationLocal }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const reader = res.body?.getReader();
       if (!reader) return;
       const decoder = new TextDecoder();
@@ -1990,6 +2118,7 @@ export default function ReadTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reference: ref, verseText: activeVerse.text, translation: selectedBible.abbreviationLocal }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const data = await res.json();
       setCrossRefs(Array.isArray(data) ? data : []);
     } catch { setCrossRefs([]); }
@@ -2008,6 +2137,7 @@ export default function ReadTab({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reference: ref, verseText: activeVerse.text, translation: selectedBible.abbreviationLocal, question }),
       });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
       const reader = res.body?.getReader();
       if (!reader) return;
       const decoder = new TextDecoder();
@@ -2289,111 +2419,44 @@ export default function ReadTab({
           </div>
         )}
 
-        {/* Row 2: Book · Chapter · Verse */}
-        <div className="px-4 py-3 flex gap-2 items-center" style={{ borderBottom: `1px solid ${divider}` }}>
-          {/* Book picker */}
-          <div className="relative flex-1 min-w-0">
-            <button onClick={() => { setShowBookList(!showBookList); setShowChapterPicker(false); setShowVersePicker(false); }}
-              className="w-full text-left rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2"
-              style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}1a`, color: tx1 }}>
-              <span className="truncate text-sm font-bold" style={{ letterSpacing: '-0.01em' }}>{selectedBook.name}</span>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: accentColor, flexShrink: 0 }}>
-                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* Row 2: Pill nav bar */}
+        <div className="px-4 py-3" style={{ borderBottom: `1px solid ${divider}` }}>
+          <div className="flex items-center rounded-2xl overflow-hidden" style={{ background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)', border: `1px solid ${accentColor}20` }}>
+            {/* Book */}
+            <button onClick={() => { setShowBookList(true); setShowChapterPicker(false); setShowVersePicker(false); setBookSearch(''); }}
+              className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-3 px-3 transition-all active:scale-95"
+              style={{ borderRight: `1px solid ${accentColor}15` }}>
+              <span className="text-sm font-black truncate" style={{ color: tx1 }}>{selectedBook.name}</span>
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: accentColor, flexShrink: 0 }}>
+                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            {showBookList && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl max-h-72 flex flex-col overflow-hidden"
-                style={{ background: dropBg, border: `1px solid ${accentColor}20`, boxShadow: `${dropShadow}, 0 0 0 1px ${accentColor}08` }}>
-                <div className="p-2.5 shrink-0" style={{ borderBottom: `1px solid ${accentColor}0d` }}>
-                  <input autoCorrect="on" autoCapitalize="sentences" spellCheck={true} autoFocus value={bookSearch} onChange={e => setBookSearch(e.target.value)} placeholder="Search books…"
-                    className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                    style={{ background: inputBg, border: `1px solid ${inputBorder}`, color: tx1 }} />
-                </div>
-                <div className="overflow-y-auto">
-                  <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}40` }}>Old Testament</p>
-                  {BOOKS.slice(0, 39).filter(b => b.name.toLowerCase().includes(bookSearch.toLowerCase())).map(book => (
-                    <button key={book.osis}
-                      onClick={() => { setSelectedBook(book); setSelectedChapter(1); setShowBookList(false); setBookSearch(''); }}
-                      className="w-full text-left px-4 py-2.5 text-sm transition-all"
-                      style={book.osis === selectedBook.osis ? { color: accentColor, background: `${accentColor}12`, fontWeight: 700 } : { color: tx2 }}>
-                      {book.name}
-                    </button>
-                  ))}
-                  <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}40` }}>New Testament</p>
-                  {BOOKS.slice(39).filter(b => b.name.toLowerCase().includes(bookSearch.toLowerCase())).map(book => (
-                    <button key={book.osis}
-                      onClick={() => { setSelectedBook(book); setSelectedChapter(1); setShowBookList(false); setBookSearch(''); }}
-                      className="w-full text-left px-4 py-2.5 text-sm transition-all"
-                      style={book.osis === selectedBook.osis ? { color: accentColor, background: `${accentColor}12`, fontWeight: 700 } : { color: tx2 }}>
-                      {book.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Chapter picker */}
-          <div className="relative shrink-0">
-            <button onClick={() => { setShowChapterPicker(!showChapterPicker); setShowBookList(false); setShowVersePicker(false); }}
-              className="rounded-2xl px-4 py-2.5 flex items-center gap-1.5"
-              style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}1a`, color: tx1 }}>
-              <span className="text-sm font-bold">{selectedChapter}</span>
+            {/* Divider dot */}
+            <span className="text-lg font-black px-0.5 select-none" style={{ color: `${accentColor}30` }}>·</span>
+            {/* Chapter */}
+            <button onClick={() => { setShowChapterPicker(true); setShowBookList(false); setShowVersePicker(false); }}
+              className="flex items-center gap-1 py-3 px-4 transition-all active:scale-95"
+              style={{ borderLeft: `1px solid ${accentColor}15`, borderRight: `1px solid ${accentColor}15` }}>
+              <span className="text-sm font-black" style={{ color: tx1 }}>Ch. {selectedChapter}</span>
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: accentColor }}>
-                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            {showChapterPicker && (
-              <div className="absolute top-full right-0 z-50 mt-2 rounded-2xl overflow-hidden"
-                style={{ background: dropBg, border: `1px solid ${accentColor}20`, boxShadow: dropShadow, width: 160 }}>
-                <div className="overflow-y-auto" style={{ maxHeight: 240 }}>
-                  <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}40` }}>Chapter</p>
-                  {Array.from({ length: selectedBook.chapters }, (_, i) => i + 1).map(ch => (
-                    <button key={ch}
-                      onClick={() => { setSelectedChapter(ch); setShowChapterPicker(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm transition-all"
-                      style={ch === selectedChapter ? { color: accentColor, background: `${accentColor}12`, fontWeight: 700 } : { color: tx2 }}>
-                      Chapter {ch}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Verse */}
+            {passage && (
+              <>
+                <span className="text-lg font-black px-0.5 select-none" style={{ color: `${accentColor}30` }}>·</span>
+                <button onClick={() => { setShowVersePicker(true); setShowBookList(false); setShowChapterPicker(false); }}
+                  className="flex items-center gap-1 py-3 px-4 transition-all active:scale-95"
+                  style={{ borderLeft: `1px solid ${accentColor}15` }}>
+                  <span className="text-sm font-bold" style={{ color: `${accentColor}99` }}>Vs</span>
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: `${accentColor}66` }}>
+                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </>
             )}
           </div>
-
-          {/* Verse jump */}
-          {passage && (
-            <div className="relative shrink-0">
-              <button onClick={() => { setShowVersePicker(!showVersePicker); setShowBookList(false); setShowChapterPicker(false); }}
-                className="rounded-2xl px-3 py-2.5 flex items-center gap-1"
-                style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}14`, color: `${accentColor}88` }}>
-                <span className="text-xs font-bold">vs</span>
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ color: `${accentColor}66` }}>
-                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              {showVersePicker && (
-                <div className="absolute top-full right-0 z-50 mt-2 rounded-2xl overflow-hidden"
-                  style={{ background: dropBg, border: `1px solid ${accentColor}20`, boxShadow: dropShadow, width: 140 }}>
-                  <div className="overflow-y-auto" style={{ maxHeight: 220 }}>
-                    <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: `${accentColor}40` }}>Jump to Verse</p>
-                    {passage.verses.map(v => (
-                      <button key={v.verse}
-                        onClick={() => {
-                          setShowVersePicker(false);
-                          if (speaking) playTTS(v.verse);
-                          setTimeout(() => scrollToVerse(v.verse), 80);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm transition-all"
-                        style={{ color: tx2 }}>
-                        Verse {v.verse}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Row 3: Prev / Current / Next + Highlights */}
@@ -3895,6 +3958,175 @@ export default function ReadTab({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* ══════════════════════════════════════════
+          BOOK SELECTOR — full-screen overlay
+      ══════════════════════════════════════════ */}
+      {showBookList && (
+        <div className="fixed inset-0 z-[999] flex flex-col" style={{ backdropFilter: 'blur(4px)' }}
+          onClick={() => { setShowBookList(false); setPreviewBook(null); }}>
+          {/* Book background image */}
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={BOOK_IMAGES[(previewBook ?? selectedBook).name] ?? IMG.cosmos} alt=""
+              className="w-full h-full object-cover transition-all duration-500"
+              style={{ filter: 'brightness(0.45) saturate(1.2)' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 55%, rgba(0,0,0,0.4) 100%)' }} />
+          </div>
+          {/* Book name preview in the exposed top area */}
+          <div className="relative z-10 flex-1 flex items-end pb-6 px-6 pointer-events-none">
+            <p className="text-3xl font-black text-white drop-shadow-lg" style={{ fontFamily: 'Montserrat, system-ui, sans-serif', textShadow: '0 2px 16px rgba(0,0,0,0.8)' }}>
+              {(previewBook ?? selectedBook).name}
+            </p>
+          </div>
+          <div className="relative z-10 mt-0 rounded-t-[28px] flex flex-col overflow-hidden"
+            style={{ background: isLight ? '#f8faf8' : '#0c1510', maxHeight: '80vh', boxShadow: '0 -32px 80px rgba(0,0,0,0.9)' }}
+            onClick={e => e.stopPropagation()}>
+            {/* Handle bar */}
+            <div className="flex justify-center pt-4 pb-2 shrink-0">
+              <div className="w-12 h-1.5 rounded-full" style={{ background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)' }} />
+            </div>
+            {/* Header */}
+            <div className="px-6 pt-1 pb-4 shrink-0">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xl font-black" style={{ color: tx1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Select a Book</p>
+                <button onClick={() => setShowBookList(false)} className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)', color: tx3 }}>×</button>
+              </div>
+              <input autoCorrect="off" autoCapitalize="none" spellCheck={false} autoFocus
+                value={bookSearch} onChange={e => setBookSearch(e.target.value)}
+                placeholder="Search…"
+                className="w-full px-4 py-3.5 rounded-2xl text-base outline-none"
+                style={{ background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)', border: `1.5px solid ${accentColor}25`, color: tx1 }} />
+            </div>
+            {/* Book list */}
+            <div className="overflow-y-auto pb-10">
+              {bookSearch ? (
+                BOOKS.filter(b => b.name.toLowerCase().includes(bookSearch.toLowerCase())).map(book => (
+                  <button key={book.osis}
+                    onMouseEnter={() => setPreviewBook(book)}
+                    onTouchStart={() => setPreviewBook(book)}
+                    onClick={() => { setSelectedBook(book); setSelectedChapter(1); setShowBookList(false); setBookSearch(''); setPreviewBook(null); }}
+                    className="w-full text-left px-6 py-4 flex items-center justify-between transition-all"
+                    style={book.osis === selectedBook.osis ? { background: `${accentColor}16` } : {}}>
+                    <span className="text-base font-bold" style={{ color: book.osis === selectedBook.osis ? accentColor : tx1 }}>{book.name}</span>
+                    <span className="text-xs font-semibold px-2 py-1 rounded-lg" style={{ background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)', color: tx3 }}>{book.chapters} ch</span>
+                  </button>
+                ))
+              ) : (
+                <>
+                  <p className="px-6 pt-1 pb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: accentColor }}>Old Testament</p>
+                  {BOOKS.slice(0, 39).map(book => (
+                    <button key={book.osis}
+                      onMouseEnter={() => setPreviewBook(book)}
+                      onTouchStart={() => setPreviewBook(book)}
+                      onClick={() => { setSelectedBook(book); setSelectedChapter(1); setShowBookList(false); setBookSearch(''); setPreviewBook(null); }}
+                      className="w-full text-left px-6 py-4 flex items-center justify-between transition-all"
+                      style={book.osis === selectedBook.osis ? { background: `${accentColor}16` } : {}}>
+                      <span className="text-base font-bold" style={{ color: book.osis === selectedBook.osis ? accentColor : tx1 }}>{book.name}</span>
+                      <span className="text-xs font-semibold px-2 py-1 rounded-lg" style={{ background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)', color: tx3 }}>{book.chapters} ch</span>
+                    </button>
+                  ))}
+                  <div className="mx-6 my-2" style={{ height: 1, background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)' }} />
+                  <p className="px-6 pt-3 pb-3 text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: accentColor }}>New Testament</p>
+                  {BOOKS.slice(39).map(book => (
+                    <button key={book.osis}
+                      onMouseEnter={() => setPreviewBook(book)}
+                      onTouchStart={() => setPreviewBook(book)}
+                      onClick={() => { setSelectedBook(book); setSelectedChapter(1); setShowBookList(false); setBookSearch(''); setPreviewBook(null); }}
+                      className="w-full text-left px-6 py-4 flex items-center justify-between transition-all"
+                      style={book.osis === selectedBook.osis ? { background: `${accentColor}16` } : {}}>
+                      <span className="text-base font-bold" style={{ color: book.osis === selectedBook.osis ? accentColor : tx1 }}>{book.name}</span>
+                      <span className="text-xs font-semibold px-2 py-1 rounded-lg" style={{ background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)', color: tx3 }}>{book.chapters} ch</span>
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════
+          CHAPTER SELECTOR — bottom sheet grid
+      ══════════════════════════════════════════ */}
+      {showChapterPicker && (
+        <div className="fixed inset-0 z-[999] flex flex-col" style={{ backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowChapterPicker(false)}>
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={BOOK_IMAGES[selectedBook.name] ?? IMG.cosmos} alt=""
+              className="w-full h-full object-cover"
+              style={{ filter: 'brightness(0.45) saturate(1.2)' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 55%, rgba(0,0,0,0.4) 100%)' }} />
+          </div>
+          <div className="relative z-10 mt-auto rounded-t-[28px] flex flex-col overflow-hidden"
+            style={{ background: isLight ? '#f8faf8' : '#0c1510', maxHeight: '75vh', boxShadow: '0 -32px 80px rgba(0,0,0,0.9)' }}
+            onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-4 pb-2 shrink-0">
+              <div className="w-12 h-1.5 rounded-full" style={{ background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)' }} />
+            </div>
+            <div className="px-6 pt-1 pb-5 shrink-0 flex items-center justify-between">
+              <div>
+                <p className="text-xl font-black" style={{ color: tx1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Chapter</p>
+                <p className="text-sm mt-0.5" style={{ color: tx3 }}>{selectedBook.name} · {selectedBook.chapters} total</p>
+              </div>
+              <button onClick={() => setShowChapterPicker(false)} className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)', color: tx3 }}>×</button>
+            </div>
+            <div className="overflow-y-auto px-5 pb-10">
+              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                {Array.from({ length: selectedBook.chapters }, (_, i) => i + 1).map(ch => (
+                  <button key={ch}
+                    onClick={() => { setSelectedChapter(ch); setShowChapterPicker(false); }}
+                    className="rounded-2xl py-4 text-base font-black transition-all active:scale-90"
+                    style={ch === selectedChapter
+                      ? { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`, color: '#fff', boxShadow: `0 4px 20px ${accentColor}50` }
+                      : { background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.07)', color: tx1, border: `1px solid ${accentColor}15` }}>
+                    {ch}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════
+          VERSE SELECTOR — bottom sheet grid
+      ══════════════════════════════════════════ */}
+      {showVersePicker && passage && (
+        <div className="fixed inset-0 z-[999] flex flex-col" style={{ backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowVersePicker(false)}>
+          <div className="absolute inset-0 overflow-hidden">
+            <img src={BOOK_IMAGES[selectedBook.name] ?? IMG.cosmos} alt=""
+              className="w-full h-full object-cover"
+              style={{ filter: 'brightness(0.45) saturate(1.2)' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 55%, rgba(0,0,0,0.4) 100%)' }} />
+          </div>
+          <div className="relative z-10 mt-auto rounded-t-[28px] flex flex-col overflow-hidden"
+            style={{ background: isLight ? '#f8faf8' : '#0c1510', maxHeight: '75vh', boxShadow: '0 -32px 80px rgba(0,0,0,0.9)' }}
+            onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center pt-4 pb-2 shrink-0">
+              <div className="w-12 h-1.5 rounded-full" style={{ background: isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)' }} />
+            </div>
+            <div className="px-6 pt-1 pb-5 shrink-0 flex items-center justify-between">
+              <div>
+                <p className="text-xl font-black" style={{ color: tx1, fontFamily: 'Montserrat, system-ui, sans-serif' }}>Jump to Verse</p>
+                <p className="text-sm mt-0.5" style={{ color: tx3 }}>{selectedBook.name} {selectedChapter} · {passage.verses.length} verses</p>
+              </div>
+              <button onClick={() => setShowVersePicker(false)} className="w-9 h-9 rounded-full flex items-center justify-center text-lg" style={{ background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)', color: tx3 }}>×</button>
+            </div>
+            <div className="overflow-y-auto px-5 pb-10">
+              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+                {passage.verses.map(v => (
+                  <button key={v.verse}
+                    onClick={() => { setShowVersePicker(false); if (speaking) playTTS(v.verse); setTimeout(() => scrollToVerse(v.verse), 80); }}
+                    className="rounded-2xl py-4 text-base font-black transition-all active:scale-90"
+                    style={{ background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.07)', color: tx1, border: `1px solid ${accentColor}15` }}>
+                    {v.verse}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
