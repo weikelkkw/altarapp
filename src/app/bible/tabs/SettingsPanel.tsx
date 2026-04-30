@@ -596,8 +596,34 @@ export default function SettingsPanel({
             transition: 'background 0.3s',
           }} />
 
+          {/* Brand lockup — keeps THE ALTAR identity visible while the panel
+              is open (the main app Header is occluded by the panel). Mirrors
+              the cross + wordmark in src/app/bible/tabs/Header.tsx. */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 20px 0' }}>
+            <svg width="11" height="16" viewBox="0 0 14 20" fill="none" style={{ filter: `drop-shadow(0 0 4px ${tabColor}88)`, flexShrink: 0 }}>
+              <rect x="5.5" y="0" width="3" height="20" rx="0.75" fill={tabColor} />
+              <rect x="0" y="5" width="14" height="3" rx="0.75" fill={tabColor} />
+            </svg>
+            <span style={{
+              fontFamily: 'Montserrat, system-ui, sans-serif',
+              fontSize: 13, fontWeight: 900,
+              letterSpacing: '0.18em', textTransform: 'uppercase' as const,
+              background: `linear-gradient(160deg, #fff 0%, ${tabColor} 75%)`,
+              backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent',
+              filter: `drop-shadow(0 0 6px ${tabColor}33)`,
+              lineHeight: 1,
+            }}>The Altar</span>
+            <span style={{
+              fontSize: 8, fontWeight: 800, letterSpacing: '0.22em',
+              textTransform: 'uppercase' as const,
+              color: `${tabColor}66`,
+              fontFamily: 'Montserrat, system-ui, sans-serif',
+              marginLeft: 2,
+            }}>· The Entrance</span>
+          </div>
+
           {/* Title row */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 14px' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px 14px' }}>
             <div>
               <div style={{
                 display: 'inline-block',
