@@ -64,8 +64,12 @@ Vercel deploy via GitHub integration. There is no separate deploy step — the
 push **is** the deploy.
 
 See [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) for the full deploy +
-rollback procedure and [`docs/INCIDENT_RESPONSE.md`](./docs/INCIDENT_RESPONSE.md)
-for the on-call runbook.
+rollback procedure, [`docs/INCIDENT_RESPONSE.md`](./docs/INCIDENT_RESPONSE.md)
+for the on-call runbook, and
+[`docs/BACKUP_AND_RECOVERY.md`](./docs/BACKUP_AND_RECOVERY.md) for the full
+disaster-recovery plan (asset register, RPO/RTO, scenario runbooks).
+Dependency posture and supply-chain controls live in
+[`docs/DEPENDENCIES.md`](./docs/DEPENDENCIES.md).
 
 ## Security
 

@@ -43,7 +43,8 @@ to undo schema changes if needed, then redeploy.
 After every production deploy, manually verify:
 
 - [ ] https://thealtar.app loads the home tab without console errors.
-- [ ] `/api/health` returns `200 {"status":"ok",...}`.
+- [ ] `/api/health` returns `200 {"status":"ok",...}` (shallow).
+- [ ] `/api/health/deep` returns `200 {"status":"ok","checks":{"db":"ok",...}}` (dependency probe).
 - [ ] `/bible/auth` renders and a fresh signup completes end-to-end.
 - [ ] Prayer Wall posts load (community tab → Prayer Wall).
 - [ ] Settings → Account → Export My Data downloads a JSON file.

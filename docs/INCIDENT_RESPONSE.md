@@ -1,7 +1,13 @@
 # Incident Response Runbook
 
 This document is the on-call playbook for The Altar production incidents.
-Updated 2026-04-30 (Audit 04).
+Updated 2026-04-30 (Audit 05).
+
+For **disaster-level scenarios** (database corruption, ransomware, account
+compromise, registrar lock-out, Vercel suspension), the deeper runbooks
+live in [`BACKUP_AND_RECOVERY.md`](./BACKUP_AND_RECOVERY.md) §4. This
+document covers the operational incidents (service degradation, deploy
+issues, abuse) that an on-call would handle without invoking DR.
 
 ## Incident severity
 

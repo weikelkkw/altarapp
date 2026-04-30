@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 // - We deliberately do NOT hit Supabase here; an outage of the database
 //   would page the on-call but we don't want a transient blip to be
 //   reported as "the application is down" when the static surface is fine.
-//   If/when we add a /api/health/deep, that one will hit the database.
+//   The dependency-aware probe lives at /api/health/deep.
 // - We don't expose secrets, internals, or build-id leaks. Only:
 //     status, time, version (Vercel git SHA if available), region.
 

@@ -11,6 +11,7 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Default to least privilege; jobs can widen with their own permissions block.
 permissions:
   contents: read
 
@@ -30,17 +31,21 @@ jobs:
       ANTHROPIC_API_KEY: sk-ant-placeholder
       ELEVENLABS_API_KEY: placeholder
     steps:
+      # Third-party actions pinned to commit SHA to defeat tag-rewrite supply
+      # chain attacks. Update via Dependabot's github-actions ecosystem.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
 
+      # `--ignore-scripts` blocks postinstall scripts from arbitrary deps —
+      # supply-chain defense. None of our direct deps need a postinstall.
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm ci --no-audit --no-fund --ignore-scripts
 
       - name: Lint
         run: npm run lint
@@ -48,16 +53,28 @@ jobs:
       - name: Build
         run: npm run build
 
+      # SBOM (CycloneDX-shaped) — generated per build, kept as a CI artifact
+      # so any production deploy can be traced to its exact dependency set.
+      - name: Generate SBOM
+        run: npm sbom --sbom-format=cyclonedx > sbom.cdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+          retention-days: 90
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
 
