@@ -950,6 +950,38 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             </div>
           )}
 
+          {/* ── New Groups (v2) callout — links to the rebuilt Groups module ── */}
+          <a
+            href="/bible/groups"
+            style={{
+              display: 'block',
+              textDecoration: 'none',
+              padding: '14px 16px',
+              borderRadius: 18,
+              background: `linear-gradient(135deg, ${A}22, ${A}08)`,
+              border: `1px solid ${A}40`,
+              color: '#f0f8f4',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+                background: `${A}30`, border: `1px solid ${A}55`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 20,
+              }}>✦</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, fontFamily: 'Montserrat, system-ui, sans-serif' }}>
+                  Try the new Groups
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(232,240,236,0.5)', marginTop: 2 }}>
+                  Prayer Wall, threaded chat, reading plans, meetings &mdash; rebuilt.
+                </div>
+              </div>
+              <div style={{ color: A, fontSize: 18 }}>›</div>
+            </div>
+          </a>
+
           {/* ── My Groups ── */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
