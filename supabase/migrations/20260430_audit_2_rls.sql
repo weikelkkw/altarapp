@@ -105,6 +105,7 @@ CREATE POLICY "comments_select"
 -- Was: USING (auth.role() = 'authenticated') — equivalent to USING(true) for any
 -- signed-in user, which leaked comments on group-scoped prayer posts.
 DROP POLICY IF EXISTS "authenticated users can view prayer comments" ON trace_prayer_comments;
+DROP POLICY IF EXISTS "users can view prayer comments in visible posts" ON trace_prayer_comments;
 CREATE POLICY "users can view prayer comments in visible posts"
   ON trace_prayer_comments FOR SELECT
   USING (
