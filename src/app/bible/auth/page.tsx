@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, memo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,6 +18,41 @@ const MESSAGES = [
   { text: 'God is not ashamed to be called your God. Think about that. The Creator of everything — not ashamed of you.', ref: 'Hebrews 11:16' },
 ];
 
+// Owns its own 14-second rotation interval so the parent AuthPageInner never
+// re-renders on tick. memo() means a stable parent prop set (just `gold`)
+// won't re-render this either. This was the fix for the iOS-Safari caret-
+// jumping bug — the prior implementation re-rendered the whole 545-line auth
+// page every 14s, causing the 30 fixed-position star divs and overlays to
+// thrash and knock the keyboard caret around.
+const RotatingQuote = memo(function RotatingQuote({ gold }: { gold: string }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx(i => (i + 1) % MESSAGES.length), 14000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div style={{ height: 72, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+      <p key={idx} style={{
+        fontSize: 11, fontWeight: 400,
+        color: 'rgba(255,255,255,0.62)', fontFamily: 'Georgia, serif',
+        fontStyle: 'italic', lineHeight: 1.65, maxWidth: 340,
+        textAlign: 'center', animation: 'altarMsg 14s ease-in-out',
+        margin: '0 auto 5px',
+        display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+      }}>
+        &ldquo;{MESSAGES[idx].text}&rdquo;
+      </p>
+      <p key={`r-${idx}`} style={{
+        fontSize: 9, fontWeight: 800, color: gold,
+        letterSpacing: '0.14em', textTransform: 'uppercase',
+        animation: 'altarMsg 14s ease-in-out', opacity: 0.65,
+      }}>
+        {MESSAGES[idx].ref}
+      </p>
+    </div>
+  );
+});
+
 function AuthPageInner() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
@@ -31,17 +66,12 @@ function AuthPageInner() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [mounted, setMounted] = useState(false);
-  const [msgIdx, setMsgIdx] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const gold = '#c9a84c';
 
   useEffect(() => { setTimeout(() => setMounted(true), 100); }, []);
-  useEffect(() => {
-    const t = setInterval(() => setMsgIdx(i => (i + 1) % MESSAGES.length), 14000);
-    return () => clearInterval(t);
-  }, []);
 
   useEffect(() => {
     if (searchParams.get('logout') === '1') {
@@ -349,26 +379,10 @@ function AuthPageInner() {
             <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${gold}44, transparent)` }} />
           </div>
 
-          {/* Scripture quote — fixed height, no layout shift */}
-          <div style={{ height: 72, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-            <p key={msgIdx} style={{
-              fontSize: 11, fontWeight: 400,
-              color: 'rgba(255,255,255,0.62)', fontFamily: 'Georgia, serif',
-              fontStyle: 'italic', lineHeight: 1.65, maxWidth: 340,
-              textAlign: 'center', animation: 'altarMsg 14s ease-in-out',
-              margin: '0 auto 5px',
-              display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-            }}>
-              &ldquo;{MESSAGES[msgIdx].text}&rdquo;
-            </p>
-            <p key={`r-${msgIdx}`} style={{
-              fontSize: 9, fontWeight: 800, color: gold,
-              letterSpacing: '0.14em', textTransform: 'uppercase',
-              animation: 'altarMsg 14s ease-in-out', opacity: 0.65,
-            }}>
-              {MESSAGES[msgIdx].ref}
-            </p>
-          </div>
+          {/* Scripture quote — owned by a child component so its 14-second
+              tick doesn't re-render the whole page (which was knocking the
+              caret around in form inputs on iOS). */}
+          <RotatingQuote gold={gold} />
         </div>
 
         {/* Auth card */}
