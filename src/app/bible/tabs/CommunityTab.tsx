@@ -333,6 +333,7 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(false);
+  const [groupsError, setGroupsError] = useState<string | null>(null);
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createIcon, setCreateIcon] = useState('✝️');
@@ -388,25 +389,40 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
     const supabase = createClient();
     if (!supabase) return;
     setGroupsLoading(true);
+    setGroupsError(null);
     try {
-      const { data: memberships } = await supabase.from('trace_group_members')
+      const memQ = await supabase.from('trace_group_members')
         .select('group_id, role').eq('user_id', profileId).eq('status', 'approved');
-      if (!memberships?.length) { setMyGroups([]); return; }
+      if (memQ.error) {
+        setGroupsError(`memberships: ${memQ.error.message}`);
+        setMyGroups([]);
+        return;
+      }
+      const memberships = memQ.data ?? [];
+      if (!memberships.length) { setMyGroups([]); return; }
       const groupIds = memberships.map((m: any) => m.group_id);
       const roleMap: Record<string, string> = {};
       for (const m of memberships) roleMap[(m as any).group_id] = (m as any).role;
-      const { data: groups } = await supabase.from('trace_groups')
+      const grpQ = await supabase.from('trace_groups')
         .select('id, name, description, icon, privacy').in('id', groupIds);
-      const { data: counts } = await supabase.from('trace_group_members')
+      if (grpQ.error) {
+        setGroupsError(`groups: ${grpQ.error.message}`);
+        setMyGroups([]);
+        return;
+      }
+      const groups = grpQ.data ?? [];
+      const cntQ = await supabase.from('trace_group_members')
         .select('group_id').in('group_id', groupIds).eq('status', 'approved');
       const countMap: Record<string, number> = {};
-      for (const c of (counts || [])) countMap[(c as any).group_id] = (countMap[(c as any).group_id] || 0) + 1;
-      setMyGroups((groups || []).map((g: any) => ({
+      for (const c of (cntQ.data || [])) countMap[(c as any).group_id] = (countMap[(c as any).group_id] || 0) + 1;
+      setMyGroups(groups.map((g: any) => ({
         id: g.id, name: g.name, description: g.description || '',
         memberCount: countMap[g.id] || 1, icon: g.icon || '✝️',
         isMember: true, isLeader: roleMap[g.id] === 'leader', privacy: g.privacy as any,
       })));
-    } catch (err) { console.warn('loadMyGroups:', err); }
+    } catch (err: any) {
+      setGroupsError(err?.message ?? String(err));
+    }
     finally { setGroupsLoading(false); }
   }, [profileId]);
 
@@ -993,6 +1009,12 @@ export default function CommunityTab({ userIdentity, accentColor, authUser, onOp
             </div>
             {!authUser ? (
               <button onClick={onOpenAuth} style={{ width: '100%', padding: '18px', borderRadius: 18, background: `${A}08`, border: `1px dashed ${A}25`, color: `${A}80`, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Sign in to see your groups</button>
+            ) : groupsError ? (
+              <div style={{ padding: '12px 14px', borderRadius: 14, background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.35)', color: '#fca5a5', fontSize: 12, lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 800, marginBottom: 4 }}>Couldn&apos;t load groups</div>
+                <div style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 11, opacity: 0.85 }}>{groupsError}</div>
+                <div style={{ fontSize: 10, marginTop: 6, opacity: 0.6 }}>profileId: {profileId ?? 'null'}</div>
+              </div>
             ) : groupsLoading ? (
               <Spinner accentColor={A} />
             ) : myGroups.length === 0 ? (
